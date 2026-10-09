@@ -12,12 +12,23 @@ static class TraversalTests
     {
         var points = new[] { new SurveyPoint("1", 0, 0, null, ""), new SurveyPoint("2", 100, 100, null, "") };
         var fit = DrawingViewport.Fit(points, new DrawingBounds(-1e8, -1e8, 1e8, 1e8), 500, 500)!;
-        Near(fit.World.MinE, -5, "Only points determine fit minE"); Near(fit.World.MinN, -5, "Point fit minN");
-        Near(fit.World.MaxE, 105, "Point fit maxE"); Near(fit.World.MaxN, 105, "Point fit maxN");
+        Near(fit.World.MinE, -1.1e8, "Fit includes drawing minE"); Near(fit.World.MinN, -1.1e8, "Fit includes drawing minN");
+        Near(fit.World.MaxE, 1.1e8, "Fit includes drawing maxE"); Near(fit.World.MaxN, 1.1e8, "Fit includes drawing maxN");
         var single = DrawingViewport.Fit(points.Take(1).ToArray(), DrawingBounds.Empty, 500, 500)!;
         Near(single.World.MaxE - single.World.MinE, 1.1, "One point width");
         var overview = DrawingViewport.Fit(Array.Empty<SurveyPoint>(), new DrawingBounds(0, 0, 10, 20), 500, 500)!;
         Near(overview.World.MaxN, 21, "No points uses drawing");
+        var pointAndDrawing = DrawingViewport.Fit(points, new DrawingBounds(200, 200, 220, 240), 500, 500)!;
+        Near(pointAndDrawing.World.MaxE, 231, "Fit includes visible drawing when points exist");
+        var anchor = pointAndDrawing.WorldAt(180, 140);
+        var zoomed = pointAndDrawing.ZoomAt(180, 140, 2);
+        var anchorAfter = zoomed.WorldAt(180, 140);
+        Near(anchorAfter.E, anchor.E, "Zoom anchors world coordinate under cursor E");
+        Near(anchorAfter.N, anchor.N, "Zoom anchors world coordinate under cursor N");
+        var panned = zoomed.PanPixels(24, 15);
+        var screenBefore = zoomed.Screen(210, 215); var screenAfter = panned.Screen(210, 215);
+        Near(screenAfter.X - screenBefore.X, 24, "Pan follows horizontal drag");
+        Near(screenAfter.Y - screenBefore.Y, 15, "Pan follows vertical drag");
         Check(DrawingViewport.Fit(new[] { new SurveyPoint("", double.NaN, 1, null, "") }, DrawingBounds.Empty, 500, 500) is null, "Invalid/absent points ignored");
         var geometry = Definition(1, new DrawingGeometryNode(new(DrawingKind.Line, "0", 0, 0, 10, 0)),
             new DrawingGeometryNode(new(DrawingKind.Point, "C", 5, 5)));

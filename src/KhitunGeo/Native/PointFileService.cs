@@ -6,17 +6,12 @@ namespace KhitunGeo.Native;
 
 internal static class PointFileService
 {
-    private const long MaxTextBytes = 16 * 1024 * 1024;
-
     public static IReadOnlyList<SurveyPoint> Read(string path)
     {
-        var extension = Path.GetExtension(path).ToLowerInvariant();
-        if (extension == ".xlsx") return ExcelXlsxReader.Read(path);
-        if (extension is not (".csv" or ".tsv" or ".txt"))
-            throw new FormatException("Поддерживаются книги Excel XLSX и табличные файлы CSV, TSV, TXT.");
-        if (new FileInfo(path).Length > MaxTextBytes)
-            throw new FormatException("Табличный файл больше 16 МБ. Разделите файл.");
-        return TabularPaste.Parse(File.ReadAllText(path, new UTF8Encoding(false, true)));
+        var preview = PointImportService.Open(path);
+        var review = PointImportService.Map(preview, PointImportService.DetectMapping(preview), preview.HasHeader, swapXY: false);
+        if (review.Errors.Count > 0) throw new FormatException(string.Join(Environment.NewLine, review.Errors.Take(3)));
+        return review.Points;
     }
 
     public static string ToCsv(IReadOnlyList<SurveyPoint> points)

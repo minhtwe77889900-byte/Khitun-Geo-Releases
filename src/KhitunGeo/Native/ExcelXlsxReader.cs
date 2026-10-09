@@ -11,14 +11,31 @@ internal static class ExcelXlsxReader
     private static readonly XNamespace PackageRel = "http://schemas.openxmlformats.org/package/2006/relationships";
     private const long MaxEntryBytes = 32 * 1024 * 1024;
 
+    private sealed record SheetReference(string Name, string Path);
+
     public static IReadOnlyList<SurveyPoint> Read(string path)
+    {
+        var rows = ReadSheetRows(path, null);
+        var text = string.Join("\r\n", rows.Select(row => string.Join("\t", row.Select(TsvCell))));
+        return TabularPaste.Parse(text);
+    }
+
+    public static IReadOnlyList<string> GetSheetNames(string path)
+    {
+        using var archive = ZipFile.OpenRead(path);
+        return FindSheets(archive).Select(sheet => sheet.Name).ToArray();
+    }
+
+    public static string[][] ReadSheetRows(string path, string? sheetName)
     {
         using var archive = ZipFile.OpenRead(path);
         var sharedStrings = ReadSharedStrings(archive);
-        var sheetPath = FindFirstSheet(archive);
-        var sheet = ReadXml(archive, sheetPath);
-        var text = new StringBuilder();
-        foreach (var row in sheet.Descendants(Main + "row"))
+        var sheets = FindSheets(archive);
+        var selectedSheet = sheets.FirstOrDefault(s => sheetName is not null && string.Equals(s.Name, sheetName, StringComparison.Ordinal)) ?? sheets.FirstOrDefault();
+        var sheetPath = selectedSheet?.Path ?? throw new FormatException("В книге XLSX не найден лист с данными.");
+        var sheetXml = ReadXml(archive, sheetPath);
+        var rows = new List<string[]>();
+        foreach (var row in sheetXml.Descendants(Main + "row"))
         {
             var cells = new SortedDictionary<int, string>();
             foreach (var cell in row.Elements(Main + "c"))
@@ -40,37 +57,41 @@ internal static class ExcelXlsxReader
             var fields = new string[cells.Keys.Max() + 1];
             Array.Fill(fields, "");
             foreach (var (column, value) in cells) fields[column] = value;
-            text.AppendLine(string.Join("\t", fields.Select(TsvCell)));
+            rows.Add(fields);
         }
-        return TabularPaste.Parse(text.ToString());
+        return rows.ToArray();
     }
 
-    private static string FindFirstSheet(ZipArchive archive)
+    private static IReadOnlyList<SheetReference> FindSheets(ZipArchive archive)
     {
         var workbook = archive.GetEntry("xl/workbook.xml");
         var rels = archive.GetEntry("xl/_rels/workbook.xml.rels");
         if (workbook is null || rels is null)
-            return archive.Entries.FirstOrDefault(e => e.FullName.StartsWith("xl/worksheets/sheet", StringComparison.OrdinalIgnoreCase) && e.FullName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))?.FullName
-                ?? throw new FormatException("В книге XLSX не найден лист с данными.");
+            return archive.Entries.Where(e => e.FullName.StartsWith("xl/worksheets/sheet", StringComparison.OrdinalIgnoreCase) && e.FullName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+                .OrderBy(e => e.FullName, StringComparer.OrdinalIgnoreCase)
+                .Select((entry, index) => new SheetReference($"Лист {index + 1}", entry.FullName)).ToArray();
 
         var workbookXml = LoadXml(workbook);
-        var firstSheet = workbookXml.Descendants(Main + "sheet").FirstOrDefault()
-            ?? throw new FormatException("В книге XLSX нет листов.");
-        var relationshipId = (string?)firstSheet.Attribute(OfficeRel + "id");
-        var relationship = LoadXml(rels).Root?.Elements(PackageRel + "Relationship")
-            .FirstOrDefault(e => (string?)e.Attribute("Id") == relationshipId);
-        var target = (string?)relationship?.Attribute("Target");
-        if (string.IsNullOrWhiteSpace(target)) throw new FormatException("Не найден первый лист книги XLSX.");
-        var segments = new List<string>();
-        foreach (var segment in target.Replace('\\', '/').Split('/'))
+        var relationships = LoadXml(rels).Root?.Elements(PackageRel + "Relationship").ToDictionary(
+            e => (string?)e.Attribute("Id") ?? "", e => (string?)e.Attribute("Target") ?? "", StringComparer.Ordinal)
+            ?? new Dictionary<string, string>();
+        var result = new List<SheetReference>();
+        foreach (var sheet in workbookXml.Descendants(Main + "sheet"))
         {
-            if (segment is "" or ".") continue;
-            if (segment == "..") { if (segments.Count > 0) segments.RemoveAt(segments.Count - 1); continue; }
-            segments.Add(segment);
+            var id = (string?)sheet.Attribute(OfficeRel + "id") ?? "";
+            if (!relationships.TryGetValue(id, out var target) || string.IsNullOrWhiteSpace(target)) continue;
+            var segments = target.StartsWith('/') ? new List<string>() : new List<string> { "xl" };
+            foreach (var segment in target.Replace('\\', '/').Split('/'))
+            {
+                if (segment is "" or ".") continue;
+                if (segment == "..") { if (segments.Count > 0) segments.RemoveAt(segments.Count - 1); continue; }
+                segments.Add(segment);
+            }
+            var normalized = string.Join('/', segments);
+            if (archive.GetEntry(normalized) is not null) result.Add(new SheetReference((string?)sheet.Attribute("name") ?? $"Лист {result.Count + 1}", normalized));
         }
-        var normalized = target.StartsWith('/') ? string.Join('/', segments) : "xl/" + string.Join('/', segments);
-        if (archive.GetEntry(normalized) is null) throw new FormatException("Лист книги XLSX повреждён или отсутствует.");
-        return normalized;
+        if (result.Count == 0) throw new FormatException("Не найден ни один лист с данными в книге XLSX.");
+        return result;
     }
 
     private static List<string> ReadSharedStrings(ZipArchive archive)

@@ -39,10 +39,10 @@ internal static class TabularPaste
         return result;
     }
 
-    public static string[][] ParseCells(string text)
+    public static string[][] ParseCells(string text, string? delimiter = null)
     {
         if (string.IsNullOrWhiteSpace(text)) return Array.Empty<string[]>();
-        var separator = DetectCellDelimiter(text);
+        var separator = string.IsNullOrEmpty(delimiter) || delimiter == "auto" ? DetectCellDelimiter(text) : delimiter;
         using var parser = new TextFieldParser(new StringReader(text));
         parser.SetDelimiters(separator);
         parser.HasFieldsEnclosedInQuotes = true;

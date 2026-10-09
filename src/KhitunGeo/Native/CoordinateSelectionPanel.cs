@@ -21,6 +21,15 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
     public string SourceName => (source.SelectedItem as NativeCrsOption)?.Name ?? "";
     public string TargetName => (target.SelectedItem as NativeCrsOption)?.Name ?? "";
 
+    public bool SelectSource(string id)
+    {
+        if (source.DataSource is not IEnumerable<NativeCrsOption> systems) return false;
+        var option = systems.FirstOrDefault(item => string.Equals(item.Id, id, StringComparison.OrdinalIgnoreCase));
+        if (option is null) return false;
+        source.SelectedItem = option;
+        return true;
+    }
+
     public CoordinateSelectionPanel(string cataloguePath, Action swapPointAxes)
     {
         Dock = DockStyle.Top; Height = 150; ColumnCount = 4; RowCount = 4; Padding = new Padding(10, 5, 10, 5);

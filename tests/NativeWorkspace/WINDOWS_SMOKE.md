@@ -1,5 +1,16 @@
 # Native preview: Windows verification pending
 
+Stage 13 import and workspace refresh checks (pending on Windows):
+
+- [ ] Import Khitun Geo project JSON (`source` plus `points`), legacy `pointInfoArray` JSON, and GeoJSON; verify every point and retained source CRS.
+- [ ] Import XLSX with multiple sheets and reordered columns; select a non-first sheet and confirm the mapped preview.
+- [ ] Import CSV/TSV/TXT and headerless XYZ/PNT/DAT/ASC; check delimiter selection, decimal commas, optional heights and names.
+- [ ] Verify invalid rows are highlighted and do not change the current table until skipped explicitly; cancel leaves the table unchanged.
+- [ ] Verify Add and Replace modes, importing several files, and auto-select source CRS when the file identifies it.
+- [ ] Hide/show the left panel and visualization; import/export remain available while visualization is hidden.
+- [ ] Zoom with wheel and +/-; pan with middle mouse; Fit includes points and drawing; resize the pane without resetting the view.
+- [ ] Apply Z add, subtract and absolute set; blank heights remain blank for add/subtract and Ctrl+Z restores all rows.
+
 Launch a locally built executable with `--native-preview`. Default startup must still open the existing UI.
 
 - [ ] Build the entire Windows project without errors.
