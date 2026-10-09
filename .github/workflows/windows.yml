@@ -50,11 +50,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'DWG native tests failed' }
           node tests/dwg-interop.cjs
           if ($LASTEXITCODE -ne 0) { throw 'DWG overlay tests failed' }
-      - name: Set CI desktop size for native DPI screenshots
-        shell: pwsh
-        run: |
-          Set-DisplayResolution -Width 3840 -Height 2160 -Force
-          if ($LASTEXITCODE -ne 0) { throw 'Cannot set CI desktop resolution' }
       - name: Verify native migration and browser-free runtime
         run: ./tools/verify-native-runtime.ps1
       - name: Verify workspace tools
