@@ -17,8 +17,8 @@ internal static class PointExport
         if (options.Delimiter is not ("," or ";" or "\t" or " ")) throw new ArgumentException("Недопустимый разделитель.");
         if (options.Format == PointExportFormat.Blh && !geographic)
             throw new ArgumentException("B,L,H требует географических координат. Сначала выполните пересчёт.");
-        if (options.Format != PointExportFormat.Blh && options.Format != PointExportFormat.ExcelXlsx && geographic)
-            throw new ArgumentException("В таблице широта и долгота. Выберите B,L,H или пересчитайте точки в плоскую систему.");
+        // CAD export writes the table's numeric coordinates without conversion.
+        // The source picker describes the next calculation, not necessarily this data.
         if (options.Format == PointExportFormat.AutoCadScript)
             return CreateAutoCadScript(points, options.Decimals);
         string[] columns = options.Format switch
