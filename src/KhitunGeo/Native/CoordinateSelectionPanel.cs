@@ -71,6 +71,7 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
 
     private static ComboBox Picker() => new()
     {
+        BindingContext = new BindingContext(),
         Dock = DockStyle.Fill, Margin = new Padding(0, 2, 0, 2), DropDownStyle = ComboBoxStyle.DropDownList, DropDownWidth = 620,
         DisplayMember = nameof(NativeCrsOption.Name), ValueMember = nameof(NativeCrsOption.Id),
         AutoCompleteSource = AutoCompleteSource.ListItems, AutoCompleteMode = AutoCompleteMode.SuggestAppend
