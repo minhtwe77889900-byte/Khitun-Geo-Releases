@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 44983)
-Total output lines: 1211
-
 <!doctype html>
 <html lang="ru">
 <head>
@@ -429,7 +426,619 @@ html[data-theme="2"] #welcomeDialog a,html[data-theme="2"] .releaseLink { color:
 <body>
 <div class="appShell sidebarCollapsed" id="appShell">
   <nav class="navRail" aria-label="Разделы приложения">
-    <div class="railHead"><a class="railLogo" href="#pointsPanel" aria-label="Развернуть или свернуть панель"><img src="brand/khitun_geo_mark.svg" alt=""><span>Khitun Geo</span></a><button class="railPin" id="sidebarPin" aria-label="Закрепить панель" title="Закрепить панель" aria-pressed="false">…24983 tokens truncated…onePrefix').checked){snapshot();$('autoZone').checked=automatic;$('zoneManual').value=number;$('srcZonePrefix').checked=sp;$('dstZonePrefix').checked=dp;refreshUI();scheduleSave();setStatus('Настройка зоны сохранена.');}
+    <div class="railHead"><a class="railLogo" href="#pointsPanel" aria-label="Развернуть или свернуть панель"><img src="brand/khitun_geo_mark.svg" alt=""><span>Khitun Geo</span></a><button class="railPin" id="sidebarPin" aria-label="Закрепить панель" title="Закрепить панель" aria-pressed="false">⌁</button><button class="railToggle" id="sidebarToggle" aria-label="Свернуть панель" title="Свернуть панель">‹</button></div>
+    <details class="railGroup projectGroup"><summary class="navItem projectSummary" title="Проект: название, открыть, сохранить"><span class="navIcon">▣</span><span class="projectIdentity"><span id="workspaceProjectName">Новый проект</span><span id="autosaveStatus" class="autosave" aria-live="polite"></span></span><span class="projectChevron" aria-hidden="true">⌄</span></summary><div class="railMenu" id="projectActions"><span class="railMenuTitle">Проект</span>
+      <label for="projectName">Название проекта</label><input id="projectName" placeholder="Название проекта" value="Новый проект"><select id="projectSelect" aria-label="Последние проекты"><option value="">Последние проекты…</option></select>
+      <button id="newBtn">Новый проект</button><button id="openBtn">Открыть проект JSON</button><button id="saveBtn">Сохранить проект JSON</button><button data-native="backup">Резервная копия</button><button data-native="restore">Восстановить копию</button><button id="duplicateProjectBtn">Дублировать</button><button id="deleteProjectBtn" class="danger">Удалить проект</button><button data-native="exit">Выход</button>
+    </div></details>
+    <details class="railGroup"><summary class="navItem" title="Данные: импорт, экспорт и пакетная обработка"><span class="navIcon">⇅</span><span class="navText">Данные</span></summary><div class="railMenu" id="dataActions"><span class="railMenuTitle">Данные и отчёты</span>
+      <div class="exchangeGroup"><button id="importBtn" aria-expanded="false" aria-controls="importMenu">Импортировать точки</button><div id="importMenu" class="exchangeMenu" hidden>
+        <button data-import-preset="auto">Автоопределение формата</button><button data-import-preset="autocad_xy">AutoCAD — X,Y,Z</button><button data-import-preset="civil_pnezd">Civil 3D — PNEZD</button><button data-import-preset="civil_penzd">Civil 3D — PENZD</button><button data-import-preset="civil_nez">Civil 3D — NEZ</button><button data-import-preset="civil_enz">Civil 3D — ENZ</button><button data-import-preset="wgs_bl">Географические — B,L,H</button><button data-import-preset="json">JSON / GeoJSON</button>
+      </div></div>
+      <div class="exchangeGroup"><button id="exportWizardBtn" aria-expanded="false" aria-controls="exportMenu">Экспортировать точки</button><div id="exportMenu" class="exchangeMenu" hidden>
+        <button data-export-format="autocad_xyz">AutoCAD — X,Y,Z</button><button data-export-format="pnezd">Civil 3D — PNEZD</button><button data-export-format="penzd">Civil 3D — PENZD</button><button data-export-format="nez">Civil 3D — NEZ</button><button data-export-format="enz">Civil 3D — ENZ</button><button data-export-format="xyz">Геодезические — X,Y,Z</button><button data-export-format="wgs_bl">Географические — B,L,H</button>
+      </div></div>
+    </div></details>
+    <details class="railGroup"><summary class="navItem" title="Правка"><span class="navIcon">↶</span><span class="navText">Правка</span></summary><div class="railMenu"><button id="undoBtn" title="Ctrl+Z">Отменить</button><button id="redoBtn" title="Ctrl+Y">Повторить</button><button id="heightBtn">Изменить высоту Z</button></div></details>
+    <button class="navItem railAction" id="zoneSettingsBtn" title="Настройка зоны" aria-haspopup="dialog"><span class="navIcon">⌖</span><span class="navText">Зона</span></button>
+    <details class="railGroup"><summary class="navItem" title="Анализ: качество и сравнение съёмок"><span class="navIcon">⌕</span><span class="navText">Анализ</span></summary><div class="railMenu" id="analysisActions"><span class="railMenuTitle">Анализ точек</span><button id="focusSearchBtn">Найти точку</button></div></details>
+    <details class="railGroup"><summary class="navItem" title="Вид: чертёж DXF / DWG и визуализация"><span class="navIcon">▧</span><span class="navText">Вид</span></summary><div class="railMenu" id="viewActions"><span class="railMenuTitle">Визуализация</span><button id="plotVisibilityBtn" aria-pressed="true" title="Полностью скрыть или показать область визуализации">Скрыть визуализацию</button><button id="fitPlotRailBtn">Вписать точки и чертёж</button></div></details>
+    <details class="railGroup"><summary class="navItem" title="Сервис: диагностика и папки приложения"><span class="navIcon">⋯</span><span class="navText">Сервис</span></summary><div class="railMenu"><span class="railMenuTitle">Сервис</span><button data-native="diagnostics">Диагностика</button><button data-native="data">Папка данных</button><button data-native="export">Папка экспорта</button><button data-native="backups">Папка копий</button><button data-native="logs">Журналы ошибок</button></div></details>
+    <button class="navItem railAction" data-native="settings" title="Настройки"><span class="navIcon">⚙</span><span class="navText">Настройки</span></button>
+    <span class="railSpacer"></span>
+    <button class="navItem railAction" id="updateInstallBtn" data-native="install-update" title="Установить обновление и перезапустить" hidden><span class="navIcon">↓</span><span class="navText">Обновление готово</span></button>
+    <button class="navItem railAction" id="helpBtn" aria-label="Справка" title="Справка" aria-haspopup="dialog"><span class="navIcon">?</span><span class="navText">Справка</span></button>
+    <button class="navItem railAction" id="themeToggleBtn" aria-label="Переключить тему" title="Переключить тему"><span class="navIcon" id="themeToggleIcon">☾</span><span class="navText" id="themeToggleText">Тёмная</span></button>
+    <input id="fileInput" type="file" accept=".csv,.txt,.xyz,.pnt,.json,.geojson" hidden>
+  </nav>
+  <main class="appMain">
+    <header class="workspaceBar"><div class="workspaceCrs">
+      <div class="crsField"><label for="src">Координаты в таблице</label><select id="src"></select><button id="srcRegionalToggle" class="regionalPickerToggle" type="button" hidden aria-controls="srcRegional" aria-expanded="false">Регион и зона…</button><div id="srcRegional" hidden><div class="regionalPickerHead"><b>МСК: регион и зона</b><button id="srcRegionalClose" type="button" aria-label="Закрыть выбор региона">×</button></div><label for="srcRegionSearch">Поиск региона / района</label><input id="srcRegionSearch" type="search" placeholder="Название, МСК-167, W…" autocomplete="off"><label for="srcRegion">Регион / район</label><select id="srcRegion"></select><label for="srcRegionalZone">Зона</label><select id="srcRegionalZone"></select></div></div>
+      <button id="swapSystemsBtn" title="Поменять системы местами" aria-label="Поменять системы местами">⇄</button>
+      <div class="crsField"><label for="dst">Преобразовать в</label><select id="dst"></select><button id="dstRegionalToggle" class="regionalPickerToggle" type="button" hidden aria-controls="dstRegional" aria-expanded="false">Регион и зона…</button><div id="dstRegional" hidden><div class="regionalPickerHead"><b>МСК: регион и зона</b><button id="dstRegionalClose" type="button" aria-label="Закрыть выбор региона">×</button></div><label for="dstRegionSearch">Поиск региона / района</label><input id="dstRegionSearch" type="search" placeholder="Название, МСК-167, W…" autocomplete="off"><label for="dstRegion">Регион / район</label><select id="dstRegion"></select><label for="dstRegionalZone">Зона</label><select id="dstRegionalZone"></select></div></div>
+    </div><button class="accent transformMain" id="transformBtn" title="Преобразовать все точки">Преобразовать</button></header>
+    <div id="opStatus" class="headerStatus" role="status" aria-live="polite"></div>
+    <div class="mainWorkspace" id="mainWorkspace">
+      <section class="panel pointsPanel" id="pointsPanel" aria-labelledby="pointsHeading">
+        <div class="pointActions"><div><h2 id="pointsHeading">Точки</h2><span id="count" class="status"></span><span id="validationStatus" class="status"></span></div><div class="pointButtons"><input id="pointSearch" type="search" placeholder="Номер или описание" aria-label="Поиск точки"><button id="addBtn">＋ Добавить</button><button id="swapXyBtn" class="muted" title="Поменять местами X и Y. Для выделенных строк меняются только они; без выделения — все точки.">X ⇄ Y</button><button id="deleteBtn" class="danger">Удалить</button><button id="selectAllBtn" class="muted">Выделить всё</button></div></div>
+        <div class="tablewrap" id="pointsTableWrap"><table aria-label="Координаты точек"><thead id="pointsHead"><tr><th class="pointNoCell" data-col="0">№ точки</th><th data-col="1" title="X — север; B — широта">X / B</th><th data-col="2" title="Y — восток; L — долгота">Y / L</th><th data-col="3" title="Z / H — высота">Z / H</th><th data-col="4">Описание</th></tr></thead><tbody id="tbody"></tbody></table></div>
+        <div id="tableSelectionHint" class="tableHint" aria-live="polite">Столбцы: Ctrl + клик — отдельные, Shift — диапазон</div>
+      </section>
+      <section class="rightWorkspace" aria-label="Параметры и визуализация">
+        <details class="dockPanel" id="coordPanel" open>
+          <summary><span class="dockTitle">Системы координат</span><span id="coordSummary" class="dockSummary"></span></summary>
+          <div class="dockBody"><div id="customBox" class="customBox">
+        <b>Пользовательская / местная МСК</b>
+        <p class="small">Для местной МСК нужны утверждённые параметры конкретной зоны. Названия «МСК-89» или «МСК-14» сами по себе недостаточны.</p>
+        <div class="row">
+          <select id="northRegion">
+            <option value="">Шаблон северного региона…</option>
+            <option>МСК-10 · Республика Карелия</option>
+            <option>МСК-11 · Республика Коми</option>
+            <option>МСК-14 · Республика Саха (Якутия)</option>
+            <option>МСК-24 · Красноярский край</option>
+            <option>МСК-29 · Архангельская область</option>
+            <option>МСК-41 · Камчатский край</option>
+            <option>МСК-49 · Магаданская область</option>
+            <option>МСК-51 · Мурманская область</option>
+            <option>МСК-65 · Сахалинская область</option>
+            <option>МСК-83 · Ненецкий АО</option>
+            <option>МСК-86 · Ханты-Мансийский АО</option>
+            <option>МСК-87 · Чукотский АО</option>
+            <option>МСК-89 · Ямало-Ненецкий АО</option>
+          </select>
+          <input id="customName" placeholder="Название СК/зоны" style="min-width:240px">
+        </div><br>
+        <div class="row">
+          <div class="field"><label>Основа</label><select id="customDatum" style="min-width:170px"><option value="sk42">СК-42 / Красовский</option><option value="sk95">СК-95 / Красовский</option><option value="gsk2011">ГСК-2011</option><option value="wgs">WGS-84</option></select></div>
+          <div class="field"><label>L₀, °</label><input id="customLon0" value="84"></div>
+          <div class="field"><label>False E</label><input id="customFE" value="500000"></div>
+          <div class="field"><label>False N</label><input id="customFN" value="0"></div>
+          <div class="field"><label>k₀</label><input id="customK" value="1"></div>
+        </div>
+      </div></div>
+        </details>
+        <div hidden><input type="checkbox" id="autoZone" checked><input id="zoneManual" value="28"><input type="checkbox" id="srcZonePrefix" checked><input type="checkbox" id="dstZonePrefix" checked><span id="zoneSettingsSummary"></span><span id="zoneInfo"></span><span id="selftest"></span><button id="transformSelectedBtn"></button></div>
+        <div class="plotPanel" id="plotPanel">
+        <div class="plotToolbar">
+          <b>Визуализация точек</b>
+          <select id="labelMode" title="Показывать информацию точек" aria-label="Показывать информацию точек"><option value="no">Номер точки</option><option value="desc">Описание</option><option value="both">№ + описание</option><option value="height">Высота Z</option><option value="depth">Глубина</option><option value="no_depth">№ + глубина</option><option value="off">Без подписей</option></select>
+          <label class="small"><input type="checkbox" id="plotSelectedOnly"> только выделенные</label>
+          <button id="addPlotPointBtn" class="muted" aria-pressed="false">＋ Точка</button>
+          <button id="fitPlotBtn" class="muted">Вписать все</button>
+        </div>
+        <div id="depthSettings" class="depthSettings" hidden><label for="depthReference">Уровень отсчёта, м</label><input id="depthReference" inputmode="decimal" placeholder="Например, 125.40"><span id="depthHint" class="small">Глубина = уровень − Z. Уровень и Z должны быть в одной системе высот.</span></div>
+        <div class="canvasWrap" id="canvasWrap">
+          <canvas id="plotCanvas"></canvas>
+          <div id="plotCursor" class="plotCursor" aria-label="Координаты курсора">X: —
+Y: —</div>
+          <div id="plotEmpty" class="plotEmpty"><strong>Здесь появятся ваши точки</strong><span>Перетащите файл в приложение или добавьте точку в таблицу</span></div>
+        </div>
+      </div>
+      </section>
+    </div>
+    <span id="footerCoordSummary" hidden></span>
+  </main>
+</div>
+
+<div id="dropOverlay" class="dropOverlay" hidden><div>Перетащите файл сюда для импорта<small>CSV, TXT, XYZ, PNT, JSON, GeoJSON, DXF или DWG</small></div></div>
+<dialog id="importChoiceDialog" class="settingsDialog" aria-labelledby="importChoiceTitle"><div class="modalHead"><h2 id="importChoiceTitle">В проекте уже есть точки</h2></div><div class="modalBody"><p>Добавить импортируемые точки к существующим или заменить текущую таблицу? При добавлении системы координат должны совпадать.</p></div><div class="modalFoot"><button id="importChoiceCancel">Отмена</button><button id="importChoiceReplace">Заменить</button><button id="importChoiceAppend" class="accent">Добавить</button></div></dialog>
+
+<dialog id="welcomeDialog" class="settingsDialog workspaceDialog" aria-labelledby="welcomeTitle">
+  <div class="modalHead"><h2 id="welcomeTitle">Знакомство с Khitun Geo</h2><button id="welcomeClose" aria-label="Закрыть руководство">×</button></div>
+  <div class="modalBody" id="welcomeBody">
+    <p id="welcomeProgress" class="small" aria-live="polite"></p>
+    <section data-welcome-step>
+      <h3>Главная цель</h3>
+      <p>Помочь работать с координатами в условиях Крайнего Севера. Интернет есть не всегда, а точки нужно перевести в другую систему координат. Khitun Geo позволяет сделать это без подключения к сети.</p>
+      <h3>История создания</h3>
+      <p>Всё началось с таблицы Excel для пересчёта координат и подготовки точек для Civil 3D. Затем появилась идея отдельного приложения — чтобы загружать точки, пересчитывать их, смотреть на графике и сохранять результат в одном месте.</p>
+      <p>Так появился Khitun Geo. Приложение развивается на основе реальных рабочих задач и замечаний, которые возникают при его использовании.</p>
+    </section>
+    <section data-welcome-step hidden>
+      <h3>Что такое точки и координаты?</h3>
+      <p><b>Точка</b> — место, которое измерили: например, угол здания или отметка дна. Одна строка таблицы — одна точка. Номер помогает её найти, описание объясняет, что измерено.</p>
+      <p><b>Координаты</b> задают положение. В плоских системах Khitun Geo использует X — север и Y — восток, обычно в метрах. В географических системах B — широта и L — долгота в градусах. <b>Z / H</b> — введённая высота.</p>
+      <p><b>Система координат (СК)</b> — правила, по которым записано положение. Одинаковые числа в разных СК могут означать разные места. Узнайте исходную СК, зону и единицы у того, кто передал файл; программа не может надёжно угадать их по числам.</p>
+      <p><b>Зона</b> — часть территории, для которой настроена проекция. При обмене с AutoCAD порядок осей может отличаться: проверьте соответствие столбцов в предпросмотре импорта.</p>
+    </section>
+    <section data-welcome-step hidden>
+      <h3>Первый результат — за пять шагов</h3>
+      <ol>
+        <li><b>Откройте проект</b> через значок проекта слева или начните новый. Сохраните исходный файл отдельно.</li>
+        <li><b>Загрузите точки:</b> перетащите CSV, TXT, XYZ, JSON или GeoJSON в приложение. Если появится мастер, сопоставьте номер, X/B, Y/L, Z и описание. Проверьте несколько строк перед импортом.</li>
+        <li><b>Укажите СК:</b> сверху слева — система координат загруженных точек, справа — нужная система результата. Через «Зона» проверьте её настройки. Кнопка ⇄ только меняет настройки местами, точки она не пересчитывает.</li>
+        <li><b>Нажмите «Преобразовать».</b> Результат появится в таблице. Через «Анализ → Контроль качества» проверьте ошибки данных и сравните результат с известной контрольной точкой. Ctrl+Z отменяет действие.</li>
+        <li><b>Сохраните:</b> «Данные → Экспортировать точки» — файл для другой программы; меню проекта → «Сохранить проект JSON» — точки вместе с настройками для продолжения работы.</li>
+      </ol>
+      <p>Для Civil 3D в разделе «Данные» есть подготовка экспорта PNEZD: номер, север, восток, высота, описание. Получателю также передайте название СК и сведения о высотах.</p>
+    </section>
+    <section data-welcome-step hidden>
+      <h3>Высота, глубина и безопасное редактирование</h3>
+      <p><b>Высота и глубина — разные величины.</b> Для глубины выберите её в списке над графиком и задайте уровень отсчёта в той же системе высот. Например: уровень 100 м, Z = 97 м — глубина 3 м. При уровне 0 м и Z = −12,4 м глубина равна 12,4 м.</p>
+      <p>Пересчёт координат сохраняет введённую Z. Перевод между системами высот и поправка геоида не выполняются. Пустая высота не означает ноль.</p>
+      <p><b>Таблица:</b> щёлкните по значению для редактирования. Ctrl + клик по заголовкам выбирает отдельные столбцы, Shift — диапазон. Delete очищает выбранные столбцы во всех строках; сами столбцы остаются. При выделенных строках Delete удаляет строки. Ctrl+Z возвращает данные, Ctrl+Y повторяет действие.</p>
+      <p><b>График:</b> колесо мыши меняет масштаб, средняя кнопка перемещает вид, «Вписать все» возвращает точки в окно. «＋ Точка» позволяет задать положение мышью и уточнить координаты перед добавлением. Такой щелчок не заменяет измерение на местности.</p>
+    </section>
+    <section data-welcome-step hidden>
+      <h3>Куда идти дальше</h3>
+      <p><b>Проект</b> — открытие, сохранение, резервные копии и профили настроек.<br><b>Данные</b> — импорт, экспорт, пакетное преобразование и паспорт результата.<br><b>Анализ</b> — проверка данных и сравнение съёмок по номерам точек.<br><b>Вид</b> — 2D-чертёж DXF или DWG поверх точек. Его СК и единицы нужно подтвердить; чертёж не перепроецируется автоматически. DWG открывается в приложении Windows без AutoCAD и интернета; блоки и поверхности Civil 3D не отображаются.</p>
+      <p>Контроль качества находит ошибки записей, но не подтверждает точность измерений. Для рабочих расчётов нужны достоверные исходные данные и проверка результата.</p>
+      <p>Это руководство всегда доступно в «Справке». Тему можно переключить кнопкой внизу левой панели.</p>
+      <p>При запуске приложение может проверить и загрузить новую версию. После загрузки появится кнопка «Обновление готово»: установка начнётся после сохранения проекта и резервной копии, затем программа перезапустится. Автозагрузку можно отключить в настройках для экономии трафика. Проверка вручную доступна в справке.</p>
+      <p><a href="https://github.com/minhtwe77889900-byte/Khitun-Geo/releases/latest" target="_blank" rel="noopener noreferrer">Открыть последнюю релизную версию на GitHub ↗</a><br><small>Для ручного обновления нужен интернет. На странице релиза откройте Assets и скачайте установщик KhitunGeo_Setup_…_x64.exe. Установите его поверх текущей версии.</small></p>
+    </section>
+  </div>
+  <div class="modalFoot"><button id="welcomeSkip">Прочитаю позже</button><button id="welcomeBack">Назад</button><button id="welcomeNext" class="accent">Далее</button></div>
+</dialog>
+<dialog id="helpDialog" class="settingsDialog" aria-labelledby="helpTitle">
+  <div class="modalHead"><h2 id="helpTitle">Справка</h2><button id="helpCloseX" aria-label="Закрыть">×</button></div>
+  <div class="updateCard"><b>Обновления приложения</b><p id="appUpdateStatus" aria-live="polite">Новые версии устанавливаются поверх текущей. Проекты и настройки сохраняются.</p><button id="updateCheckBtn" data-native="check-updates">Проверить обновления</button><button id="updateCancelBtn" data-native="cancel-update" hidden>Остановить загрузку</button><button id="updateHelpInstallBtn" data-native="install-update" hidden>Установить и перезапустить</button></div>
+  <div class="modalBody"><b>Выбранные системы координат</b><div id="systemInfo" class="systemInfo small"></div><p>Ctrl+Z — отмена добавления, удаления, редактирования и пересчёта точек, импорта и изменения настройки зоны. Хранятся последние 30 действий текущего проекта.</p><p class="small">В текстовых полях вне таблицы Ctrl+Z отменяет ввод текста. Проекты открываются с новой историей действий.</p><p>Визуализация: удерживайте среднюю кнопку мыши для перемещения, вращайте колесо для масштаба. Левая кнопка выбирает точку. Кнопка «＋ Точка» включает создание точки щелчком; координаты и Z подтверждаются в окне.</p><p>Строки выбираются по номеру: протягивание мышью, Shift — диапазон, Ctrl — добавление. Столбцы выбираются по заголовку такими же способами. Ctrl+Y — повтор действия. Файл можно перетащить в программу; неясный формат требует подтверждения в мастере.</p><p>В списке подписей можно выбрать высоту Z или глубину. Глубина = уровень отсчёта − Z; обе величины задаются в метрах в одной системе высот. Без уровня или Z отображается прочерк. Отрицательная глубина означает, что точка выше уровня.</p><p class="small">Уровень сохраняется в проекте. Пересчёт меняет X/Y, но сохраняет введённую высоту Z и уровень отсчёта. Преобразование вертикальных датумов и геоида не выполняется. Показ глубины не меняет исходные точки и экспорт.</p></div>
+  <div class="modalFoot"><a class="releaseLink" href="https://github.com/minhtwe77889900-byte/Khitun-Geo/releases/latest" target="_blank" rel="noopener noreferrer">Последний релиз ↗</a><button id="welcomeHelp">Руководство для начинающих</button><button data-native="about">О программе</button><button id="helpDone" class="accent">Закрыть</button></div>
+</dialog>
+<dialog id="plotPointDialog" class="settingsDialog" aria-labelledby="plotPointTitle">
+  <div class="modalHead"><h2 id="plotPointTitle">Добавить точку</h2><button id="plotPointCloseX" aria-label="Закрыть">×</button></div>
+  <div class="modalBody">
+    <label for="plotPointNo">Номер точки</label><input id="plotPointNo">
+    <div class="crsRow"><div class="crsField"><label for="plotPointX">X / B</label><input id="plotPointX" inputmode="decimal"></div><div class="crsField"><label for="plotPointY">Y / L</label><input id="plotPointY" inputmode="decimal"></div></div>
+    <label for="plotPointZ">Высота Z</label><input id="plotPointZ" inputmode="decimal" value="0">
+    <label for="plotPointDesc">Описание</label><input id="plotPointDesc">
+    <div id="plotPointError" class="small warn" role="alert"></div>
+  </div>
+  <div class="modalFoot"><button id="plotPointCancel">Отмена</button><button id="plotPointApply" class="accent">Добавить</button></div>
+</dialog>
+<dialog id="heightDialog" class="settingsDialog" aria-labelledby="heightTitle">
+  <div class="modalHead"><h2 id="heightTitle">Изменить высоту Z</h2><button id="heightCloseX" aria-label="Закрыть">×</button></div>
+  <div class="modalBody">
+    <label for="heightScope">Какие точки изменить</label><select id="heightScope"><option value="selected">Выделенные строки</option><option value="all">Все строки</option></select>
+    <p id="heightCount" class="small"></p>
+    <label for="heightOperation">Действие</label><select id="heightOperation"><option value="add">Прибавить к Z</option><option value="subtract">Вычесть из Z</option><option value="set">Установить Z</option><option value="negate">Сменить знак Z (+ ↔ −)</option></select>
+    <label for="heightAmount">Величина, м</label><input id="heightAmount" type="text" inputmode="decimal" placeholder="Например, 0.50">
+    <p class="small">Для прибавления и вычитания введите положительную величину. Отрицательный результат разрешён. Смена знака: 12.5 → −12.5, −12.5 → 12.5. X и Y не меняются. Ctrl+Z отменяет всё изменение одним шагом.</p>
+    <div id="heightError" class="small warn" role="alert"></div>
+  </div>
+  <div class="modalFoot"><button id="heightCancel">Отмена</button><button id="heightApply" class="accent">Применить</button></div>
+</dialog>
+<dialog id="zoneDialog" class="settingsDialog" aria-labelledby="zoneTitle">
+  <div class="modalHead"><h2 id="zoneTitle">Настройка зоны</h2><button id="zoneCloseX" aria-label="Закрыть">×</button></div>
+  <div class="modalBody">
+    <label for="zoneMode">Определение зоны</label><select id="zoneMode"><option value="auto">Автоматически</option><option value="manual">Вручную</option></select>
+    <label for="zoneNumber">Номер зоны</label><input id="zoneNumber" type="number" min="1" max="120" step="1">
+    <label><input id="zoneSourcePrefix" type="checkbox"> Зона записана в Y источника</label>
+    <label><input id="zoneTargetPrefix" type="checkbox"> Записывать зону в Y результата</label>
+    <p class="small">Автоматически: зона результата определяется по долготе, исходной ГК — по префиксу Y. Для исходной UTM номер зоны укажите вручную даже при автоматическом режиме. Для МСК и СК-63 регион и зона выбираются в списках систем.</p>
+    <div id="zoneSettingsError" class="small warn" role="alert"></div>
+  </div>
+  <div class="modalFoot"><button id="zoneCancel">Отмена</button><button id="zoneApply" class="accent">Применить</button></div>
+</dialog>
+
+<div id="importModal" class="modalShade" role="dialog" aria-modal="true" aria-labelledby="importTitle">
+  <div class="modalCard">
+    <div class="modalHead"><h2 id="importTitle">Мастер импорта точек</h2><span id="importFileName" class="small"></span><button id="importCloseX" class="muted closeX">×</button></div>
+    <div class="modalBody">
+      <div class="wizardGrid">
+        <div class="field"><label>Шаблон формата</label><select id="impPreset"><option value="auto">Автоопределение</option><option value="autocad_xy">AutoCAD / Civil 3D X,Y</option><option value="civil_pnezd">Civil 3D PNEZD</option><option value="civil_penzd">Civil 3D PENZD</option><option value="civil_nez">Civil 3D NEZ</option><option value="civil_enz">Civil 3D ENZ / XYZ</option><option value="wgs_bl">WGS‑84 B,L</option><option value="custom">Ручное назначение</option></select></div>
+        <div class="field"><label>Кодировка</label><select id="impEncoding"><option value="utf-8">UTF‑8</option><option value="windows-1251">Windows‑1251</option></select></div>
+        <div class="field"><label>Разделитель</label><select id="impDelimiter"><option value="auto">Авто</option><option value=";">Точка с запятой ;</option><option value=",">Запятая ,</option><option value="tab">Табуляция</option><option value="space">Пробелы</option></select></div>
+        <div class="field"><label>Десятичный разделитель</label><select id="impDecimal"><option value="auto">Авто (точка/запятая)</option><option value=".">Точка</option><option value=",">Запятая</option></select></div>
+        <div class="field"><label>Режим</label><select id="impMode"><option value="replace">Заменить текущие точки</option><option value="append">Добавить к текущим</option></select></div>
+      </div>
+      <div class="row" style="margin-top:9px"><label><input type="checkbox" id="impHeader"> первая строка — заголовок</label><label><input type="checkbox" id="impSwapXY"> поменять X/Y при импорте</label><button id="impRedetect" class="muted">Определить заново</button></div>
+      <div id="impNotice" class="wizardNotice"></div>
+      <div class="mapRow">
+        <div class="mapBox"><label>№ точки</label><select id="mapNo"></select></div>
+        <div class="mapBox"><label>X / Northing / широта</label><select id="mapX"></select></div>
+        <div class="mapBox"><label>Y / Easting / долгота</label><select id="mapY"></select></div>
+        <div class="mapBox"><label>Z / высота</label><select id="mapZ"></select></div>
+        <div class="mapBox"><label>Описание / код</label><select id="mapD"></select></div>
+      </div>
+      <div class="wizardSummary"><span id="impRowsBadge" class="badge"></span><span id="impColsBadge" class="badge"></span><span id="impDelimiterBadge" class="badge"></span></div>
+      <div class="previewWrap"><table class="previewTable"><thead id="impPreviewHead"></thead><tbody id="impPreviewBody"></tbody></table></div>
+    </div>
+    <div class="modalFoot"><button id="importCancel" class="muted">Отмена</button><button id="importApply" class="accent">Импортировать точки</button></div>
+  </div>
+</div>
+
+<div id="exportModal" class="modalShade" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
+  <div class="modalCard" style="width:min(850px,96vw)">
+    <div class="modalHead"><h2 id="exportTitle">Мастер экспорта</h2><button id="exportCloseX" class="muted closeX">×</button></div>
+    <div class="modalBody">
+      <div class="wizardGrid">
+        <div class="field"><label>Формат</label><select id="expFormat"><option value="pnezd">Civil 3D PNEZD</option><option value="penzd">Civil 3D PENZD</option><option value="nez">Civil 3D NEZ</option><option value="enz">Civil 3D ENZ</option><option value="autocad_xyz">AutoCAD XYZ (восток, север, высота)</option><option value="xyz">Геодезические XYZ (север, восток, высота)</option><option value="wgs_bl">Географические B,L,H (широта, долгота, высота)</option></select></div>
+        <div class="field"><label>Разделитель</label><select id="expDelimiter"><option value=",">Запятая ,</option><option value=";">Точка с запятой ;</option><option value="tab">Табуляция</option><option value="space">Пробел</option></select></div>
+        <div class="field"><label>Знаков после запятой</label><input id="expDecimals" type="number" min="0" max="9" value="3"></div>
+        <div class="field"><label>Какие точки</label><select id="expScope"><option value="all">Все точки</option><option value="selected">Только выделенные</option></select></div>
+      </div>
+      <div class="row" style="margin-top:10px"><label><input id="expHeader" type="checkbox"> добавить строку заголовка</label></div>
+      <div class="row" style="margin-top:10px"><label><input id="expSwapXY" type="checkbox"> поменять местами первые две координаты при экспорте</label></div>
+      <div class="wizardNotice">Экспортируется текущая таблица в её исходной системе координат. Для другой системы сначала выполните пересчёт. N — север, E — восток; AutoCAD X = E, Y = N. Обмен осями применяется дополнительно к выбранному шаблону.</div>
+      <div id="expNotice" class="wizardNotice"></div>
+      <div class="previewWrap"><table class="previewTable"><thead id="expPreviewHead"></thead><tbody id="expPreviewBody"></tbody></table></div>
+    </div>
+    <div class="modalFoot"><button id="exportCancel" class="muted">Отмена</button><button id="exportApply" class="accent">Сохранить файл</button></div>
+  </div>
+</div>
+
+<script src="coordinate-core.js"></script>
+<script src="workspace-core.js"></script>
+<script>
+let workspaceExtras={};
+const WORKSPACE_EXCHANGE_FIELDS=['impPreset','impEncoding','impDelimiter','impDecimal','expFormat','expDelimiter','expDecimals','expScope','expHeader','expSwapXY'];
+function exchangeSettings(){const o={};for(const id of WORKSPACE_EXCHANGE_FIELDS){const el=$(id);if(el)o[id]=el.type==='checkbox'?el.checked:el.value;}return o;}
+function restoreExchangeSettings(o){for(const id of WORKSPACE_EXCHANGE_FIELDS){const el=$(id);if(el&&o&&Object.hasOwn(o,id)){if(el.type==='checkbox')el.checked=!!o[id];else el.value=String(o[id]);}}}
+function drawingFrame(){try{return JSON.stringify({parameters:crsParams($('src').value,'src'),auto:$('autoZone').checked,zone:$('zoneManual').value,prefix:$('srcZonePrefix').checked})}catch(_){return 'unresolved'}}
+const drawingBoundsCache=new WeakMap();
+function pathBounds(p){let b=drawingBoundsCache.get(p);if(!b){b=KhitunWorkspace.drawingBounds(p);drawingBoundsCache.set(p,b);}return b;}
+function pathVisible(p,hidden){return !hidden.has(p.layer)&&!(p.parents||[]).some(l=>hidden.has(l));}
+const drawingExtentCache=new WeakMap();
+function drawingExtent(){const d=workspaceExtras.drawing;if(!d||d.frame!==drawingFrame())return null;const key=`${d.scale}|${d.hidden.join('\u0000')}`,cached=drawingExtentCache.get(d);if(cached?.key===key)return cached.extent;const hidden=new Set(d.hidden);let minE=Infinity,minN=Infinity,maxE=-Infinity,maxN=-Infinity;for(const p of d.paths)if(pathVisible(p,hidden)){const b=pathBounds(p);if(!b.every(Number.isFinite))continue;minE=Math.min(minE,b[0]*d.scale);minN=Math.min(minN,b[1]*d.scale);maxE=Math.max(maxE,b[2]*d.scale);maxN=Math.max(maxN,b[3]*d.scale);}const extent=Number.isFinite(minE)?{minE,minN,maxE,maxN}:null;drawingExtentCache.set(d,{key,extent});return extent;}
+// Kept for compatibility with workspace tools; normal fitting uses drawingExtent()
+// and therefore does not allocate two temporary objects for every drawing path.
+function drawingPoints(){const d=workspaceExtras.drawing;if(!d||d.frame!==drawingFrame())return [];const hidden=new Set(d.hidden),out=[];for(const p of d.paths)if(pathVisible(p,hidden)){const b=pathBounds(p);if(b.every(Number.isFinite))out.push({e:b[0]*d.scale,n:b[1]*d.scale},{e:b[2]*d.scale,n:b[3]*d.scale});}return out;}
+function drawDxf(ctx,w,h){const d=workspaceExtras.drawing;if(!d||d.frame!==drawingFrame())return;const hidden=new Set(d.hidden),pathStep=Math.max(1,Math.ceil(d.paths.length/60000)),visiblePathCount=Math.ceil(d.paths.length/pathStep),vertexBudget=Math.max(24,Math.floor(120000/Math.max(1,visiblePathCount)));ctx.save();ctx.globalAlpha=d.opacity;ctx.lineWidth=1;ctx.strokeStyle=document.documentElement.dataset.theme==='2'?'#7cb7ad':'#526e74';for(let pathIndex=0;pathIndex<d.paths.length;pathIndex+=pathStep){const p=d.paths[pathIndex];if(!pathVisible(p,hidden))continue;const b=pathBounds(p),a=worldToScreen(b[0]*d.scale,b[1]*d.scale,w,h),z=worldToScreen(b[2]*d.scale,b[3]*d.scale,w,h);if(Math.max(a[0],z[0])< -3||Math.min(a[0],z[0])>w+3||Math.max(a[1],z[1])< -3||Math.min(a[1],z[1])>h+3)continue;const vertices=KhitunWorkspace.drawingVertices(p,plotView.scale*d.scale/pathStep),vertexStep=vertices.length<=2?1:Math.max(1,Math.ceil(vertices.length/vertexBudget));ctx.beginPath();let last=-1;for(let i=0;i<vertices.length;i+=vertexStep){const q=vertices[i],v=worldToScreen(q[0]*d.scale,q[1]*d.scale,w,h);if(last>=0)ctx.lineTo(...v);else ctx.moveTo(...v);last=i;if(vertices.length===1)ctx.rect(v[0]-2,v[1]-2,4,4);}if(last!==vertices.length-1){const q=vertices.at(-1),v=worldToScreen(q[0]*d.scale,q[1]*d.scale,w,h);ctx.lineTo(...v);}if(p.closed)ctx.closePath();ctx.stroke();}ctx.restore();}
+'use strict';
+const $=id=>document.getElementById(id);
+const THEME_KEY='khitun_geo_ui_theme_v2';
+function applyInterfaceTheme(value,save=true){const theme=String(value)==='2'?'2':'1';document.documentElement.dataset.theme=theme;$('themeToggleIcon').textContent=theme==='2'?'☀':'☾';$('themeToggleText').textContent=theme==='2'?'Светлая':'Тёмная';$('themeToggleBtn').setAttribute('aria-label','Включить '+(theme==='2'?'светлую':'тёмную')+' тему');if(save){try{localStorage.setItem(THEME_KEY,theme)}catch(_){}}}
+const CRS={
+  wgs:{name:'WGS‑84 географическая · EPSG:4326',kind:'geo',datum:'wgs',epsg:'4326'},
+  webmerc:{name:'WGS‑84 / Web Mercator · EPSG:3857',kind:'webmerc',datum:'wgs',epsg:'3857'},
+  utm:{name:'WGS‑84 / UTM North · авто зона EPSG:326xx',kind:'utm',datum:'wgs',epsg:'326xx'},
+  gskgeo:{name:'ГСК‑2011 географическая · EPSG:7683',kind:'geo',datum:'gsk2011',epsg:'7683'},
+  gsk6:{name:'ГСК‑2011 / Гаусса–Крюгера 6° · EPSG:209xx/210xx',kind:'gk6',datum:'gsk2011',epsg:'209xx'},
+  gsk3:{name:'ГСК‑2011 / GSK 3GK 3° · EPSG:212xx/213xx',kind:'gk3',datum:'gsk2011',epsg:'212xx'},
+  pzgeo:{name:'ПЗ‑90.11 географическая 3D · EPSG:7680',kind:'geo',datum:'pz9011',epsg:'7680'},
+  pz90geo:{name:'ПЗ‑90 географическая · EPSG:4740',kind:'geo',datum:'pz90',epsg:'4740'},
+  pz02geo:{name:'ПЗ‑90.02 географическая 3D · EPSG:7678',kind:'geo',datum:'pz9002',epsg:'7678'},
+  sk95geo:{name:'СК‑95 / Pulkovo 1995 географическая · EPSG:4200',kind:'geo',datum:'sk95',epsg:'4200'},
+  sk956:{name:'СК‑95 / Гаусса–Крюгера 6°',kind:'gk6',datum:'sk95',epsg:'200xx'},
+  sk953:{name:'СК‑95 / Гаусса–Крюгера 3°',kind:'gk3',datum:'sk95',epsg:'26xx/27xx'},
+  sk42geo:{name:'СК‑42 / Pulkovo 1942 географическая · EPSG:4284',kind:'geo',datum:'sk42',epsg:'4284'},
+  sk426:{name:'СК‑42 / Гаусса–Крюгера 6° · EPSG:284xx',kind:'gk6',datum:'sk42',epsg:'284xx'},
+  sk423:{name:'СК‑42 / Гаусса–Крюгера 3° · EPSG:25xx/26xx',kind:'gk3',datum:'sk42',epsg:'25xx/26xx'},
+  msk164:{name:'МСК‑164 · локальный пресет',kind:'fixedtm',datum:'sk42',lon0:84,fe:86209.8,fn:-6542783.5,k:1,epsg:'локальная'},
+  msk:{name:'МСК · регионы РФ β',kind:'regional',family:'msk',epsg:'местная'},
+  sk63:{name:'СК‑63 · районы и зоны β',kind:'regional',family:'sk63',epsg:'местная'},
+  custom:{name:'Местная МСК / пользовательские параметры',kind:'custom',datum:'sk42',epsg:'пользовательская'}
+};
+for(const [v,c] of Object.entries(CRS)){$('src').add(new Option(c.name,v));$('dst').add(new Option(c.name,v));}
+$('src').value='wgs';$('dst').value='msk164';
+const regionalCatalogues={msk:[],sk63:[]};
+let regionalReady=false,regionalError='';
+let regionalSelection={src:{msk:null,sk63:null},dst:{msk:null,sk63:null}};
+const regionalPickerOpen={src:false,dst:false};
+// The separately distributed JSON catalogues retain their own licenses; see crs/NOTICE.txt.
+function parseRegionalRecord(r,family,index){
+  const p=Object.fromEntries(r.proj.trim().split(/\s+/).map(s=>{const i=s.indexOf('=');return i<0?[s.slice(1),true]:[s.slice(1,i),s.slice(i+1)]}));
+  if(p.proj!=='tmerc'||p.units!=='m'||!['krass','bessel'].includes(p.ellps))throw new Error('Неподдерживаемая проекция каталога: '+r.name);
+  const value=(key,fallback)=>{const n=Number(p[key]??fallback);if(!Number.isFinite(n))throw new Error('Некорректный параметр '+key);return n};
+  const towgs=String(p.towgs84||'').split(',').map(Number);
+  if(towgs.length!==7||!towgs.every(Number.isFinite))throw new Error('Нет параметров перехода: '+r.name);
+  const zone=r.zone??Number(r.id?.split('_')[1]||1);
+  const group=family==='msk'?`${r.code}|${r.variant||''}`:r.id.split('_')[0];
+  const groupName=family==='msk'?r.name.replace(/ зона \d+/,''):r.name.replace(/, Зона \d+$/,'');
+  return {id:family==='msk'?`${group}|${zone}`:r.id,group,groupName,zone,noZone:family==='msk'&&r.zone===null,name:r.name,kind:'fixedtm',family,datum:'sk42',ellipsoid:p.ellps,towgs,lon0:value('lon_0',0),lat0:value('lat_0',0),fe:value('x_0',0),fn:value('y_0',0),k:value('k',1),epsg:'местная'};
+}
+function installRegionalCatalogues(msk,sk63,updates={msk:[],sk63:[]}){
+  const next={msk:msk.map((r,i)=>parseRegionalRecord(r,'msk',i)),sk63:sk63.map((r,i)=>parseRegionalRecord(r,'sk63',i))};
+  for(const family of ['msk','sk63']){
+    if(new Set(next[family].map(r=>r.id)).size!==next[family].length)throw new Error('Повторяющиеся определения исходного каталога');
+    const additions=(updates[family]||[]).map(r=>parseRegionalRecord(r,family));
+    if(new Set(additions.map(r=>r.id)).size!==additions.length)throw new Error('Повторяющиеся определения обновления каталога');
+    const effective=new Map(next[family].map(r=>[r.id,r]));
+    for(const record of additions)effective.set(record.id,record);
+    next[family]=[...effective.values()];
+  }
+  for(const list of Object.values(next))if(!list.length||new Set(list.map(r=>r.id)).size!==list.length||list.some(r=>r.k<=0))throw new Error('Некорректный каталог систем координат');
+  Object.assign(regionalCatalogues,next);regionalReady=true;regionalError='';refreshUI();if(workspaceExtras.drawing)requestAnimationFrame(fitPlot);
+}
+async function loadRegionalCatalogues(){try{
+  const data=await Promise.all(['msk','sk63','regional-updates'].map(async family=>{const r=await fetch('crs/'+family+'.json');if(!r.ok)throw new Error('Файл каталога '+family+' недоступен');return r.json()}));
+  installRegionalCatalogues(...data);
+}catch(e){regionalError=e.message;refreshUI()}}
+function regionalDefinition(id,side){
+  if(!regionalReady)throw new Error(regionalError||'Каталоги МСК и СК‑63 загружаются');
+  const family=CRS[id].family,list=regionalCatalogues[family],chosen=regionalSelection[side][family];
+  const record=chosen?list.find(r=>r.id===chosen):list[0];
+  if(!record)throw new Error('Определение из проекта отсутствует в каталоге: '+chosen);
+  return record;
+}
+function refreshRegionalControls(side){
+  const family=CRS[$(side).value].family,box=$(side+'Regional'),toggle=$(side+'RegionalToggle');
+  toggle.hidden=!family;toggle.setAttribute('aria-expanded',String(!!family&&regionalPickerOpen[side]));box.hidden=!family||!regionalPickerOpen[side];
+  if(!family)return;
+  const region=$(side+'Region'),zone=$(side+'RegionalZone');region.innerHTML='';zone.innerHTML='';region.disabled=zone.disabled=!regionalReady;
+  if(!regionalReady){toggle.textContent='Регион и зона…';region.add(new Option(regionalError?'Каталог недоступен':'Загрузка каталога…',''));return}
+  const records=regionalCatalogues[family],chosen=regionalSelection[side][family],current=chosen?records.find(r=>r.id===chosen):records[0];
+  toggle.textContent=current?`${current.name} · изменить`:'Регион и зона…';
+  const groups=[...new Map(records.map(r=>[r.group,r])).values()],query=normalizeCrsSearch($(side+'RegionSearch').value);
+  const matches=groups.filter(r=>!query||normalizeCrsSearch(r.groupName+' '+r.group).includes(query));
+  if(current&&!matches.some(r=>r.group===current.group))region.add(new Option('Выбрано: '+current.groupName,current.group));
+  for(const r of matches)region.add(new Option(r.groupName,r.group));
+  if(!matches.length&&query)region.add(new Option('Совпадений нет',''));
+  if(!current){region.add(new Option('Определение из проекта отсутствует','missing'));region.value='missing';return}
+  regionalSelection[side][family]=current.id;region.value=current.group;
+  for(const r of records.filter(r=>r.group===current.group))zone.add(new Option(r.noZone?'Без деления на зоны':'Зона '+r.zone,r.id));
+  zone.value=current.id;
+}
+function normalizeCrsSearch(value){return String(value||'').toLowerCase().replace(/ё/g,'е').replace(/[‑–—-]/g,' ').replace(/\s+/g,' ').trim()}
+function resetRegionSearch(){for(const side of ['src','dst']){$(side+'RegionSearch').value='';regionalPickerOpen[side]=false}}
+function setRegionalPickerOpen(side,open){regionalPickerOpen[side]=!!open;refreshRegionalControls(side);if(open)requestAnimationFrame(()=>$(side+'RegionSearch').focus())}
+for(const side of ['src','dst']){
+  $(side+'RegionSearch').addEventListener('input',()=>refreshRegionalControls(side));
+  $(side+'RegionSearch').addEventListener('search',()=>refreshRegionalControls(side));
+  $(side+'Region').addEventListener('change',()=>{const family=CRS[$(side).value].family;const r=regionalCatalogues[family].find(r=>r.group===$(side+'Region').value);if(r){regionalSelection[side][family]=r.id;refreshUI();scheduleSave()}});
+  $(side+'RegionalZone').addEventListener('change',()=>{const family=CRS[$(side).value].family;regionalSelection[side][family]=$(side+'RegionalZone').value;regionalPickerOpen[side]=false;refreshUI();scheduleSave()});
+  $(side+'RegionalToggle').onclick=()=>setRegionalPickerOpen(side,!regionalPickerOpen[side]);
+  $(side+'RegionalClose').onclick=()=>setRegionalPickerOpen(side,false);
+}
+function sameSystem(s,t){return s===t&&(CRS[s].kind!=='regional'||regionalDefinition(s,'src').id===regionalDefinition(t,'dst').id)}
+let pts=[{no:'1',x:'65',y:'84',z:'0',d:'Контрольная точка'}];
+let selected=new Set(),lastSelected=-1,history=[],redoHistory=[],activePointEdit=null;
+let selectedColumns=new Set(),columnAnchor=-1,columnDrag=null,plotAddMode=false,statusTimer=null,autosaveTimer=null;
+const STORE_KEY='khitun_geo_projects_v06',LAST_KEY='khitun_geo_last_project_v06';
+let currentProjectId=null,saveTimer=null,isLoadingProject=false;
+function uid(){return 'p_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
+function nativeProjectStore(){return window.chrome?.webview?.hostObjects?.sync?.projectStore||null;}
+function getStore(){const native=nativeProjectStore();let raw=native?native.Read():localStorage.getItem(STORE_KEY);if(native&&!raw){raw=localStorage.getItem(STORE_KEY)||'{}';native.Write(raw);}const v=JSON.parse(raw||'{}');if(!v||typeof v!=='object'||Array.isArray(v))throw Error('Повреждено хранилище проектов. Восстановите резервную копию.');return v;}
+function setStore(v){const raw=JSON.stringify(v),native=nativeProjectStore();if(native)native.Write(raw);else localStorage.setItem(STORE_KEY,raw);}
+function probeStore(v){const raw=JSON.stringify(v),native=nativeProjectStore();if(native){native.Validate(raw);return;}try{localStorage.setItem('khitun_geo_capacity_probe',raw);}finally{localStorage.removeItem('khitun_geo_capacity_probe');}}
+function visualizationEnabled(){return !$('mainWorkspace').classList.contains('visualizationHidden')}
+function setVisualizationEnabled(enabled,save=true){const visible=!!enabled;$('mainWorkspace').classList.toggle('visualizationHidden',!visible);const button=$('plotVisibilityBtn');button.setAttribute('aria-pressed',String(visible));button.textContent=visible?'Скрыть визуализацию':'Показать визуализацию';button.title=visible?'Полностью скрыть область визуализации':'Вернуть область визуализации';if(!visible){if(plotAddMode)setPlotAddMode(false);plotView.ready=false;plotView.hits=[]}else requestAnimationFrame(()=>{resizePlotCanvas();renderPlot()});if(save)scheduleSave()}
+function projectPayload(){return {version:'1.1',app:'Khitun Geo',name:$('projectName')?.value?.trim()||'Без названия',updatedAt:new Date().toISOString(),source:$('src').value,target:$('dst').value,autoZone:$('autoZone').checked,srcZonePrefix:$('srcZonePrefix').checked,dstZonePrefix:$('dstZonePrefix').checked,zoneManual:$('zoneManual').value,regional:JSON.parse(JSON.stringify(regionalSelection)),custom:{name:$('customName').value,datum:$('customDatum').value,lon0:$('customLon0').value,fe:$('customFE').value,fn:$('customFN').value,k:$('customK').value,region:$('northRegion').value},workspace:workspaceExtras,exchange:exchangeSettings(),view:{labelMode:$('labelMode')?.value||'no',depthReference:$('depthReference').value,plotSelectedOnly:$('plotSelectedOnly')?.checked||false,visualizationEnabled:visualizationEnabled()},points:pts}}
+function applyProjectPayload(o){const extras=typeof KhitunWorkspace!=='undefined'?KhitunWorkspace.validateExtras(o.workspace):{};isLoadingProject=true;try{const parsedPoints=parseJsonPoints(o);workspaceExtras=extras;restoreExchangeSettings(o.exchange);resetRegionSearch();pts=parsedPoints;regionalSelection={src:{msk:null,sk63:null},dst:{msk:null,sk63:null}};for(const side of ['src','dst'])for(const family of ['msk','sk63'])if(typeof o.regional?.[side]?.[family]==='string')regionalSelection[side][family]=o.regional[side][family];for(const [side,id]of [['src',o.source],['dst',o.target]])if(CRS[id]?.kind==='regional'&&!regionalSelection[side][CRS[id].family])regionalSelection[side][CRS[id].family]='missing-project-definition';if(o.source&&CRS[o.source])$('src').value=o.source;if(o.target&&CRS[o.target])$('dst').value=o.target;if(typeof o.autoZone==='boolean')$('autoZone').checked=o.autoZone;history=[];redoHistory=[];selectedColumns.clear();const oldPrefix=typeof o.zonePrefix==='boolean'?o.zonePrefix:true;$('srcZonePrefix').checked=typeof o.srcZonePrefix==='boolean'?o.srcZonePrefix:oldPrefix;$('dstZonePrefix').checked=typeof o.dstZonePrefix==='boolean'?o.dstZonePrefix:oldPrefix;if(o.zoneManual!==undefined)$('zoneManual').value=o.zoneManual;if(o.custom){$('customName').value=o.custom.name||'';$('customDatum').value=o.custom.datum||'sk42';$('customLon0').value=o.custom.lon0??84;$('customFE').value=o.custom.fe??500000;$('customFN').value=o.custom.fn??0;$('customK').value=o.custom.k??1;$('northRegion').value=o.custom.region||''}$('depthReference').value=o.view?.depthReference??'';if(o.view){if(o.view.labelMode)$('labelMode').value=o.view.labelMode;$('plotSelectedOnly').checked=!!o.view.plotSelectedOnly}setVisualizationEnabled(o.view?.visualizationEnabled!==false,false);$('projectName').value=o.name||'Импортированный проект';selected.clear();lastSelected=-1;render();refreshUI();requestAnimationFrame(fitPlot)}finally{isLoadingProject=false}}
+function refreshProjectList(){const st=getStore(),sel=$('projectSelect'),cur=currentProjectId;sel.innerHTML='<option value="">Последние проекты…</option>';Object.entries(st).sort((a,b)=>String(b[1].updatedAt||'').localeCompare(String(a[1].updatedAt||''))).forEach(([id,p])=>{const o=new Option((p.name||'Без названия')+' · '+new Date(p.updatedAt||Date.now()).toLocaleString('ru-RU'),id);sel.add(o)});if(cur&&st[cur])sel.value=cur}
+function saveLocalNow(){if(isLoadingProject)return;if(!currentProjectId)currentProjectId=uid();const st=getStore(),p=projectPayload();st[currentProjectId]=p;setStore(st);localStorage.setItem(LAST_KEY,currentProjectId);refreshProjectList();const el=$('autosaveStatus');if(el){el.textContent='✓ сохранено '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});el.className='autosave ok';clearTimeout(autosaveTimer);autosaveTimer=setTimeout(()=>{el.textContent=''},3000)}}
+function flushSave(){clearTimeout(saveTimer);saveTimer=null;saveLocalNow()}
+function scheduleSave(){if(isLoadingProject)return;const el=$('autosaveStatus');if(el){el.textContent='● сохранение…';el.className='autosave'}clearTimeout(saveTimer);saveTimer=setTimeout(()=>{saveTimer=null;try{saveLocalNow()}catch(e){const el=$('autosaveStatus');el.textContent='⚠ не сохранено';el.className='autosave warn';setStatus('Ошибка автосохранения: '+e.message,'warn')}},450)}
+function createProject(name='Новый проект',skipFlush=false){if(!skipFlush)flushSave();workspaceExtras={};currentProjectId=uid();$('depthReference').value='';resetRegionSearch();regionalSelection={src:{msk:null,sk63:null},dst:{msk:null,sk63:null}};pts=[{no:'1',x:'',y:'',z:'0',d:''}];selected.clear();lastSelected=-1;history=[];redoHistory=[];selectedColumns.clear();$('projectName').value=name;$('src').value='wgs';$('dst').value='msk164';setVisualizationEnabled(true,false);render();refreshUI();requestAnimationFrame(fitPlot);saveLocalNow();setStatus('Создан новый локальный проект.')}
+function openLocalProject(id){flushSave();const p=getStore()[id];if(!p)return;applyProjectPayload(p);currentProjectId=id;history=[];localStorage.setItem(LAST_KEY,id);refreshProjectList();setStatus('Проект открыт из локального хранилища.')}
+function duplicateProject(){flushSave();history=[];const base=projectPayload();currentProjectId=uid();base.name=(base.name||'Проект')+' — копия';$('projectName').value=base.name;const st=getStore();st[currentProjectId]=base;setStore(st);saveLocalNow();setStatus('Создана копия проекта.')}
+function deleteCurrentProject(){if(!currentProjectId)return;if(!confirm('Удалить текущий проект из локального хранилища? Резервные JSON-файлы на диске не затрагиваются.'))return;clearTimeout(saveTimer);saveTimer=null;const st=getStore();delete st[currentProjectId];setStore(st);currentProjectId=null;localStorage.removeItem(LAST_KEY);refreshProjectList();createProject('Новый проект',true);setStatus('Проект удалён из локального хранилища.')}
+function restoreLastProject(){const st=getStore(),id=localStorage.getItem(LAST_KEY);if(id&&st[id]){currentProjectId=id;applyProjectPayload(st[id]);refreshProjectList();return true}return false}
+function undoState(includeDrawing=false){const payload=projectPayload();if(!includeDrawing&&payload.workspace?.drawing){const drawing=payload.workspace.drawing;payload.workspace={...payload.workspace};delete payload.workspace.drawing;return JSON.stringify({payload,selected:[...selected],retainDrawing:{hidden:[...drawing.hidden],opacity:drawing.opacity}})}return JSON.stringify({payload,selected:[...selected]})}
+function trimUndo(stack){let bytes=stack.reduce((n,s)=>n+s.length*2,0);while(stack.length>1&&(stack.length>30||bytes>64*1024*1024))bytes-=stack.shift().length*2;return stack;}
+function snapshot(includeDrawing=false){activePointEdit=null;redoHistory=[];history.push(undoState(includeDrawing));trimUndo(history)}
+function restore(){activePointEdit=null;if(!history.length){setStatus('Нет действий для отмены.');return}const s=JSON.parse(history.pop()),future=redoHistory.concat(undoState(!s.retainDrawing)),remaining=history;if(s.retainDrawing&&workspaceExtras.drawing)s.payload.workspace={...s.payload.workspace,drawing:{...workspaceExtras.drawing,hidden:[...s.retainDrawing.hidden],opacity:s.retainDrawing.opacity}};applyProjectPayload(s.payload);history=remaining;redoHistory=trimUndo(future);selected=new Set(s.selected||[]);lastSelected=-1;render();refreshUI();requestAnimationFrame(fitPlot);scheduleSave();setStatus('Действие отменено.');}
+function redo(){if(!redoHistory.length){setStatus('Нет действий для повтора.');return}const s=JSON.parse(redoHistory.pop()),past=history.concat(undoState(!s.retainDrawing)),remaining=redoHistory;if(s.retainDrawing&&workspaceExtras.drawing)s.payload.workspace={...s.payload.workspace,drawing:{...workspaceExtras.drawing,hidden:[...s.retainDrawing.hidden],opacity:s.retainDrawing.opacity}};applyProjectPayload(s.payload);history=trimUndo(past);redoHistory=remaining;selected=new Set(s.selected||[]);render();refreshUI();requestAnimationFrame(fitPlot);scheduleSave();setStatus('Действие повторено.');}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+const plotView={cx:0,cy:0,scale:1,panX:0,panY:0,ready:false,drag:false,moved:false,lastX:0,lastY:0,startX:0,startY:0,pointerId:null,button:null,hits:[]};
+function validPlotPoints(){const only=$('plotSelectedOnly')?.checked;const out=[];pts.forEach((p,i)=>{if(only&&!selected.has(i))return;try{if(String(p.x).trim()===''||String(p.y).trim()==='')return;const n=num(p.x),e=num(p.y);out.push({i,n,e,p})}catch(_){}});return out}
+function resizePlotCanvas(){if(!visualizationEnabled())return;const c=$('plotCanvas'),wrap=$('canvasWrap');if(!c||!wrap)return;const r=wrap.getBoundingClientRect(),dpr=Math.max(1,window.devicePixelRatio||1),w=Math.max(320,Math.floor(r.width)),h=Math.max(260,Math.floor(r.height));if(c.width!==Math.floor(w*dpr)||c.height!==Math.floor(h*dpr)){c.width=Math.floor(w*dpr);c.height=Math.floor(h*dpr);c.style.width=w+'px';c.style.height=h+'px'}return {w,h,dpr}}
+function fitPlot(){if(!visualizationEnabled())return;const sz=resizePlotCanvas();if(!sz)return;let minE=Infinity,maxE=-Infinity,minN=Infinity,maxN=-Infinity,hasGeometry=false;for(const q of validPlotPoints()){hasGeometry=true;minE=Math.min(minE,q.e);maxE=Math.max(maxE,q.e);minN=Math.min(minN,q.n);maxN=Math.max(maxN,q.n)}const extent=drawingExtent();if(extent){hasGeometry=true;minE=Math.min(minE,extent.minE);maxE=Math.max(maxE,extent.maxE);minN=Math.min(minN,extent.minN);maxN=Math.max(maxN,extent.maxN)}if(!hasGeometry){plotView.ready=false;renderPlot();return}let re=maxE-minE,rn=maxN-minN;plotView.cx=(minE+maxE)/2;plotView.cy=(minN+maxN)/2;plotView.panX=plotView.panY=0;const usableW=Math.max(80,sz.w-100),usableH=Math.max(80,sz.h-100);if(re<1e-12&&rn<1e-12)plotView.scale=1;else{if(re<1e-12)re=Math.max(rn*.1,1e-9);if(rn<1e-12)rn=Math.max(re*.1,1e-9);plotView.scale=Math.max(1e-12,Math.min(usableW/re,usableH/rn))}plotView.ready=true;renderPlot()}
+function worldToScreen(e,n,w,h){return [w/2+plotView.panX+(e-plotView.cx)*plotView.scale,h/2+plotView.panY-(n-plotView.cy)*plotView.scale]}
+function screenToWorld(sx,sy,w,h){return [plotView.cx+(sx-w/2-plotView.panX)/plotView.scale,plotView.cy-(sy-h/2-plotView.panY)/plotView.scale]}
+function niceStep(v){if(!Number.isFinite(v)||v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v))),q=v/p;return (q<=1?1:q<=2?2:q<=5?5:10)*p}
+function coordText(v,step){const d=step<1?Math.min(9,Math.max(2,Math.ceil(-Math.log10(step))+1)):Math.max(0,Math.min(3,3-Math.floor(Math.log10(step||1))));return Number(v).toLocaleString('ru-RU',{maximumFractionDigits:d,minimumFractionDigits:0,useGrouping:false})}
+function depthReferenceValue(){try{return num($('depthReference').value)}catch(_){return null}}
+function pointLevelText(value){const digits=value!==0&&Math.abs(value)<0.0005?Math.min(9,Math.ceil(-Math.log10(Math.abs(value)))+1):3;return Number(value).toLocaleString('ru-RU',{minimumFractionDigits:digits,maximumFractionDigits:digits,useGrouping:false})+' м'}
+function updatePointInfoSettings(){
+  const depth=['depth','no_depth'].includes($('labelMode').value);$('depthSettings').hidden=!depth;
+  $('depthHint').textContent=depthReferenceValue()===null?'Задайте уровень отсчёта. Глубина = уровень − Z; уровень и Z должны быть в одной системе высот.':'Глубина = уровень − Z. Отрицательное значение — точка выше уровня. Система высот уровня и Z должна совпадать.';
+}
+function pointLabel(q){
+  const m=$('labelMode')?.value||'no';if(m==='off')return '';
+  const no=String(q.p.no??q.i+1),d=String(q.p.d??'').trim();
+  if(m==='desc')return d||no;if(m==='both')return d?`${no} · ${d}`:no;
+  if(['height','depth','no_depth'].includes(m)){
+    let value=null;try{value=num(q.p.z)}catch(_){}
+    const level=depthReferenceValue(),depth=m!=='height';
+    const text=value===null||(depth&&level===null)?'—':pointLevelText(depth?level-value:value);
+    const label=(depth?'Гл. ':'Z: ')+text;return m==='no_depth'?`${no} · ${label}`:label;
+  }
+  return no;
+}
+function renderPlot(){if(!visualizationEnabled())return;if(typeof refreshDrawingStatus==='function')refreshDrawingStatus();const c=$('plotCanvas');if(!c)return;const sz=resizePlotCanvas();if(!sz)return;const {w,h,dpr}=sz,ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);const theme=document.documentElement.dataset.theme||'1',dark=theme==='2';ctx.fillStyle=dark?'#0d1317':'#fbfcfc';ctx.fillRect(0,0,w,h);const a=validPlotPoints(),hasDrawing=!!drawingExtent();$('plotEmpty')?.classList.toggle('show',!a.length&&!hasDrawing);plotView.hits=[];if(!a.length&&!hasDrawing)return;if(!plotView.ready){fitPlot();return}
+  const step=niceStep(90/plotView.scale),[e0,n0]=screenToWorld(0,h,w,h),[e1,n1]=screenToWorld(w,0,w,h);const minE=Math.min(e0,e1),maxE=Math.max(e0,e1),minN=Math.min(n0,n1),maxN=Math.max(n0,n1);ctx.font='10px Segoe UI,Arial';ctx.lineWidth=1;ctx.strokeStyle=dark?'#1d2a32':'#dce4e8';ctx.fillStyle=dark?'#70818d':'#788892';
+  let start=Math.floor(minE/step)*step,lines=0;for(let e=start;e<=maxE+step&&lines<120;e+=step,lines++){const [sx]=worldToScreen(e,plotView.cy,w,h);ctx.beginPath();ctx.moveTo(Math.round(sx)+.5,0);ctx.lineTo(Math.round(sx)+.5,h);ctx.stroke();if(sx>35&&sx<w-40)ctx.fillText(coordText(e,step),sx+3,h-6)}
+  start=Math.floor(minN/step)*step;lines=0;for(let n=start;n<=maxN+step&&lines<120;n+=step,lines++){const [,sy]=worldToScreen(plotView.cx,n,w,h);ctx.beginPath();ctx.moveTo(0,Math.round(sy)+.5);ctx.lineTo(w,Math.round(sy)+.5);ctx.stroke();if(sy>15&&sy<h-22)ctx.fillText(coordText(n,step),6,sy-3)}
+  drawDxf(ctx,w,h);ctx.font='11px Segoe UI,Arial';for(const q of a){const [sx,sy]=worldToScreen(q.e,q.n,w,h);if(sx<-30||sx>w+30||sy<-30||sy>h+30)continue;const sel=selected.has(q.i),r=sel?6:4;ctx.beginPath();ctx.arc(sx,sy,r,0,Math.PI*2);ctx.fillStyle=sel?'#ffcf66':'#1685ae';ctx.fill();ctx.strokeStyle=sel?'#fff1b8':dark?'#b9e4ff':'#fff';ctx.lineWidth=1.2;ctx.stroke();plotView.hits.push({i:q.i,sx,sy,r:Math.max(8,r+3)});const lab=pointLabel(q);if(lab){ctx.font=sel?'600 12px Segoe UI,Arial':'11px Segoe UI,Arial';ctx.fillStyle=sel?(dark?'#ffcf66':'#805d13'):dark?'#c5d5df':'#33434d';ctx.fillText(lab,sx+8,sy-7)}}
+  ctx.font='600 11px Segoe UI,Arial';ctx.fillStyle=dark?'#8fa2af':'#647680';ctx.fillText('X ↑',10,16);ctx.fillText('Y →',w-34,h-8)
+}
+function selectFromPlot(i,ev){if(ev.shiftKey&&lastSelected>=0){selected.clear();const a=Math.min(lastSelected,i),b=Math.max(lastSelected,i);for(let j=a;j<=b;j++)selected.add(j)}else if(ev.ctrlKey||ev.metaKey){selected.has(i)?selected.delete(i):selected.add(i);lastSelected=i}else{selected.clear();selected.add(i);lastSelected=i}render();requestAnimationFrame(()=>{const tr=$('tbody').querySelector(`tr[data-i="${i}"]`);if(tr)tr.scrollIntoView({block:'nearest'})})}
+function initPlotEvents(){
+  const c=$('plotCanvas');if(!c)return;$('fitPlotBtn').onclick=fitPlot;$('plotSelectedOnly').onchange=()=>{plotView.ready=false;fitPlot()};$('labelMode').onchange=()=>{updatePointInfoSettings();renderPlot()};
+  $('depthReference').addEventListener('input',()=>{updatePointInfoSettings();renderPlot();scheduleSave()});
+  // Prevent Chromium/WebView2 middle-button autoscroll as well as the auxiliary click.
+  for(const name of ['mousedown','auxclick'])c.addEventListener(name,ev=>{if(ev.button===1){ev.preventDefault();ev.stopPropagation()}});
+  function endPan(){const id=plotView.pointerId;plotView.drag=false;plotView.pointerId=null;plotView.button=null;c.classList.remove('isPanning');if(id!==null&&c.hasPointerCapture(id))c.releasePointerCapture(id)}
+  c.addEventListener('wheel',ev=>{ev.preventDefault();ev.stopPropagation();if(!plotView.ready)fitPlot();const r=c.getBoundingClientRect(),x=ev.clientX-r.left,y=ev.clientY-r.top,w=r.width,h=r.height,[beforeE,beforeN]=screenToWorld(x,y,w,h),factor=Math.exp(-ev.deltaY*.0013);plotView.scale=Math.min(1e12,Math.max(1e-12,plotView.scale*factor));const [afterX,afterY]=worldToScreen(beforeE,beforeN,w,h);plotView.panX+=x-afterX;plotView.panY+=y-afterY;renderPlot()},{passive:false});
+  c.addEventListener('pointerdown',ev=>{if(plotView.drag||![0,1].includes(ev.button))return;ev.preventDefault();ev.stopPropagation();c.setPointerCapture(ev.pointerId);plotView.pointerId=ev.pointerId;plotView.button=ev.button;plotView.drag=true;plotView.moved=false;plotView.startX=plotView.lastX=ev.clientX;plotView.startY=plotView.lastY=ev.clientY;c.classList.add('isPanning')});
+  c.addEventListener('pointermove',ev=>{
+    if(plotView.drag&&ev.pointerId===plotView.pointerId){
+      if(!(ev.buttons&(plotView.button===1?4:1)))endPan();
+      else{ev.preventDefault();ev.stopPropagation();if(Math.hypot(ev.clientX-plotView.startX,ev.clientY-plotView.startY)>2)plotView.moved=true;plotView.panX+=ev.clientX-plotView.lastX;plotView.panY+=ev.clientY-plotView.lastY;plotView.lastX=ev.clientX;plotView.lastY=ev.clientY;renderPlot()}
+    }
+    if(plotView.ready){const r=c.getBoundingClientRect(),[e,n]=screenToWorld(ev.clientX-r.left,ev.clientY-r.top,r.width,r.height);$('plotCursor').textContent=`X: ${coordText(n,niceStep(90/plotView.scale))}\nY: ${coordText(e,niceStep(90/plotView.scale))}`}
+  });
+  c.addEventListener('pointerup',ev=>{if(!plotView.drag||ev.pointerId!==plotView.pointerId)return;ev.preventDefault();ev.stopPropagation();const select=plotView.button===0&&!plotView.moved;endPan();if(!select)return;const r=c.getBoundingClientRect(),x=ev.clientX-r.left,y=ev.clientY-r.top;if(plotAddMode){if(!plotView.ready){plotView.ready=true;plotView.scale=isGeo($('src').value)?1000:1;plotView.cx=plotView.cy=0;}const [e,n]=screenToWorld(x,y,r.width,r.height);openPlotPoint(n,e);return}let best=null,bd=Infinity;for(const hit of plotView.hits){const d=Math.hypot(x-hit.sx,y-hit.sy);if(d<=hit.r&&d<bd){best=hit;bd=d}}if(best)selectFromPlot(best.i,ev)});
+  for(const name of ['pointercancel','lostpointercapture'])c.addEventListener(name,ev=>{if(ev.pointerId===plotView.pointerId)endPan()});
+  c.addEventListener('pointerleave',()=>{$('plotCursor').textContent='X: —\nY: —'});window.addEventListener('blur',endPan);window.addEventListener('resize',()=>requestAnimationFrame(renderPlot));
+  for(const id of ['coordPanel']){const panel=$(id),key='khitun_geo_'+id+'_open_v1';try{const saved=localStorage.getItem(key);if(saved!==null)panel.open=saved==='1'}catch(_){}panel.addEventListener('toggle',()=>{try{localStorage.setItem(key,panel.open?'1':'0')}catch(_){}requestAnimationFrame(renderPlot)})}
+  if(typeof ResizeObserver!=='undefined'){const observer=new ResizeObserver(()=>renderPlot());observer.observe($('canvasWrap'))}
+}
+
+function displayCoordinate(value,key){if(String(value??'').trim()==='')return '';try{return fmt(num(value),key!=='z'&&isGeo($('src').value))}catch(_){return value}}
+function render(){endRowSelection();const tb=$('tbody');tb.innerHTML='';pts.forEach((p,i)=>{const tr=document.createElement('tr');tr.dataset.i=i;tr.setAttribute('aria-selected',String(selected.has(i)));if(selected.has(i))tr.classList.add('selected');tr.innerHTML=`<td class="pointNoCell"><div class="pointNoEditor"><button class="rowHandle" type="button" data-row-handle="${i}" aria-label="Выделить точку ${esc(p.no||i+1)}" title="Выделить строку">⋮</button><input data-k="no" data-i="${i}" aria-label="Номер точки, строка ${i+1}" value="${esc(p.no)}"></div></td><td><input data-k="x" data-i="${i}" value="${esc(displayCoordinate(p.x,'x'))}"></td><td><input data-k="y" data-i="${i}" value="${esc(displayCoordinate(p.y,'y'))}"></td><td><input type="text" inputmode="text" aria-label="Высота Z строки ${i+1}" title="Допускаются отрицательные значения, например -12.5" data-k="z" data-i="${i}" value="${esc(displayCoordinate(p.z,'z'))}"></td><td><input data-k="d" data-i="${i}" value="${esc(p.d)}"></td>`;tb.appendChild(tr)});$('count').textContent=`Точек: ${pts.length} · выделено: ${selected.size}`;updateSelectionButton();paintColumnSelection();validateTable();requestAnimationFrame(renderPlot);}
+$('tbody').addEventListener('input',e=>{const t=e.target;if(t.dataset.i===undefined||!pts[+t.dataset.i])return;if(activePointEdit!==t){snapshot();activePointEdit=t}pts[+t.dataset.i][t.dataset.k]=t.value;validateTable();requestAnimationFrame(renderPlot);scheduleSave()});
+$('tbody').addEventListener('focusout',()=>{activePointEdit=null});
+// Selection updates existing rows so a click never destroys an input or its caret.
+let rowDrag=null;
+function paintRowSelection(){
+  updateTableActionState();
+  for(const tr of $('tbody').querySelectorAll('tr[data-i]')){const yes=selected.has(+tr.dataset.i);tr.classList.toggle('selected',yes);tr.setAttribute('aria-selected',String(yes));}
+  $('count').textContent=`Точек: ${pts.length} · выделено: ${selected.size}`;updateSelectionButton();requestAnimationFrame(renderPlot);
+}
+function selectRowRange(anchor,end,base=new Set(),remove=false){
+  selected=new Set(base);for(let i=Math.min(anchor,end);i<=Math.max(anchor,end);i++)if(i>=0&&i<pts.length){if(remove)selected.delete(i);else selected.add(i)}paintRowSelection();
+}
+function beginRowSelection(i,e){
+  selectedColumns.clear();paintColumnSelection();
+  const additive=e.ctrlKey||e.metaKey,anchor=e.shiftKey&&lastSelected>=0?lastSelected:i;
+  const base=additive?new Set(selected):new Set(),remove=additive&&!e.shiftKey&&selected.has(i);
+  selectRowRange(anchor,i,base,remove);if(!e.shiftKey||lastSelected<0)lastSelected=i;
+  return {anchor,base,remove};
+}
+function endRowSelection(){const id=rowDrag?.pointerId;rowDrag=null;$('pointsTableWrap').classList.remove('selectingRows');if(id!==undefined&&$('tbody').hasPointerCapture?.(id))$('tbody').releasePointerCapture(id);}
+function rowAtPointer(drag){
+  const r=$('pointsTableWrap').getBoundingClientRect();
+  if(drag.x<r.left||drag.x>r.right)return null;
+  const node=document.elementFromPoint(drag.x,Math.max(r.top+42,Math.min(r.bottom-8,drag.y)));
+  const tr=node?.closest('tr[data-i]');return tr&&tr.closest('tbody')===$('tbody')?+tr.dataset.i:null;
+}
+function extendRowDrag(drag){
+  const i=rowAtPointer(drag);if(i===null)return;
+  if(i!==drag.start)drag.moved=true;
+  if(drag.moved||drag.handle){$('pointsTableWrap').classList.add('selectingRows');selectRowRange(drag.anchor,i,drag.base,drag.remove);}
+}
+function scrollRowDrag(drag){
+  if(rowDrag!==drag)return;
+  if(drag.moved||drag.handle){
+    const wrap=$('pointsTableWrap'),r=wrap.getBoundingClientRect();
+    if(drag.x>=r.left&&drag.x<=r.right){const dy=drag.y<r.top+42?-12:drag.y>r.bottom-24?12:0;if(dy){wrap.scrollTop+=dy;extendRowDrag(drag);}}
+  }
+  requestAnimationFrame(()=>scrollRowDrag(drag));
+}
+$('tbody').addEventListener('pointerdown',e=>{
+  if(e.button!==0||rowDrag)return;const tr=e.target.closest('tr[data-i]');if(!tr)return;
+  const handle=e.target.closest('[data-row-handle]');if(e.pointerType==='touch'&&!handle)return;
+  const i=+tr.dataset.i,state=beginRowSelection(i,e);
+  rowDrag={...state,start:i,handle:!!handle,moved:false,pointerId:e.pointerId,x:e.clientX,y:e.clientY};
+  if(handle)$('tbody').setPointerCapture?.(e.pointerId);
+  if(handle||e.shiftKey||e.ctrlKey||e.metaKey){e.preventDefault();tr.querySelector('[data-row-handle]')?.focus();}
+  const drag=rowDrag;requestAnimationFrame(()=>scrollRowDrag(drag));
+});
+window.addEventListener('pointermove',e=>{
+  if(!rowDrag||e.pointerId!==rowDrag.pointerId)return;if(!(e.buttons&1)){endRowSelection();return}
+  rowDrag.x=e.clientX;rowDrag.y=e.clientY;extendRowDrag(rowDrag);
+  if(rowDrag.moved||rowDrag.handle){$('tbody').setPointerCapture?.(e.pointerId);e.preventDefault();window.getSelection()?.removeAllRanges();}
+},{passive:false});
+for(const name of ['pointerup','pointercancel'])window.addEventListener(name,e=>{if(rowDrag&&e.pointerId===rowDrag.pointerId)endRowSelection()});
+$('tbody').addEventListener('lostpointercapture',e=>{if(rowDrag&&e.pointerId===rowDrag.pointerId)endRowSelection()});
+window.addEventListener('blur',endRowSelection);
+$('tbody').addEventListener('click',e=>{const handle=e.target.closest('[data-row-handle]');if(handle&&e.detail===0)beginRowSelection(+handle.dataset.rowHandle,e)});
+$('tbody').addEventListener('keydown',e=>{
+  const handle=e.target.closest('[data-row-handle]');if(!handle)return;const i=+handle.dataset.rowHandle;
+  if((e.ctrlKey||e.metaKey)&&(e.code==='KeyA'||e.key.toLowerCase()==='a')){e.preventDefault();selected=new Set(pts.map((_,j)=>j));lastSelected=i;paintRowSelection();return}
+  if(e.key==='Escape'){e.preventDefault();selected.clear();lastSelected=-1;paintRowSelection();return}
+  if(e.key==='Enter'||e.key==='F2'){e.preventDefault();tbInput(i,'z')?.focus();return}
+  if(!['ArrowUp','ArrowDown','Home','End'].includes(e.key))return;e.preventDefault();
+  const next=e.key==='Home'?0:e.key==='End'?pts.length-1:Math.max(0,Math.min(pts.length-1,i+(e.key==='ArrowDown'?1:-1)));
+  beginRowSelection(next,{shiftKey:e.shiftKey});const target=$('tbody').querySelector(`[data-row-handle="${next}"]`);target?.focus({preventScroll:true});target?.scrollIntoView({block:'nearest'});
+});
+function tbInput(i,k){return $('tbody').querySelector(`input[data-i="${i}"][data-k="${k||'no'}"]`)}
+function num(v){const s=String(v??'').trim().replace(/\s+/g,'').replace(/−/g,'-').replace(',','.');if(!s)throw new Error('Пустое числовое значение');const n=Number(s);if(!Number.isFinite(n))throw new Error(`Некорректное число: ${v}`);return n;}
+function fmt(n,geo=false){return geo?n.toFixed(9):n.toFixed(3)}
+const {Ell,E,TO_WGS,GSK_TO_PZ,PZ_TO_9011,d2r,r2d,as2r,geodToEcef,ecefToGeod,helm,invHelm,arc,norm,normLon,lon360,fwdTM,invTMApprox,invTM,webFwd,webInv,datumToWgs,wgsToDatum,zoneGK6,lon0GK6,zoneGK3,lon0GK3,zoneUTM,lon0UTM,zoneFromPrefixedY,projectionFor}=KhitunCoordinates;
+function crsParams(id,side='src'){const c=CRS[id];if(c.kind==='regional')return {...regionalDefinition(id,side)};if(id!=='custom')return {...c};return {name:$('customName').value||'Местная МСК',kind:'custom',datum:$('customDatum').value,lon0:num($('customLon0').value),fe:num($('customFE').value),fn:num($('customFN').value),k:(()=>{const k=num($('customK').value);if(k<=0)throw new Error('Масштаб k₀ должен быть больше нуля');return k})(),epsg:'пользовательская'}}
+function detectZoneForPoint(c,p,isSource,prefix){if(!['gk6','gk3','utm'].includes(c.kind))return null;let z;if(!$('autoZone').checked)z=num($('zoneManual').value);else if(isSource&&prefix&&c.kind!=='utm'){z=zoneFromPrefixedY(p[1]);if(z===null)throw new Error('В Y не найден номер зоны')}else if(isSource){if(c.kind==='utm')z=num($('zoneManual').value);else throw new Error('Для исходной плоской СК без префикса Y отключите авто-зону и задайте зону вручную')}else{const lon=p[1];z=c.kind==='gk6'?zoneGK6(lon):c.kind==='gk3'?zoneGK3(lon):zoneUTM(lon)}const max=c.kind==='gk3'?120:60;if(!Number.isInteger(z)||z<1||z>max)throw new Error(`Зона должна быть целым числом от 1 до ${max}`);return z}
+function toWgs(p,id,prefix,side='src'){const c=crsParams(id,side);if(c.kind==='geo')return datumToWgs(p,c.datum);if(c.kind==='webmerc')return webInv(p[0],p[1],p[2]);if(['gk6','gk3','utm'].includes(c.kind)){const z=detectZoneForPoint(c,p,true,prefix),pr=projectionFor(c,z,prefix),g=invTM(p[0],p[1],p[2],E[c.datum],pr.lon0,0,pr.k,pr.fe,pr.fn);return datumToWgs(g,c.datum)}if(c.kind==='fixedtm'||c.kind==='custom'){const pr=projectionFor(c,null,prefix),ell=c.ellipsoid==='bessel'?E.bessel:E[c.datum],g=invTM(p[0],p[1],p[2],ell,pr.lon0,pr.lat0||0,pr.k,pr.fe,pr.fn);if(c.towgs)return ecefToGeod(...helm(geodToEcef(...g,ell),c.towgs),E.wgs);return datumToWgs(g,c.datum)}throw Error('СК не поддерживается')}
+function fromWgs(w,id,prefix,side='dst'){const c=crsParams(id,side);if(c.kind==='geo')return wgsToDatum(w,c.datum);if(c.kind==='webmerc')return webFwd(w[0],w[1],w[2]);if(['gk6','gk3','utm'].includes(c.kind)){const g=wgsToDatum(w,c.datum),z=detectZoneForPoint(c,g,false,prefix),pr=projectionFor(c,z,prefix);return fwdTM(g[0],g[1],g[2],E[c.datum],pr.lon0,0,pr.k,pr.fe,pr.fn)}if(c.kind==='fixedtm'||c.kind==='custom'){const pr=projectionFor(c,null,prefix),ell=c.ellipsoid==='bessel'?E.bessel:E[c.datum],g=c.towgs?ecefToGeod(...invHelm(geodToEcef(...w,E.wgs),c.towgs),ell):wgsToDatum(w,c.datum);return fwdTM(...g,ell,pr.lon0,pr.lat0||0,pr.k,pr.fe,pr.fn)}throw Error('СК не поддерживается')}
+function transformPoint(p,s,t,srcPrefix,dstPrefix){if(!Array.isArray(p)||p.length!==3||!p.every(Number.isFinite))throw new Error('Координаты должны быть конечными числами');if(isGeo(s)&&(Math.abs(p[0])>=90||Math.abs(p[1])>180))throw new Error('Допустимая широта: от −90 до 90 без полюсов; долгота: от −180 до 180');if(s==='utm'&&p[0]<0)throw new Error('UTM North не поддерживает южное полушарие');if(sameSystem(s,t)&&srcPrefix===dstPrefix)return [...p];const w=toWgs(p,s,srcPrefix);if(t==='utm'&&(w[0]<0||w[0]>84))throw new Error('UTM North поддерживает широты от 0 до 84°');return fromWgs(w,t,dstPrefix)}
+function isGeo(id){return CRS[id].kind==='geo'}
+function epsgFor(id,zone,prefix){
+  const fixed={wgs:4326,webmerc:3857,gskgeo:7683,pzgeo:7680,pz90geo:4740,pz02geo:7678,sk95geo:4200,sk42geo:4284};
+  if(fixed[id])return String(fixed[id]);
+  zone=Number(zone);
+  if(id==='utm'&&zone>=1&&zone<=60)return String(32600+zone);
+  if(id==='gsk6'&&zone>=1&&zone<=60)return String((prefix?20900:21000)+zone);
+  if(id==='gsk3'&&zone>=1&&zone<=99)return String((prefix?21200:21300)+zone);
+  if(id==='sk426'&&zone>=1&&zone<=32)return String((prefix?28400:28460)+zone);
+  if(id==='sk956'&&zone>=1&&zone<=32)return String((prefix?20000:20060)+zone);
+  return CRS[id]?.epsg||'';
+}
+function describeSystem(id,side='src'){const c=crsParams(id,side);let s=`${c.name}. `;if(c.kind==='gk6')s+='6° зоны Гаусса–Крюгера; зона определяется по долготе или префиксу Y. ';if(c.kind==='gk3')s+='3° зоны Гаусса–Крюгера; центральный меридиан = 3×№ зоны. ';if(c.kind==='utm')s+='UTM North; зона по долготе. ';if(c.kind==='fixedtm'||c.kind==='custom')s+=`B₀=${c.lat0||0}°, L₀=${c.lon0}°, FE=${c.fe}, FN=${c.fn}, k=${c.k}. `;if(c.family)s+='Справочный каталог β; сверьте контрольные точки. ';return s+`Основа: ${c.datum}; ${c.epsg?`EPSG/код: ${c.epsg}.`:''}`}
+function setStatus(msg,kind='ok'){const el=$('opStatus');if(!el)return;clearTimeout(statusTimer);el.className='headerStatus '+(kind==='warn'?'warn':'ok');el.textContent=msg;if(kind!=='warn')statusTimer=setTimeout(()=>{el.textContent=''},6000)}
+function shortSystemName(id,side){try{const c=crsParams(id,side);return c.name.split(' · ')[0]}catch(_){return CRS[id]?.name||id}}
+function refreshUI(){for(const side of ['src','dst'])refreshRegionalControls(side);const usesCustom=$('src').value==='custom'||$('dst').value==='custom';$('customBox').classList.toggle('show',usesCustom);const description=(id,side)=>{try{return describeSystem(id,side)}catch(e){return e.message}};$('systemInfo').textContent='Источник: '+description($('src').value,'src')+' Выход: '+description($('dst').value,'dst');const summary=shortSystemName($('src').value,'src')+' → '+shortSystemName($('dst').value,'dst');$('coordSummary').textContent=summary;$('footerCoordSummary').textContent=summary;$('workspaceProjectName').textContent=$('projectName').value||'Без названия';updateZoneInfo();updateZoneSettingsSummary();updatePointInfoSettings()}
+function updateZoneInfo(){try{const s=CRS[$('src').value],t=CRS[$('dst').value],p=pts.find(q=>String(q.x).trim()&&String(q.y).trim());let arr=[];for(const side of ['src','dst'])if(CRS[$(side).value].kind==='regional'){try{const r=regionalDefinition($(side).value,side);arr.push((side==='src'?'исходная: ':'выходная: ')+r.name+'; смещения Y фиксированы каталогом')}catch(e){arr.push(e.message)}}if(p){const pv=[num(p.x),num(p.y),String(p.z).trim()?num(p.z):0],sp=$('srcZonePrefix').checked,dp=$('dstZonePrefix').checked;for(const [role,c,id,prefix] of [['исходная',s,$('src').value,sp],['выходная',t,$('dst').value,dp]]){if(['gk6','gk3','utm'].includes(c.kind)){try{const z=role==='исходная'?detectZoneForPoint(c,pv,true,prefix):(()=>{const w=toWgs(pv,$('src').value,sp);return detectZoneForPoint(c,wgsToDatum(w,c.datum),false,prefix)})();const l=c.kind==='gk6'?lon0GK6(z):c.kind==='gk3'?lon0GK3(z):lon0UTM(z),ep=epsgFor(id,z,prefix);arr.push(`${role}: зона ${z}, L₀ ${l}°${/^\d+$/.test(ep)?`, EPSG:${ep}`:''}`)}catch(e){arr.push(`${role}: ${e.message}`)}}}}$('zoneInfo').textContent=arr.length?arr.join(' · '):'Для выбранных СК зональный параметр не требуется.'}catch(e){$('zoneInfo').textContent='Зона: '+e.message}}
+function applyTransform(onlySelected){try{
+  const passportCapture=typeof capturePassport==='function'?capturePassport():null;
+  const s=$('src').value,t=$('dst').value,sp=$('srcZonePrefix').checked,dp=$('dstZonePrefix').checked;
+  if(sameSystem(s,t)&&sp===dp){setStatus('Исходная и выходная СК одинаковые.','warn');return}
+  if(onlySelected&&!selected.size)throw new Error('Сначала выдели точки.');
+  if(onlySelected&&pts.some((p,i)=>!selected.has(i)&&(String(p.x).trim()!==''||String(p.y).trim()!=='')))throw new Error('Нельзя смешивать системы координат в одном проекте. Выдели все заполненные точки или создай отдельный проект для выбранных.');
+  let done=0;const outputZones=new Set(),targetC=crsParams(t,'dst');
+  const rememberZone=['utm','gk6','gk3'].includes(targetC.kind)&&(targetC.kind==='utm'||!dp);
+  const converted=pts.map((p,i)=>{if(onlySelected&&!selected.has(i))return p;const x=String(p.x).trim(),y=String(p.y).trim(),z=String(p.z??'');if(!x&&!y)return p;if(!x||!y)throw new Error(`Точка ${p.no||i+1}: заполнены не обе координаты.`);const calculationHeight=z.trim()===''?0:num(z),q=transformPoint([num(x),num(y),calculationHeight],s,t,sp,dp);if(!q.every(Number.isFinite))throw new Error(`Точка ${p.no||i+1}: некорректный результат.`);if(rememberZone){const w=toWgs([num(x),num(y),calculationHeight],s,sp);outputZones.add(detectZoneForPoint(targetC,wgsToDatum(w,targetC.datum),false,dp));}done++;return {...p,x:String(q[0]),y:String(q[1]),z}});
+  if(!done)throw new Error('Нет заполненных точек для преобразования');if(outputZones.size>1)throw new Error('Без префикса зоны нельзя объединить разные зоны в одной таблице. Выберите одну зону вручную или разделите проект.');snapshot();pts=converted;resetRegionSearch();[regionalSelection.src,regionalSelection.dst]=[regionalSelection.dst,regionalSelection.src];$('src').value=t;$('srcZonePrefix').checked=dp;$('dst').value=s;$('dstZonePrefix').checked=sp;if(outputZones.size===1){$('zoneManual').value=String([...outputZones][0]);if(targetC.kind!=='utm')$('autoZone').checked=false;}if(passportCapture)finishPassport(passportCapture,done);plotView.ready=false;setStatus(`Преобразовано: ${done}; пустых строк: ${pts.length-done}. Z сохранена без изменения. ${$('zoneSettingsSummary').textContent}.`);render();refreshUI();requestAnimationFrame(fitPlot);scheduleSave()
+}catch(e){setStatus('Ошибка: '+e.message,'warn');alert(e.message)}}
+function selfTest(){try{const g=transformPoint([65,84,0],'wgs','gsk3',true,true),back=transformPoint(g,'gsk3','wgs',true,true),m=transformPoint([65,84,0],'wgs','msk164',true,true),ok=Math.abs(g[0]-7211338.525)<.003&&Math.abs(g[1]-28250000.172)<.003&&Math.abs(back[0]-65)<1e-7&&Math.abs(back[1]-84)<1e-7&&Math.abs(m[0]-668589.193)<.08&&Math.abs(m[1]-86247.338)<.08;$('selftest').innerHTML=ok?'<span class="ok">✓ Самопроверка: ГСК‑2011 3GK и МСК‑164 пройдена</span>':'<span class="warn">⚠ Самопроверка не пройдена</span>'}catch(e){$('selftest').textContent='Ошибка самопроверки: '+e.message}}
+function download(name,text,type='text/plain'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},100)}
+$('addBtn').onclick=()=>{snapshot();pts.push({no:String(pts.length+1),x:'',y:'',z:'0',d:''});render();requestAnimationFrame(fitPlot);scheduleSave()};
+function deleteTableSelection(){
+ if(selectedColumns.size){const keys=['no','x','y','z','d'],fields=[...selectedColumns].filter(i=>Number.isInteger(i)&&i>=0&&i<keys.length).map(i=>keys[i]);if(!fields.length||!pts.some(p=>fields.some(k=>String(p[k]??'')!=='')))return;
+  snapshot();pts=pts.map(p=>{const q={...p};for(const k of fields)q[k]='';return q;});render();requestAnimationFrame(fitPlot);scheduleSave();setStatus('Значения выделенных столбцов очищены. Столбцы и строки сохранены. Ctrl+Z — отменить.');return;
+ }
+ if(!selected.size){setStatus('Удаление отменено: ничего не выделено.','warn');return}snapshot();pts=pts.filter((_,i)=>!selected.has(i));selected.clear();lastSelected=-1;render();requestAnimationFrame(fitPlot);setStatus('Удалены только выделенные точки.');scheduleSave();
+}
+$('deleteBtn').onclick=deleteTableSelection;
+function swapPointAxes(){
+  const rows=selected.size?[...selected]:pts.map((p,i)=>({p,i})).filter(q=>String(q.p.x??'').trim()||String(q.p.y??'').trim()).map(q=>q.i);
+  if(!rows.length){setStatus('Нет заполненных X/Y для реверса.','warn');return}
+  snapshot();for(const i of rows){const p=pts[i];pts[i]={...p,x:p.y,y:p.x}}
+  plotView.ready=false;render();refreshUI();requestAnimationFrame(fitPlot);scheduleSave();
+  setStatus(`X и Y поменяны местами: ${rows.length} ${rows.length===1?'точка':'точек'}. Ctrl+Z — отменить.`);
+}
+$('swapXyBtn').onclick=swapPointAxes;
+document.addEventListener('keydown',e=>{if(e.key!=='Delete'||e.ctrlKey||e.metaKey||e.altKey||e.shiftKey||e.isComposing||document.querySelector('dialog[open],.modalShade.show'))return;if(e.target?.closest?.('input,textarea,[contenteditable="true"]'))return;if(selected.size||selectedColumns.size){e.preventDefault();deleteTableSelection();}});
+$('selectAllBtn').onclick=()=>{if(!pts.length)return;snapshot();if(allPointsSelected()){selected.clear();lastSelected=-1}else selected=new Set(pts.map((_,i)=>i));render()};
+function allPointsSelected(){return pts.length>0&&pts.every((_,i)=>selected.has(i))}
+function updateSelectionButton(){const all=allPointsSelected();$('selectAllBtn').textContent=all?'Снять выделение':'Выделить всё';$('selectAllBtn').disabled=!pts.length;}
+function heightRows(){return pts.map((p,i)=>({p,i})).filter(q=>$('heightScope').value==='all'||selected.has(q.i))}
+function updateHeightDraft(){
+  $('heightAmount').disabled=$('heightOperation').value==='negate';
+  $('heightCount').textContent=`Будет изменено строк: ${heightRows().length} из ${pts.length}.`;
+  $('heightError').textContent='';
+}
+function openHeightSettings(){
+  $('heightScope').value=selected.size?'selected':'all';$('heightOperation').value='add';$('heightAmount').value='';
+  updateHeightDraft();$('heightDialog').showModal();$('heightAmount').focus();
+}
+function applyHeightChange(){
+  try{
+    const rows=heightRows(),op=$('heightOperation').value;
+    if(!rows.length)throw new Error('Нет строк для изменения. Выделите точки или выберите все строки.');
+    if(!['add','subtract','set','negate'].includes(op))throw new Error('Выберите действие.');
+    const amount=op==='negate'?0:num($('heightAmount').value);
+    if(amount<0&&op!=='set')throw new Error('Введите положительную величину и выберите «Прибавить» или «Вычесть».');
+    // Validate every selected row before changing anything: no partial height shifts.
+    const changed=rows.map(({p,i})=>{
+      let z;try{z=op==='set'?Number.NaN:num(p.z)}catch(_){throw new Error(`Строка ${i+1}, точка ${p.no||i+1}: укажите числовую высоту Z. Пустое значение или один минус не являются высотой.`)}
+      const value=op==='set'?amount:op==='negate'?-z:z+(op==='subtract'?-amount:amount);
+      if(!Number.isFinite(value))throw new Error(`Строка ${i+1}: результат выходит за допустимый диапазон.`);
+      return {i,z,value};
+    }).filter(q=>q.value!==q.z);
+    if(changed.length){snapshot();for(const q of changed)pts[q.i]={...pts[q.i],z:String(q.value)};render();refreshUI();scheduleSave();}
+    $('heightDialog').close();setStatus(changed.length?`Высота Z изменена у ${changed.length} точек. Ctrl+Z — отменить.`:'Высоты Z не изменились.');
+  }catch(e){$('heightError').textContent=e.message;}
+}
+$('heightBtn').onclick=openHeightSettings;$('heightScope').addEventListener('change',updateHeightDraft);$('heightOperation').addEventListener('change',updateHeightDraft);
+$('heightCancel').onclick=$('heightCloseX').onclick=()=>$('heightDialog').close();$('heightApply').onclick=applyHeightChange;
+function handleUndoShortcut(e){
+  if(e.defaultPrevented||e.isComposing||!(e.ctrlKey||e.metaKey)||e.altKey||e.shiftKey||!(e.code==='KeyZ'||String(e.key).toLowerCase()==='z'||String(e.key).toLowerCase()==='я'))return;
+  if(document.querySelector('dialog[open], .modalShade.show'))return;
+  const target=e.target,editing=target?.closest?.('input,textarea,[contenteditable="true"]');
+  if(editing&&!target.closest('#tbody'))return;
+  e.preventDefault();restore();
+}
+document.addEventListener('keydown',handleUndoShortcut);
+function updateZoneSettingsSummary(){$('zoneSettingsSummary').textContent=$('autoZone').checked?'Зона: автоматически':'Зона: вручную · '+$('zoneManual').value}
+function updateZoneDraft(){
+  const kinds=[$('src').value,$('dst').value].map(id=>CRS[id].kind),max=kinds.some(k=>k==='gk6'||k==='utm')?60:120;
+  $('zoneNumber').max=String(max);$('zoneNumber').disabled=$('zoneMode').value==='auto'&&CRS[$('src').value].kind!=='utm';
+}
+function openZoneSettings(){
+  $('zoneMode').value=$('autoZone').checked?'auto':'manual';$('zoneNumber').value=$('zoneManual').value;
+  $('zoneSourcePrefix').checked=$('srcZonePrefix').checked;$('zoneTargetPrefix').checked=$('dstZonePrefix').checked;
+  $('zoneSettingsError').textContent='';updateZoneDraft();$('zoneDialog').showModal();
+}
+function applyZoneSettings(){
+  updateZoneDraft();const automatic=$('zoneMode').value==='auto',n=Number($('zoneNumber').value),max=Number($('zoneNumber').max);
+  if(!$('zoneNumber').disabled&&(!Number.isInteger(n)||n<1||n>max)){$('zoneSettingsError').textContent=`Укажите целую зону от 1 до ${max}.`;$('zoneNumber').focus();return}
+  const number=$('zoneNumber').disabled?$('zoneManual').value:String(n),sp=$('zoneSourcePrefix').checked,dp=$('zoneTargetPrefix').checked;
+  if(automatic!==$('autoZone').checked||number!==$('zoneManual').value||sp!==$('srcZonePrefix').checked||dp!==$('dstZonePrefix').checked){snapshot();$('autoZone').checked=automatic;$('zoneManual').value=number;$('srcZonePrefix').checked=sp;$('dstZonePrefix').checked=dp;refreshUI();scheduleSave();setStatus('Настройка зоны сохранена.');}
   $('zoneDialog').close();
 }
 $('themeToggleBtn').onclick=()=>{applyInterfaceTheme(document.documentElement.dataset.theme==='2'?'1':'2');renderPlot()};

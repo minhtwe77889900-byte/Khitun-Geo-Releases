@@ -14,7 +14,7 @@ const server=http.createServer((req,res)=>{const p=path.resolve(root,'.'+decodeU
     const initialPoints=await page.evaluate(()=>JSON.stringify(pts));
     for(let i=0;i<4;i++)await page.locator('#welcomeNext').click();
     assert.equal(await page.locator('#welcomeNext').innerText(),'Начать работу');
-    assert.equal(await page.locator('#welcomeDialog a').getAttribute('href'),'https://github.com/minhtwe77889900-byte/Khitun-Geo-Releases/releases/latest');
+    assert.equal(await page.locator('#welcomeDialog a').getAttribute('href'),'https://github.com/minhtwe77889900-byte/Khitun-Geo/releases/latest');
     await page.locator('#welcomeBack').click();assert((await page.locator('#welcomeProgress').innerText()).includes('4 из 5'));await page.locator('#welcomeNext').click();await page.locator('#welcomeNext').click();
     assert.equal(await page.evaluate(()=>JSON.stringify(pts)),initialPoints,'guide must not mutate user data');
     await page.reload();await page.waitForFunction(()=>regionalReady);assert.equal(await page.locator('#welcomeDialog').isVisible(),false);
