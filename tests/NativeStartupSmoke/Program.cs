@@ -98,6 +98,29 @@ internal static class Program
         var current = workspace.GetType().GetProperty("Points")!.GetValue(workspace)!;
         var values = ((System.Collections.IEnumerable)current).Cast<object>().ToArray();
         Require(values.Length == 2 && (double)pointType.GetProperty("X")!.GetValue(values[0])! > 1000, "Actual conversion writes projected points to workspace");
+        Exception? buttonFailure = null;
+        bool openedByButton = false;
+        using (var timer = new System.Windows.Forms.Timer { Interval = 100 })
+        {
+            timer.Tick += (_, _) =>
+            {
+                var active = Application.OpenForms.Cast<Form>().FirstOrDefault(f => f.GetType().Name == "PointExportDialog");
+                if (active is null) return;
+                timer.Stop(); openedByButton = true;
+                try
+                {
+                    Require(((DataGridView)Field(active, "preview")).Rows.Count == 2,
+                        "Export button lost transformed table points: " + ((Label)Field(active, "notice")).Text);
+                    Capture(active, "native-export-button");
+                }
+                catch (Exception ex) { buttonFailure = ex; }
+                finally { active.Close(); }
+            };
+            timer.Start();
+            Descendants(form).OfType<Button>().Single(b => b.Text == "Экспорт").PerformClick();
+        }
+        Require(openedByButton, "Export button must open the production export dialog");
+        if (buttonFailure is not null) throw buttonFailure;
         var exportType = assembly.GetType("KhitunGeo.Native.PointExportDialog", true)!;
         using var export = (Form)Activator.CreateInstance(exportType, new[] { current, selection.GetType().GetProperty("SourceIsGeographic")!.GetValue(selection)!, selection.GetType().GetProperty("SourceName")!.GetValue(selection)!, false })!;
         export.Show(form); Application.DoEvents();
