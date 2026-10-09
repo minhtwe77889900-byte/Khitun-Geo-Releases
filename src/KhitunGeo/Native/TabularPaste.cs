@@ -93,14 +93,13 @@ internal static class TabularPaste
     private static string DetectCellDelimiter(string text)
     {
         var first = text.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? text;
-        if (first.Contains('\t')) return "\t";
-        if (first.Contains(';')) return ";";
-        if (first.Contains(','))
+        foreach (var delimiter in new[] { "\t", ";", "," })
         {
             using var probe = new TextFieldParser(new StringReader(first));
-            probe.SetDelimiters(",");
+            probe.SetDelimiters(delimiter);
             probe.HasFieldsEnclosedInQuotes = true;
-            try { if (probe.ReadFields()?.Length >= 3) return ","; }
+            probe.TrimWhiteSpace = false;
+            try { if (probe.ReadFields()?.Length >= 3) return delimiter; }
             catch (MalformedLineException ex) { throw new FormatException("Строка содержит незакрытые кавычки.", ex); }
         }
         return "\t";
