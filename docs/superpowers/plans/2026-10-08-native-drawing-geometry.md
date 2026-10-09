@@ -1,8 +1,3 @@
-time.ps1`, затем запуск с `--native-preview` и smoke-чеклист. Эти команды не загружают проект на GitHub.
-
-## Самопроверка плана
-
-Все разделы согласованной схемы покрыты задачами 1–5; интерфейсы traversal/viewport общие для тестов и UI. Лимиты, наследование слоёв, атомарность импорта и область точек имеют конкретные проверки. Пространственная геометрия и внешний reference не подменяются плоской поддержкой. План выполнен последовательно после согласования пользователем; локальные проверки и одна независимая проверка завершены, существенные замечания исправлены с регрессиями. Реальные Windows UI/SDK/RAM-проверки остаются pending. Дополнительные численные interop-проверки импортированных дуг выполнены в Stage 13, item 1, включая проверку чувствительности тестов к трём намеренным ошибкам в временных копиях читателя.
 # Нативная геометрия DWG/DXF — план реализации
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. Выполнение последовательное в текущей сессии; одна независимая итоговая проверка.
@@ -140,4 +135,8 @@ bash tests/NativeDrawing/verify-direct.sh /workspace/scratch/3d9e1b00c9bd/toolin
 bash tests/NativeConversion/verify-windows-compile.sh /workspace/scratch/3d9e1b00c9bd/tooling/dotnet /workspace/scratch/336aef9ee322/runtime-packages/windows-ref/ref/net8.0 /workspace/scratch/336aef9ee322/runtime-packages/jint/lib/net8.0/Jint.dll /workspace/scratch/336aef9ee322/runtime-packages/acornima/lib/net8.0/Acornima.dll /workspace/scratch/3d9e1b00c9bd/tooling/dwg-test/ACadSharp.dll /workspace/scratch/336aef9ee322/passport-packages/assemblies
 ```
 
-На Windows после локальной подготовки зависимостей: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/verify-native-run
+На Windows после локальной подготовки зависимостей: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/verify-native-runtime.ps1`, затем запуск с `--native-preview` и smoke-чеклист. Эти команды не загружают проект на GitHub.
+
+## Самопроверка плана
+
+Все разделы согласованной схемы покрыты задачами 1–5; интерфейсы traversal/viewport общие для тестов и UI. Лимиты, наследование слоёв, атомарность импорта и область точек имеют конкретные проверки. Пространственная геометрия и внешний reference не подменяются плоской поддержкой. План выполнен последовательно после согласования пользователем; локальные проверки и одна независимая проверка завершены, существенные замечания исправлены с регрессиями. Реальные Windows UI/SDK/RAM-проверки остаются pending. Дополнительные численные interop-проверки импортированных дуг выполнены в Stage 13, item 1, включая проверку чувствительности тестов к трём намеренным ошибкам в временных копиях читателя.

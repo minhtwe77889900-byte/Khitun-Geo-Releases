@@ -1,96 +1,3 @@
-, AutoSize = true, Anchor = AnchorStyles.Left };
-        var secondValue = CreateHeightInput();
-        var preview = new Label { AutoSize = true, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft };
-        var fields = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(12), ColumnCount = 2, RowCount = 5 };
-        fields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 56));
-        fields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 44));
-        fields.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
-        fields.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
-        fields.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
-        fields.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
-        fields.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        fields.Controls.Add(new Label { Text = "Операция", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 0);
-        fields.Controls.Add(operation, 1, 0);
-        fields.Controls.Add(firstLabel, 0, 1);
-        fields.Controls.Add(firstValue, 1, 1);
-        fields.Controls.Add(secondLabel, 0, 2);
-        fields.Controls.Add(secondValue, 1, 2);
-        fields.Controls.Add(preview, 0, 4);
-        fields.SetColumnSpan(preview, 2);
-        var apply = new Button { Text = "Применить ко всем точкам", Dock = DockStyle.Bottom, Height = 38, DialogResult = DialogResult.None };
-        dialog.Controls.Add(fields);
-        dialog.Controls.Add(apply);
-        dialog.AcceptButton = apply;
-
-        void UpdateFields()
-        {
-            var isDifference = operation.SelectedIndex == 3;
-            firstLabel.Text = isDifference ? "Абсолютная отметка" : "Высота / значение";
-            secondLabel.Visible = secondValue.Visible = isDifference;
-            preview.Text = isDifference
-                ? $"Результат для каждой точки: {(double)firstValue.Value - (double)secondValue.Value:0.###}"
-                : operation.SelectedIndex == 0
-                    ? $"Высота будет задана всем точкам: {(double)firstValue.Value:0.###}"
-                    : "Пустые значения Z останутся пустыми. Действие можно отменить через Ctrl+Z.";
-        }
-
-        operation.SelectedIndexChanged += (_, _) => UpdateFields();
-        firstValue.ValueChanged += (_, _) => UpdateFields();
-        secondValue.ValueChanged += (_, _) => UpdateFields();
-        UpdateFields();
-        apply.Click += (_, _) =>
-        {
-            try
-            {
-                SurveyPoint[] adjusted;
-                if (operation.SelectedIndex == 3)
-                {
-                    if (secondValue.Value < 0) throw new ArgumentOutOfRangeException("depth", "Глубина должна быть неотрицательной.");
-                    var result = HeightCalculator.AbsoluteMinusDepth((double)firstValue.Value, (double)secondValue.Value);
-                    adjusted = HeightCalculator.Apply(workspace.Points, HeightOperation.SetAll, result);
-                }
-                else
-                {
-                    var mode = operation.SelectedIndex switch
-                    {
-                        0 => HeightOperation.SetAll,
-                        1 => HeightOperation.AddToAll,
-                        2 => HeightOperation.SubtractFromAll,
-                        _ => throw new InvalidOperationException("Выберите операцию высоты.")
-                    };
-                    adjusted = HeightCalculator.Apply(workspace.Points, mode, (double)firstValue.Value);
-                }
-                workspace.ReplacePoints(adjusted);
-                dialog.DialogResult = DialogResult.OK;
-                dialog.Close();
-            }
-            catch (ArgumentException ex)
-            { MessageBox.Show(dialog, ex.Message, "Расчёт высоты"); }
-        };
-        dialog.ShowDialog(this);
-    }
-
-    private static NumericUpDown CreateHeightInput() => new()
-    {
-        DecimalPlaces = 3,
-        Increment = 0.001m,
-        Minimum = -1000000000,
-        Maximum = 1000000000,
-        Dock = DockStyle.Fill
-    };
-
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            conversionCancellation?.Cancel();
-            pdfCancellation?.Cancel();
-            updateLifetime.Cancel();
-            workspace.Changed -= WorkspaceChanged;
-        }
-        base.Dispose(disposing);
-    }
-}
 namespace KhitunGeo.Native;
 
 internal sealed partial class NativeWorkspaceForm : Form
@@ -369,4 +276,96 @@ internal sealed partial class NativeWorkspaceForm : Form
         operation.SelectedIndex = 0;
         var firstLabel = new Label { Text = "Высота / значение", AutoSize = true, Anchor = AnchorStyles.Left };
         var firstValue = CreateHeightInput();
-        var secondLabel = new Label { Text = "Глубина"
+        var secondLabel = new Label { Text = "Глубина", AutoSize = true, Anchor = AnchorStyles.Left };
+        var secondValue = CreateHeightInput();
+        var preview = new Label { AutoSize = true, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft };
+        var fields = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(12), ColumnCount = 2, RowCount = 5 };
+        fields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 56));
+        fields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 44));
+        fields.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+        fields.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+        fields.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+        fields.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+        fields.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        fields.Controls.Add(new Label { Text = "Операция", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 0);
+        fields.Controls.Add(operation, 1, 0);
+        fields.Controls.Add(firstLabel, 0, 1);
+        fields.Controls.Add(firstValue, 1, 1);
+        fields.Controls.Add(secondLabel, 0, 2);
+        fields.Controls.Add(secondValue, 1, 2);
+        fields.Controls.Add(preview, 0, 4);
+        fields.SetColumnSpan(preview, 2);
+        var apply = new Button { Text = "Применить ко всем точкам", Dock = DockStyle.Bottom, Height = 38, DialogResult = DialogResult.None };
+        dialog.Controls.Add(fields);
+        dialog.Controls.Add(apply);
+        dialog.AcceptButton = apply;
+
+        void UpdateFields()
+        {
+            var isDifference = operation.SelectedIndex == 3;
+            firstLabel.Text = isDifference ? "Абсолютная отметка" : "Высота / значение";
+            secondLabel.Visible = secondValue.Visible = isDifference;
+            preview.Text = isDifference
+                ? $"Результат для каждой точки: {(double)firstValue.Value - (double)secondValue.Value:0.###}"
+                : operation.SelectedIndex == 0
+                    ? $"Высота будет задана всем точкам: {(double)firstValue.Value:0.###}"
+                    : "Пустые значения Z останутся пустыми. Действие можно отменить через Ctrl+Z.";
+        }
+
+        operation.SelectedIndexChanged += (_, _) => UpdateFields();
+        firstValue.ValueChanged += (_, _) => UpdateFields();
+        secondValue.ValueChanged += (_, _) => UpdateFields();
+        UpdateFields();
+        apply.Click += (_, _) =>
+        {
+            try
+            {
+                SurveyPoint[] adjusted;
+                if (operation.SelectedIndex == 3)
+                {
+                    if (secondValue.Value < 0) throw new ArgumentOutOfRangeException("depth", "Глубина должна быть неотрицательной.");
+                    var result = HeightCalculator.AbsoluteMinusDepth((double)firstValue.Value, (double)secondValue.Value);
+                    adjusted = HeightCalculator.Apply(workspace.Points, HeightOperation.SetAll, result);
+                }
+                else
+                {
+                    var mode = operation.SelectedIndex switch
+                    {
+                        0 => HeightOperation.SetAll,
+                        1 => HeightOperation.AddToAll,
+                        2 => HeightOperation.SubtractFromAll,
+                        _ => throw new InvalidOperationException("Выберите операцию высоты.")
+                    };
+                    adjusted = HeightCalculator.Apply(workspace.Points, mode, (double)firstValue.Value);
+                }
+                workspace.ReplacePoints(adjusted);
+                dialog.DialogResult = DialogResult.OK;
+                dialog.Close();
+            }
+            catch (ArgumentException ex)
+            { MessageBox.Show(dialog, ex.Message, "Расчёт высоты"); }
+        };
+        dialog.ShowDialog(this);
+    }
+
+    private static NumericUpDown CreateHeightInput() => new()
+    {
+        DecimalPlaces = 3,
+        Increment = 0.001m,
+        Minimum = -1000000000,
+        Maximum = 1000000000,
+        Dock = DockStyle.Fill
+    };
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            conversionCancellation?.Cancel();
+            pdfCancellation?.Cancel();
+            updateLifetime.Cancel();
+            workspace.Changed -= WorkspaceChanged;
+        }
+        base.Dispose(disposing);
+    }
+}
