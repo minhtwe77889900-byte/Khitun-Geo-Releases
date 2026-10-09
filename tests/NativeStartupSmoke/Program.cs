@@ -100,6 +100,9 @@ internal static class Program
         var current = workspace.GetType().GetProperty("Points")!.GetValue(workspace)!;
         var values = ((System.Collections.IEnumerable)current).Cast<object>().ToArray();
         Require(values.Length == 2 && (double)pointType.GetProperty("X")!.GetValue(values[0])! > 1000, "Actual conversion writes projected points to workspace");
+        // Reproduce the reported case: projected table coordinates with WGS-84
+        // selected for the next calculation. Export must still use the table.
+        source.SelectedItem = Option(source, "wgs");
         Exception? buttonFailure = null;
         bool openedByButton = false;
         using (var timer = new System.Windows.Forms.Timer { Interval = 100 })
@@ -111,6 +114,7 @@ internal static class Program
                 timer.Stop(); openedByButton = true;
                 try
                 {
+                    ((ComboBox)Field(active, "format")).SelectedIndex = 0;
                     Require(((DataGridView)Field(active, "preview")).Rows.Count == 2,
                         "Export button lost transformed table points: " + ((Label)Field(active, "notice")).Text);
                     Capture(active, "native-export-button");
@@ -138,7 +142,7 @@ internal static class Program
             Require(((Button)Field(export, "save")).Enabled, "Saving converted points is disabled: " + notice);
             Require(preview.Rows[0].Cells.Cast<DataGridViewCell>().Any(c => Convert.ToString(c.Value) == "-12.000"), "Converted height must appear in export preview");
         }
-        Console.WriteLine("PASS actual WinForms conversion -> AutoCAD and Civil 3D export previews with projected points and heights");
+        Console.WriteLine("PASS actual Export button and AutoCAD/Civil 3D previews retain projected points and heights even with WGS-84 selected");
     }
 
     private static object Field(object instance, string name) => instance.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(instance)!;
