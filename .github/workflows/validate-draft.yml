@@ -1,0 +1,63 @@
+name: Validate draft without release
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify resources and local tests
+        run: |
+          $source = Get-Content src/KhitunGeo/IntegrityVerifier.cs -Raw
+          $entries = [regex]::Matches($source, '\["([^"]+)"\]\s*=\s*"([a-f0-9]{64})"')
+          if ($entries.Count -ne 23) { throw 'Unexpected resource manifest' }
+          foreach ($entry in $entries) {
+            $path = Join-Path 'src/KhitunGeo' $entry.Groups[1].Value
+            if ((Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $entry.Groups[2].Value) { throw "Invalid resource: $path" }
+          }
+          node tests/workspace-core.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Workspace tests failed' }
+          node tests/coordinate-systems.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Regression tests failed' }
+          node tests/CoordinateCore/regional-control.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Regional CRS control test failed' }
+      - name: Compile only — no publish or installer
+        run: |
+          dotnet run --project tests/Updater/Updater.csproj -c Release
+          if ($LASTEXITCODE -ne 0) { throw 'Updater tests failed' }
+          dotnet run --project tests/DwgInterop/DwgInterop.csproj -c Release
+          if ($LASTEXITCODE -ne 0) { throw 'DWG native tests failed' }
+          node tests/dwg-interop.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'DWG overlay tests failed' }
+      - name: Verify native migration and candidate JS engine
+        run: ./tools/verify-native-runtime.ps1
+      - name: Browser integration
+        run: |
+          npm install --no-save --package-lock=false playwright@1.62.1
+          if ($LASTEXITCODE -ne 0) { throw 'Playwright installation failed' }
+          npx playwright install chromium
+          if ($LASTEXITCODE -ne 0) { throw 'Chromium installation failed' }
+          node tests/ui-smoke.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Browser checks failed' }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: draft-interface-check
+          path: test-artifacts/*.png
+          if-no-files-found: ignore

@@ -1,0 +1,32 @@
+Regional coordinate reference data distributed with Khitun Geo
+
+msk.json: unchanged data from Slider007/qgis-project-utm-crs,
+project_utm_crs/msk.json, snapshot 120ba58ca5d640a6f98f7c508a0d621e3cacd464.
+Source: https://github.com/Slider007/qgis-project-utm-crs
+Author: Slider007. License: GNU GPL version 2 (LICENSE-msk.txt).
+This independently licensed JSON data file is distributed separately from
+the Khitun Geo application code. Its complete editable source is included.
+
+sk63.json: records extracted from geo-ts/sk63 index.ts, without parameter
+changes, snapshot ea767b0fe5afe96bfe6fc4c8c5aff85a54112dda.
+Source: https://github.com/geo-ts/sk63
+Author: Lizard (li0ard). License: Apache 2.0 (LICENSE-sk63.txt).
+Changes: TypeScript interface and accessor removed; records serialized to JSON.
+
+These are reference catalogues, not definitions supplied by GeoProj.
+The MSK source explicitly states that its parameters are not officially
+verified. A successful numerical comparison validates the projection
+implementation, not the legal validity or surveying accuracy of a CRS.
+
+regional-updates.json: independently maintained additions and corrections.
+Published Krasnoyarsk projection parameters: Alexander Fadeev, TerrainGIS,
+https://terraingis.ru/msk-24.html (updated 2023-01-05).
+Coordinate parameters are factual data; no TerrainGIS application code is included.
+Public GeoProj calculations on synthetic points are used to verify compatibility.
+The original MSK and SK-63 data files are retained without parameter changes.
+Fourteen SK-63 overlay records derive from geo-ts/sk63 (Apache 2.0):
+I zones 1-4: false northing changed from -12900.566 to -12900.6 metres;
+L zones 1-6: central meridians restored to exact 31 arcminutes;
+M zones 1-4: false northing changed from -12900.566 to -12900.57 metres.
+These are GeoProj compatibility corrections inferred from synthetic controls,
+not official surveying definitions. The Apache 2.0 license remains included.

@@ -1,0 +1,196 @@
+{
+  "version": 1,
+  "msk": [
+    {
+      "name": "МСК г. Красноярск",
+      "code": "krasn",
+      "subject": "Красноярский край",
+      "zone": 1,
+      "variant": "",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=93 +k=1 +x_0=54304.47 +y_0=-6196680.59 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://terraingis.ru/msk-24.html"
+    },
+    {
+      "name": "МСК-163 Красноярский край",
+      "code": "163",
+      "subject": "Красноярский край",
+      "zone": 1,
+      "variant": "",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=81 +k=1 +x_0=65425.7 +y_0=-7434483.2 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://terraingis.ru/msk-24.html"
+    },
+    {
+      "name": "МСК-164 Красноярский край",
+      "code": "164",
+      "subject": "Красноярский край",
+      "zone": 1,
+      "variant": "",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=84 +k=1 +x_0=86209.8 +y_0=-6542783.5 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://terraingis.ru/msk-24.html"
+    },
+    {
+      "name": "МСК-165 Красноярский край",
+      "code": "165",
+      "subject": "Красноярский край",
+      "zone": 1,
+      "variant": "",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=87 +k=1 +x_0=105295.8 +y_0=-5652185 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://terraingis.ru/msk-24.html"
+    },
+    {
+      "name": "МСК-166 Красноярский край",
+      "code": "166",
+      "subject": "Красноярский край",
+      "zone": 1,
+      "variant": "",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=90 +k=1 +x_0=107543.3 +y_0=-5540944.5 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://terraingis.ru/msk-24.html"
+    },
+    {
+      "name": "МСК-167 Красноярский край",
+      "code": "167",
+      "subject": "Красноярский край",
+      "zone": 1,
+      "variant": "",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=93 +k=1 +x_0=106797.8 +y_0=-5578022.5 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://terraingis.ru/msk-24.html"
+    },
+    {
+      "name": "МСК-168 Красноярский край",
+      "code": "168",
+      "subject": "Красноярский край",
+      "zone": 1,
+      "variant": "",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=96 +k=1 +x_0=108285.2 +y_0=-5503868.6 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://terraingis.ru/msk-24.html"
+    },
+    {
+      "name": "МСК-169 Красноярский край",
+      "code": "169",
+      "subject": "Красноярский край",
+      "zone": 1,
+      "variant": "",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=99 +k=1 +x_0=117308.6 +y_0=-5503868.6 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://terraingis.ru/msk-24.html"
+    },
+    {
+      "name": "МСК-170 Красноярский край",
+      "code": "170",
+      "subject": "Красноярский край",
+      "zone": 1,
+      "variant": "",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=102 +k=1 +x_0=90338.9 +y_0=-6357146.1 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://terraingis.ru/msk-24.html"
+    }
+  ],
+  "sk63": [
+    {
+      "id": "SK63I3_1",
+      "name": "СК-63 Район I (3°), Зона 1",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=71.73333333333 +k=1 +x_0=1250000 +y_0=-12900.6 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://geoproj.ru/",
+      "note": "GeoProj-compatible northing offset: -12900.6 m; original -12900.566 m. Compatibility correction inferred from synthetic service controls; not an official CRS certification."
+    },
+    {
+      "id": "SK63I3_2",
+      "name": "СК-63 Район I (3°), Зона 2",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=74.73333333333 +k=1 +x_0=2250000 +y_0=-12900.6 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://geoproj.ru/",
+      "note": "GeoProj-compatible northing offset: -12900.6 m; original -12900.566 m. Compatibility correction inferred from synthetic service controls; not an official CRS certification."
+    },
+    {
+      "id": "SK63I3_3",
+      "name": "СК-63 Район I (3°), Зона 3",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=77.73333333333 +k=1 +x_0=3250000 +y_0=-12900.6 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://geoproj.ru/",
+      "note": "GeoProj-compatible northing offset: -12900.6 m; original -12900.566 m. Compatibility correction inferred from synthetic service controls; not an official CRS certification."
+    },
+    {
+      "id": "SK63I3_4",
+      "name": "СК-63 Район I (3°), Зона 4",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=80.73333333333 +k=1 +x_0=4250000 +y_0=-12900.6 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://geoproj.ru/",
+      "note": "GeoProj-compatible northing offset: -12900.6 m; original -12900.566 m. Compatibility correction inferred from synthetic service controls; not an official CRS certification."
+    },
+    {
+      "id": "SK63L6_1",
+      "name": "СК-63 Район L (6°), Зона 1",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=81.516666666667 +k=1 +x_0=1500000 +y_0=-16586.442 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://geoproj.ru/",
+      "note": "Central meridian restored to exact 31 arcminutes; original rounded to six decimals. Compatibility correction inferred from synthetic service controls; not an official CRS certification."
+    },
+    {
+      "id": "SK63L6_2",
+      "name": "СК-63 Район L (6°), Зона 2",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=87.516666666667 +k=1 +x_0=2500000 +y_0=-16586.442 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://geoproj.ru/",
+      "note": "Central meridian restored to exact 31 arcminutes; original rounded to six decimals. Compatibility correction inferred from synthetic service controls; not an official CRS certification."
+    },
+    {
+      "id": "SK63L6_3",
+      "name": "СК-63 Район L (6°), Зона 3",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=93.516666666667 +k=1 +x_0=3500000 +y_0=-16586.442 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://geoproj.ru/",
+      "note": "Central meridian restored to exact 31 arcminutes; original rounded to six decimals. Compatibility correction inferred from synthetic service controls; not an official CRS certification."
+    },
+    {
+      "id": "SK63L6_4",
+      "name": "СК-63 Район L (6°), Зона 4",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=99.516666666667 +k=1 +x_0=4500000 +y_0=-16586.442 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://geoproj.ru/",
+      "note": "Central meridian restored to exact 31 arcminutes; original rounded to six decimals. Compatibility correction inferred from synthetic service controls; not an official CRS certification."
+    },
+    {
+      "id": "SK63L6_5",
+      "name": "СК-63 Район L (6°), Зона 5",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=105.516666666667 +k=1 +x_0=5500000 +y_0=-16586.442 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://geoproj.ru/",
+      "note": "Central meridian restored to exact 31 arcminutes; original rounded to six decimals. Compatibility correction inferred from synthetic service controls; not an official CRS certification."
+    },
+    {
+      "id": "SK63L6_6",
+      "name": "СК-63 Район L (6°), Зона 6",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=111.516666666667 +k=1 +x_0=6500000 +y_0=-16586.442 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://geoproj.ru/",
+      "note": "Central meridian restored to exact 31 arcminutes; original rounded to six decimals. Compatibility correction inferred from synthetic service controls; not an official CRS certification."
+    },
+    {
+      "id": "SK63M3_1",
+      "name": "СК-63 Район M (3°), Зона 1",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=79.466666666677 +k=1 +x_0=1300000 +y_0=-12900.57 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://geoproj.ru/",
+      "note": "GeoProj-compatible northing offset: -12900.57 m; original -12900.566 m. Compatibility correction inferred from synthetic service controls; not an official CRS certification."
+    },
+    {
+      "id": "SK63M3_2",
+      "name": "СК-63 Район M (3°), Зона 2",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=82.466666666677 +k=1 +x_0=2300000 +y_0=-12900.57 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://geoproj.ru/",
+      "note": "GeoProj-compatible northing offset: -12900.57 m; original -12900.566 m. Compatibility correction inferred from synthetic service controls; not an official CRS certification."
+    },
+    {
+      "id": "SK63M3_3",
+      "name": "СК-63 Район M (3°), Зона 3",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=85.466666666677 +k=1 +x_0=3300000 +y_0=-12900.57 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://geoproj.ru/",
+      "note": "GeoProj-compatible northing offset: -12900.57 m; original -12900.566 m. Compatibility correction inferred from synthetic service controls; not an official CRS certification."
+    },
+    {
+      "id": "SK63M3_4",
+      "name": "СК-63 Район M (3°), Зона 4",
+      "proj": "+proj=tmerc +lat_0=0 +lon_0=88.466666666677 +k=1 +x_0=4300000 +y_0=-12900.57 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+      "source": "https://geoproj.ru/",
+      "note": "GeoProj-compatible northing offset: -12900.57 m; original -12900.566 m. Compatibility correction inferred from synthetic service controls; not an official CRS certification."
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://terraingis.ru/msk-24.html",
+      "role": "published projection parameters"
+    },
+    {
+      "url": "https://geoproj.ru/",
+      "role": "independent synthetic coordinate controls, 2026-10-04"
+    }
+  ]
+}

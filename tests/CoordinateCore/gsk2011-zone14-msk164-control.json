@@ -1,0 +1,35 @@
+{
+  "id": "gsk2011-zone14-msk164-geoproj-01",
+  "description": "Independent forward and reverse calculator comparison; consistency control, not surveyed ground truth.",
+  "source": {
+    "crs": "ГСК-2011 / Гаусса-Крюгера",
+    "zone": 14,
+    "longitudeRangeDegrees": [78, 84],
+    "centralMeridianDegrees": 81,
+    "xNorthMeters": 7465965.922,
+    "yEastMeters": 599112.246,
+    "yWithZonePrefixMeters": 14599112.246
+  },
+  "target": {
+    "crs": "МСК-164 Красноярский край",
+    "zone": 1,
+    "xNorthMeters": 921553.841,
+    "yEastMeters": 55956.792
+  },
+  "reverseResult": {
+    "crs": "ГСК-2011 / Гаусса-Крюгера",
+    "zone": 14,
+    "xNorthMeters": 7465965.923,
+    "yEastMeters": 14599112.245
+  },
+  "observations": {
+    "forwardMatchesIndependentCalculatorToMeters": 0.001,
+    "reverseDifferenceFromEnteredGskMeters": 0.001,
+    "comparisonMethod": "geoproj.ru calculator, with explicit GSK-2011 zone 14 and MSK-164 region selections",
+    "acceptedToleranceMeters": 0.002,
+    "limitations": [
+      "Values document agreement with an independent calculator, not absolute geodetic accuracy.",
+      "The reverse test starts from MSK-164 coordinates rounded to 0.001 m."
+    ]
+  }
+}

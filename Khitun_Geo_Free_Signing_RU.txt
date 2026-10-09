@@ -1,0 +1,204 @@
+﻿KHITUN GEO — БЕСПЛАТНЫЙ СЕРТИФИКАТ И ПОДПИСЬ ПРОГРАММЫ
+Дата: 04.10.2026
+
+Что получится
+Бесплатный самоподписанный сертификат Code Signing для собственных тестовых
+сборок Khitun Geo. Он позволяет подписать EXE и проверить изменение файла.
+Доверие действует на компьютерах и в учётных записях, куда сертификат осознанно
+добавлен. Это не публичный сертификат удостоверяющего центра и не КЭП для
+госуслуг. Название издателя в нём задаёшь ты; его личность никто не проверяет.
+SmartScreen может продолжать предупреждать о неизвестном приложении.
+Подпись не исправляет ошибки программы и не подтверждает отсутствие вирусов.
+
+Этот документ содержит команды, которые нужно выполнять на Windows.
+Сертификат и приватный ключ в архив не вложены. Команды здесь не запускались:
+доступная среда не содержит Windows PowerShell, Windows SDK и .NET SDK.
+
+1. ПОДГОТОВКА
+
+Нужно:
+— Windows 10 версии 2004 / сборки 19041 или новее, либо Windows 11, x64;
+— .NET 8 SDK x64: https://dotnet.microsoft.com/download/dotnet/8.0
+— Inno Setup 6: https://jrsoftware.org/isdl.php
+
+Распакуй текущий архив исходников Khitun Geo. Открой папку, в которой лежат
+KhitunGeo.sln, README_SAFE.txt и папки src / installer.
+Запусти обычный Windows PowerShell 5.1 (powershell.exe). CMD и PowerShell —
+разные оболочки: команды ниже предназначены для PowerShell.
+Права администратора для создания сертификата текущего пользователя не нужны.
+Установка SDK может отдельно попросить административные права.
+
+Выполни, заменив пример пути на свою распакованную папку:
+
+Set-Location 'C:\KhitunGeo\Khitun-Geo-main'
+$ErrorActionPreference = 'Stop'
+$projectRoot = (Get-Location).Path
+if (-not (Test-Path '.\src\KhitunGeo\KhitunGeo.csproj')) { throw 'Открыта не папка проекта' }
+$signDir = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'KhitunGeo-Signing'
+New-Item -ItemType Directory -Path $signDir -Force | Out-Null
+
+2. СОЗДАЙ СЕРТИФИКАТ ОДИН РАЗ
+
+$params = @{
+  Type = 'CodeSigningCert'
+  Subject = 'CN=Khitun Ivan'
+  FriendlyName = 'Khitun Geo — local test signing'
+  CertStoreLocation = 'Cert:\CurrentUser\My'
+  KeyAlgorithm = 'RSA'
+  KeyLength = 3072
+  HashAlgorithm = 'SHA256'
+  KeyExportPolicy = 'NonExportable'
+  NotAfter = (Get-Date).AddYears(2)
+}
+$cert = New-SelfSignedCertificate @params
+$thumb = $cert.Thumbprint
+$thumb | Set-Content -LiteralPath (Join-Path $signDir 'thumbprint.txt') -Encoding Ascii
+$cerPath = Join-Path $signDir 'KhitunGeo_TestSigning.cer'
+Export-Certificate -Cert $cert -FilePath $cerPath -Type CERT | Out-Null
+$cert | Format-List Subject, Thumbprint, NotAfter, HasPrivateKey
+
+Приватный ключ остаётся в профиле Windows и не экспортируется. CER содержит
+только открытый сертификат. После потери профиля / ключа этим сертификатом
+больше нельзя подписывать новые версии; потребуется новый сертификат.
+Не создавай новый сертификат при каждой сборке.
+
+3. ПРИ ЖЕЛАНИИ ДОБАВЬ ДОВЕРИЕ В СВОЁМ ПРОФИЛЕ WINDOWS
+
+Этот шаг нужен, если хочешь получить статус Valid на своей машине.
+Он расширяет доверие к файлам, подписанным этим ключом. Используй только свой
+сертификат, созданный выше. Не добавляй чужой сертификат по просьбе случайного
+сайта. Для обычной установки программы этот шаг не обязателен.
+
+Сначала проверь, что Thumbprint файла совпадает с $thumb:
+
+$publicCert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($cerPath)
+if ($publicCert.Thumbprint -ne $thumb) { throw 'Сертификат не совпадает' }
+$publicCert | Format-List Subject, Thumbprint, NotAfter
+
+Затем, если решил доверять своему сертификату:
+
+Import-Certificate -FilePath $cerPath -CertStoreLocation 'Cert:\CurrentUser\Root' | Out-Null
+Import-Certificate -FilePath $cerPath -CertStoreLocation 'Cert:\CurrentUser\TrustedPublisher' | Out-Null
+
+Windows может показать отдельное предупреждение при добавлении корневого
+сертификата. Доверие текущего пользователя не равно доверию всех пользователей
+компьютера и не создаёт публичную репутацию издателя.
+
+4. СОБЕРИ ПРИЛОЖЕНИЕ
+
+Set-Location $projectRoot
+dotnet restore '.\src\KhitunGeo\KhitunGeo.csproj'
+if ($LASTEXITCODE -ne 0) { throw 'Ошибка восстановления NuGet' }
+dotnet publish '.\src\KhitunGeo\KhitunGeo.csproj' -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false
+if ($LASTEXITCODE -ne 0) { throw 'Ошибка публикации .NET' }
+$publishDir = Join-Path $projectRoot 'src\KhitunGeo\bin\Release\net8.0-windows10.0.19041.0\win-x64\publish'
+
+Первая сборка требует интернет для пакетов NuGet и компонентов .NET.
+Самодостаточная публикация включает .NET. Текущий нативный интерфейс не требует WebView2 Runtime.
+
+5. ПОДПИШИ СВОИ БИНАРНИКИ ПЕРЕД СОЗДАНИЕМ УСТАНОВЩИКА
+
+$appExe = Join-Path $publishDir 'KhitunGeo.exe'
+$appDll = Join-Path $publishDir 'KhitunGeo.dll'
+if (-not (Test-Path $appExe)) { throw 'KhitunGeo.exe не найден' }
+if (-not (Test-Path $appDll)) { throw 'KhitunGeo.dll не найден' }
+Set-AuthenticodeSignature -LiteralPath $appExe -Certificate $cert -HashAlgorithm SHA256 | Format-List Status, StatusMessage
+Set-AuthenticodeSignature -LiteralPath $appDll -Certificate $cert -HashAlgorithm SHA256 | Format-List Status, StatusMessage
+Get-AuthenticodeSignature -LiteralPath $appExe | Format-List Status, StatusMessage, SignerCertificate
+Get-AuthenticodeSignature -LiteralPath $appDll | Format-List Status, StatusMessage, SignerCertificate
+
+Если шаг доверия выполнен, ожидаемый статус — Valid. Без доверия возможен
+NotTrusted / сообщение о недоверенной цепочке, несмотря на наличие подписи.
+NotSigned означает отсутствие распознанной подписи. HashMismatch означает,
+что файл изменён после подписания. При UnknownError изучи StatusMessage.
+До сборки установщика убедись, что SignerCertificate.Thumbprint совпадает с
+$thumb, а ошибок подписи нет. Запусти приложение и проверь работу на Windows.
+
+Не переподписывай чужие DLL Microsoft. Подпись EXE и DLL не охватывает внешние
+HTML, настройки или все файлы папки; установленное содержимое требует отдельной
+проверки целостности, если такая гарантия нужна.
+
+6. СОБЕРИ И ПОДПИШИ УСТАНОВЩИК
+
+Открой installer\KhitunGeo.iss в Inno Setup Compiler и выбери Build → Compile.
+Компилятор упакует уже подписанные файлы из publish.
+После завершения вернись в то же окно PowerShell:
+
+$setupExe = Join-Path $projectRoot 'dist\KhitunGeo_Setup_1_5_x64.exe'
+if (-not (Test-Path $setupExe)) { throw 'Установщик не найден: сначала скомпилируй ISS' }
+Set-AuthenticodeSignature -LiteralPath $setupExe -Certificate $cert -HashAlgorithm SHA256 | Format-List Status, StatusMessage
+Get-AuthenticodeSignature -LiteralPath $setupExe | Format-List Status, StatusMessage, SignerCertificate
+$hash = (Get-FileHash -LiteralPath $setupExe -Algorithm SHA256).Hash
+($hash + '  KhitunGeo_Setup_1_5_x64.exe') | Set-Content -LiteralPath ($setupExe + '.sha256') -Encoding Ascii
+
+Порядок важен: publish → подпись EXE/DLL → компиляция ISS → подпись Setup → SHA256.
+Повторный publish перезапишет подписи приложения. Повторная компиляция Inno
+перезапишет подпись установщика. После изменения файлов подпиши их заново.
+Удаляющий EXE, создаваемый Inno, отдельно этой последовательностью не подписан.
+
+7. ЕСЛИ ОКНО POWERSHELL ЗАКРЫЛОСЬ
+
+Снова выполни шаг 1 с тем же путём проекта, затем загрузи прежний сертификат:
+
+$thumb = (Get-Content -LiteralPath (Join-Path $signDir 'thumbprint.txt') -Raw).Trim()
+$cert = Get-Item -LiteralPath ('Cert:\CurrentUser\My\' + $thumb)
+if (-not $cert.HasPrivateKey) { throw 'Нет приватного ключа для подписи' }
+if ($cert.NotAfter -le (Get-Date)) { throw 'Сертификат истёк' }
+$cerPath = Join-Path $signDir 'KhitunGeo_TestSigning.cer'
+
+Далее используй шаги 4–6. Для просмотра подписей достаточно CER / открытого
+сертификата, а для подписания нужен сертификат с приватным ключом из My.
+
+8. ДРУГОЙ КОМПЬЮТЕР И SMARTSCREEN
+
+Можно передать тестеру установщик, SHA256 и CER, но доверие он добавляет сам,
+если понимает последствия и подтвердил отпечаток сертификата по отдельному
+надёжному каналу. Отпечаток, присланный рядом с тем же файлом, сам по себе
+не подтверждает личность автора.
+Не отключай Defender ради подписи. Предупреждение SmartScreen и конкретный
+детект вредоносной программы — разные события. При реальном детекте нужна
+проверка собранного файла; самоподпись детект не устраняет.
+
+Универсального бесплатного самоподписанного сертификата, которому все Windows
+будут доверять автоматически, эта процедура не создаёт. Для публичного релиза
+нужно отдельно выбирать доступный способ доверенной подписи / распространения.
+
+9. МЕТКА ВРЕМЕНИ
+
+Основные команды выше подписывают без timestamp: для локального теста они могут
+работать без сети. После истечения сертификата такая подпись может не пройти
+проверку. Для релизов используют RFC3161 timestamp; сервер и условия его
+использования нужно проверить у оператора.
+Если установлен Windows SDK и известен допустимый URL RFC3161 сервера, шаблон
+команды SignTool в PowerShell (замени путь и URL; это не готовая команда):
+
+& 'C:\ПУТЬ_К_SDK\signtool.exe' sign /sha1 $thumb /fd SHA256 /tr 'URL_RFC3161_СЕРВЕРА' /td SHA256 $setupExe
+if ($LASTEXITCODE -ne 0) { throw 'SignTool сообщил ошибку' }
+& 'C:\ПУТЬ_К_SDK\signtool.exe' verify /pa /v $setupExe
+
+/sha1 здесь выбирает сертификат по отпечатку; хеш самого файла — SHA256.
+Timestamp не делает самоподписанный сертификат публично доверенным.
+После повторной подписи обязательно пересчитай SHA256 установщика.
+
+10. УДАЛЕНИЕ ДОБАВЛЕННОГО ДОВЕРИЯ
+
+Если тест окончен и доверие больше не нужно, сначала загрузить $thumb по шагу 7,
+проверить его и удалить только этот сертификат из двух хранилищ:
+
+Get-Item -LiteralPath ('Cert:\CurrentUser\Root\' + $thumb) -ErrorAction SilentlyContinue | Remove-Item
+Get-Item -LiteralPath ('Cert:\CurrentUser\TrustedPublisher\' + $thumb) -ErrorAction SilentlyContinue | Remove-Item
+
+Ключ в My эта команда не удаляет; он нужен для следующих подписей.
+
+ОФИЦИАЛЬНЫЕ ИСТОЧНИКИ
+New-SelfSignedCertificate:
+https://learn.microsoft.com/en-us/powershell/module/pki/new-selfsignedcertificate
+Export-Certificate / Import-Certificate:
+https://learn.microsoft.com/en-us/powershell/module/pki/export-certificate
+https://learn.microsoft.com/en-us/powershell/module/pki/import-certificate
+Set-AuthenticodeSignature:
+https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/set-authenticodesignature
+SignTool:
+https://learn.microsoft.com/en-us/windows/win32/seccrypto/signtool
+Microsoft Defender SmartScreen:
+https://learn.microsoft.com/en-us/windows/security/operating-system-security/virus-and-threat-protection/microsoft-defender-smartscreen/

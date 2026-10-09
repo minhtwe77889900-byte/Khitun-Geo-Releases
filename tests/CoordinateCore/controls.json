@@ -1,0 +1,676 @@
+[
+  {
+    "name": "wgs forward negative height",
+    "operation": "datumToWgs",
+    "args": [
+      [
+        65,
+        84,
+        -12
+      ],
+      "wgs"
+    ],
+    "expected": [
+      65,
+      84,
+      -12
+    ]
+  },
+  {
+    "name": "wgs inverse negative height",
+    "operation": "wgsToDatum",
+    "args": [
+      [
+        65,
+        84,
+        -12
+      ],
+      "wgs"
+    ],
+    "expected": [
+      65,
+      84,
+      -12
+    ]
+  },
+  {
+    "name": "sk42 forward negative height",
+    "operation": "datumToWgs",
+    "args": [
+      [
+        65,
+        84,
+        -12
+      ],
+      "sk42"
+    ],
+    "expected": [
+      65.00082551371483,
+      83.99920425796527,
+      -33.70529216900468
+    ]
+  },
+  {
+    "name": "sk42 inverse negative height",
+    "operation": "wgsToDatum",
+    "args": [
+      [
+        65,
+        84,
+        -12
+      ],
+      "sk42"
+    ],
+    "expected": [
+      64.99917449980401,
+      84.00079566633401,
+      9.706863007508218
+    ]
+  },
+  {
+    "name": "sk95 forward negative height",
+    "operation": "datumToWgs",
+    "args": [
+      [
+        65,
+        84,
+        -12
+      ],
+      "sk95"
+    ],
+    "expected": [
+      65.00074686761607,
+      83.99923020927989,
+      -31.029605492018163
+    ]
+  },
+  {
+    "name": "sk95 inverse negative height",
+    "operation": "wgsToDatum",
+    "args": [
+      [
+        65,
+        84,
+        -12
+      ],
+      "sk95"
+    ],
+    "expected": [
+      64.9992531449225,
+      84.00076972947944,
+      7.030910978093743
+    ]
+  },
+  {
+    "name": "gsk2011 forward negative height",
+    "operation": "datumToWgs",
+    "args": [
+      [
+        65,
+        84,
+        -12
+      ],
+      "gsk2011"
+    ],
+    "expected": [
+      64.99999964934307,
+      83.99999635106937,
+      -12.564589354209602
+    ]
+  },
+  {
+    "name": "gsk2011 inverse negative height",
+    "operation": "wgsToDatum",
+    "args": [
+      [
+        65,
+        84,
+        -12
+      ],
+      "gsk2011"
+    ],
+    "expected": [
+      65.00000035065688,
+      84.00000364893059,
+      -11.435410649515688
+    ]
+  },
+  {
+    "name": "pz90 forward negative height",
+    "operation": "datumToWgs",
+    "args": [
+      [
+        65,
+        84,
+        -12
+      ],
+      "pz90"
+    ],
+    "expected": [
+      65.00000192835674,
+      84.00006636823912,
+      -14.221223691478372
+    ]
+  },
+  {
+    "name": "pz90 inverse negative height",
+    "operation": "wgsToDatum",
+    "args": [
+      [
+        65,
+        84,
+        -12
+      ],
+      "pz90"
+    ],
+    "expected": [
+      64.99999807163043,
+      83.99993363177603,
+      -9.778775110840797
+    ]
+  },
+  {
+    "name": "pz9002 forward negative height",
+    "operation": "datumToWgs",
+    "args": [
+      [
+        65,
+        84,
+        -12
+      ],
+      "pz9002"
+    ],
+    "expected": [
+      65.00000066849229,
+      84.00000776654528,
+      -12.780149540863931
+    ]
+  },
+  {
+    "name": "pz9002 inverse negative height",
+    "operation": "wgsToDatum",
+    "args": [
+      [
+        65,
+        84,
+        -12
+      ],
+      "pz9002"
+    ],
+    "expected": [
+      64.99999933150738,
+      83.99999223345573,
+      -11.219850433059037
+    ]
+  },
+  {
+    "name": "pz9011 forward negative height",
+    "operation": "datumToWgs",
+    "args": [
+      [
+        65,
+        84,
+        -12
+      ],
+      "pz9011"
+    ],
+    "expected": [
+      65.00000035337386,
+      83.99999638071193,
+      -12.974249373190105
+    ]
+  },
+  {
+    "name": "pz9011 inverse negative height",
+    "operation": "wgsToDatum",
+    "args": [
+      [
+        65,
+        84,
+        -12
+      ],
+      "pz9011"
+    ],
+    "expected": [
+      64.99999964662625,
+      84.00000361928794,
+      -11.025750630535185
+    ]
+  },
+  {
+    "name": "wgs TM central",
+    "operation": "fwdTM",
+    "args": [
+      65,
+      84,
+      -12,
+      {
+        "ellipsoid": "wgs"
+      },
+      84,
+      0,
+      1,
+      500000,
+      0
+    ],
+    "expected": [
+      7211339.118203931,
+      500000,
+      -12
+    ]
+  },
+  {
+    "name": "wgs TM zone edge",
+    "operation": "fwdTM",
+    "args": [
+      65,
+      86.9,
+      -12,
+      {
+        "ellipsoid": "wgs"
+      },
+      84,
+      0,
+      1,
+      500000,
+      0
+    ],
+    "expected": [
+      7214477.043869175,
+      636771.4914771097,
+      -12
+    ]
+  },
+  {
+    "name": "wgs TM inverse",
+    "operation": "invTM",
+    "args": [
+      7214477.043869175,
+      636771.4914771097,
+      -12,
+      {
+        "ellipsoid": "wgs"
+      },
+      84,
+      0,
+      1,
+      500000,
+      0
+    ],
+    "expected": [
+      65.00000000000003,
+      86.89999999999999,
+      -12
+    ]
+  },
+  {
+    "name": "sk42 TM central",
+    "operation": "fwdTM",
+    "args": [
+      65,
+      84,
+      -12,
+      {
+        "ellipsoid": "sk42"
+      },
+      84,
+      0,
+      1,
+      500000,
+      0
+    ],
+    "expected": [
+      7211464.731357767,
+      500000,
+      -12
+    ]
+  },
+  {
+    "name": "sk42 TM zone edge",
+    "operation": "fwdTM",
+    "args": [
+      65,
+      86.9,
+      -12,
+      {
+        "ellipsoid": "sk42"
+      },
+      84,
+      0,
+      1,
+      500000,
+      0
+    ],
+    "expected": [
+      7214602.708914899,
+      636773.7532740857,
+      -12
+    ]
+  },
+  {
+    "name": "sk42 TM inverse",
+    "operation": "invTM",
+    "args": [
+      7214602.708914899,
+      636773.7532740857,
+      -12,
+      {
+        "ellipsoid": "sk42"
+      },
+      84,
+      0,
+      1,
+      500000,
+      0
+    ],
+    "expected": [
+      65,
+      86.9,
+      -12
+    ]
+  },
+  {
+    "name": "gsk2011 TM central",
+    "operation": "fwdTM",
+    "args": [
+      65,
+      84,
+      -12,
+      {
+        "ellipsoid": "gsk2011"
+      },
+      84,
+      0,
+      1,
+      500000,
+      0
+    ],
+    "expected": [
+      7211338.486640978,
+      500000,
+      -12
+    ]
+  },
+  {
+    "name": "gsk2011 TM zone edge",
+    "operation": "fwdTM",
+    "args": [
+      65,
+      86.9,
+      -12,
+      {
+        "ellipsoid": "gsk2011"
+      },
+      84,
+      0,
+      1,
+      500000,
+      0
+    ],
+    "expected": [
+      7214476.41208371,
+      636771.4817784486,
+      -12
+    ]
+  },
+  {
+    "name": "gsk2011 TM inverse",
+    "operation": "invTM",
+    "args": [
+      7214476.41208371,
+      636771.4817784486,
+      -12,
+      {
+        "ellipsoid": "gsk2011"
+      },
+      84,
+      0,
+      1,
+      500000,
+      0
+    ],
+    "expected": [
+      65,
+      86.9,
+      -12
+    ]
+  },
+  {
+    "name": "bessel TM central",
+    "operation": "fwdTM",
+    "args": [
+      65,
+      84,
+      -12,
+      {
+        "ellipsoid": "bessel"
+      },
+      84,
+      0,
+      1,
+      500000,
+      0
+    ],
+    "expected": [
+      7210575.780824948,
+      500000,
+      -12
+    ]
+  },
+  {
+    "name": "bessel TM zone edge",
+    "operation": "fwdTM",
+    "args": [
+      65,
+      86.9,
+      -12,
+      {
+        "ellipsoid": "bessel"
+      },
+      84,
+      0,
+      1,
+      500000,
+      0
+    ],
+    "expected": [
+      7213713.316572251,
+      636754.4964143769,
+      -12
+    ]
+  },
+  {
+    "name": "bessel TM inverse",
+    "operation": "invTM",
+    "args": [
+      7213713.316572251,
+      636754.4964143769,
+      -12,
+      {
+        "ellipsoid": "bessel"
+      },
+      84,
+      0,
+      1,
+      500000,
+      0
+    ],
+    "expected": [
+      65.00000000000001,
+      86.9,
+      -12
+    ]
+  },
+  {
+    "name": "Web Mercator negative height",
+    "operation": "webFwd",
+    "args": [
+      65,
+      84,
+      -12
+    ],
+    "expected": [
+      9608371.509933658,
+      9350837.226634981,
+      -12
+    ]
+  },
+  {
+    "name": "Web Mercator inverse",
+    "operation": "webInv",
+    "args": [
+      9608371.509933658,
+      9350837.226634981,
+      -12
+    ],
+    "expected": [
+      65,
+      84.00000000000003,
+      -12
+    ]
+  },
+  {
+    "name": "zoneGK6 -180",
+    "operation": "zoneGK6",
+    "args": [
+      -180
+    ],
+    "expected": 31
+  },
+  {
+    "name": "zoneGK3 -180",
+    "operation": "zoneGK3",
+    "args": [
+      -180
+    ],
+    "expected": 60
+  },
+  {
+    "name": "zoneUTM -180",
+    "operation": "zoneUTM",
+    "args": [
+      -180
+    ],
+    "expected": 1
+  },
+  {
+    "name": "zoneGK6 -0.01",
+    "operation": "zoneGK6",
+    "args": [
+      -0.01
+    ],
+    "expected": 60
+  },
+  {
+    "name": "zoneGK3 -0.01",
+    "operation": "zoneGK3",
+    "args": [
+      -0.01
+    ],
+    "expected": 120
+  },
+  {
+    "name": "zoneUTM -0.01",
+    "operation": "zoneUTM",
+    "args": [
+      -0.01
+    ],
+    "expected": 30
+  },
+  {
+    "name": "zoneGK6 0",
+    "operation": "zoneGK6",
+    "args": [
+      0
+    ],
+    "expected": 1
+  },
+  {
+    "name": "zoneGK3 0",
+    "operation": "zoneGK3",
+    "args": [
+      0
+    ],
+    "expected": 1
+  },
+  {
+    "name": "zoneUTM 0",
+    "operation": "zoneUTM",
+    "args": [
+      0
+    ],
+    "expected": 31
+  },
+  {
+    "name": "zoneGK6 5.999999",
+    "operation": "zoneGK6",
+    "args": [
+      5.999999
+    ],
+    "expected": 1
+  },
+  {
+    "name": "zoneGK3 5.999999",
+    "operation": "zoneGK3",
+    "args": [
+      5.999999
+    ],
+    "expected": 2
+  },
+  {
+    "name": "zoneUTM 5.999999",
+    "operation": "zoneUTM",
+    "args": [
+      5.999999
+    ],
+    "expected": 31
+  },
+  {
+    "name": "zoneGK6 6",
+    "operation": "zoneGK6",
+    "args": [
+      6
+    ],
+    "expected": 2
+  },
+  {
+    "name": "zoneGK3 6",
+    "operation": "zoneGK3",
+    "args": [
+      6
+    ],
+    "expected": 2
+  },
+  {
+    "name": "zoneUTM 6",
+    "operation": "zoneUTM",
+    "args": [
+      6
+    ],
+    "expected": 32
+  },
+  {
+    "name": "zoneGK6 179.99",
+    "operation": "zoneGK6",
+    "args": [
+      179.99
+    ],
+    "expected": 30
+  },
+  {
+    "name": "zoneGK3 179.99",
+    "operation": "zoneGK3",
+    "args": [
+      179.99
+    ],
+    "expected": 60
+  },
+  {
+    "name": "zoneUTM 179.99",
+    "operation": "zoneUTM",
+    "args": [
+      179.99
+    ],
+    "expected": 60
+  }
+]

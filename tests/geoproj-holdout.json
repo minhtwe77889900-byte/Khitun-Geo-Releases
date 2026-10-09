@@ -1,0 +1,270 @@
+{
+  "source": "https://geoproj.ru/",
+  "date": "2026-10-04T17:02:02.204528+00:00",
+  "toleranceMetres": 0.003,
+  "summary": {
+    "match": 3,
+    "difference": 0,
+    "missing": 0,
+    "unavailable": 0
+  },
+  "cases": [
+    {
+      "key": "sk63-I-1-holdout",
+      "family": "sk63",
+      "group": {
+        "value": "I",
+        "zones": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "name": "СК-63 район I (3°)"
+      },
+      "zone": 1,
+      "record": {
+        "id": "SK63I3_1",
+        "name": "СК-63 Район I (3°), Зона 1",
+        "proj": "+proj=tmerc +lat_0=0 +lon_0=71.73333333333 +k=1 +x_0=1250000 +y_0=-12900.6 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+        "source": "https://geoproj.ru/",
+        "note": "GeoProj-compatible northing offset: -12900.6 m; original -12900.566 m. Compatibility correction inferred from synthetic service controls; not an official CRS certification."
+      },
+      "input": [
+        [
+          45,
+          70.83333333332999
+        ],
+        [
+          57,
+          72.03333333332999
+        ],
+        [
+          65,
+          72.63333333333
+        ]
+      ],
+      "status": "match",
+      "maxError": 0.00048095353018609484,
+      "points": [
+        {
+          "input": [
+            45,
+            70.83333333332999
+          ],
+          "geoproj": [
+            4972493.755,
+            1179094.739
+          ],
+          "proj": [
+            4972493.755214864,
+            1179094.7390870275
+          ],
+          "error": 0.0002318200342190102
+        },
+        {
+          "input": [
+            57,
+            72.03333333332999
+          ],
+          "geoproj": [
+            6307102.194,
+            1268293.355
+          ],
+          "proj": [
+            6307102.194421831,
+            1268293.354768969
+          ],
+          "error": 0.00048095353018609484
+        },
+        {
+          "input": [
+            65,
+            72.63333333333
+          ],
+          "geoproj": [
+            7198786.59,
+            1292522.24
+          ],
+          "proj": [
+            7198786.58973446,
+            1292522.240351414
+          ],
+          "error": 0.00044045788736854827
+        }
+      ]
+    },
+    {
+      "key": "sk63-L-2-holdout",
+      "family": "sk63",
+      "group": {
+        "value": "L",
+        "zones": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "name": "СК-63 район L (6°)"
+      },
+      "zone": 2,
+      "record": {
+        "id": "SK63L6_2",
+        "name": "СК-63 Район L (6°), Зона 2",
+        "proj": "+proj=tmerc +lat_0=0 +lon_0=87.516666666667 +k=1 +x_0=2500000 +y_0=-16586.442 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+        "source": "https://geoproj.ru/",
+        "note": "Central meridian restored to exact 31 arcminutes; original rounded to six decimals. Compatibility correction inferred from synthetic service controls; not an official CRS certification."
+      },
+      "input": [
+        [
+          45,
+          86.616666666667
+        ],
+        [
+          57,
+          87.816666666667
+        ],
+        [
+          65,
+          88.41666666666701
+        ]
+      ],
+      "status": "match",
+      "maxError": 0.0004971394159260062,
+      "points": [
+        {
+          "input": [
+            45,
+            86.616666666667
+          ],
+          "geoproj": [
+            4968795.567,
+            2429058.314
+          ],
+          "proj": [
+            4968795.567410141,
+            2429058.3138609626
+          ],
+          "error": 0.00043306733360384505
+        },
+        {
+          "input": [
+            57,
+            87.816666666667
+          ],
+          "geoproj": [
+            6303402.25,
+            2518256.874
+          ],
+          "proj": [
+            6303402.250008299,
+            2518256.87449707
+          ],
+          "error": 0.0004971394159260062
+        },
+        {
+          "input": [
+            65,
+            88.41666666666701
+          ],
+          "geoproj": [
+            7195085.743,
+            2542485.78
+          ],
+          "proj": [
+            7195085.7432773765,
+            2542485.7796018096
+          ],
+          "error": 0.0004852765281924244
+        }
+      ]
+    },
+    {
+      "key": "sk63-M-3-holdout",
+      "family": "sk63",
+      "group": {
+        "value": "M",
+        "zones": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "name": "СК-63 район M (3°)"
+      },
+      "zone": 3,
+      "record": {
+        "id": "SK63M3_3",
+        "name": "СК-63 Район M (3°), Зона 3",
+        "proj": "+proj=tmerc +lat_0=0 +lon_0=85.466666666677 +k=1 +x_0=3300000 +y_0=-12900.57 +ellps=krass +towgs84=23.57,-140.95,-79.8,0,0.35,0.79,-0.22 +units=m +no_defs",
+        "source": "https://geoproj.ru/",
+        "note": "GeoProj-compatible northing offset: -12900.57 m; original -12900.566 m. Compatibility correction inferred from synthetic service controls; not an official CRS certification."
+      },
+      "input": [
+        [
+          45,
+          84.566666666677
+        ],
+        [
+          57,
+          85.766666666677
+        ],
+        [
+          65,
+          86.366666666677
+        ]
+      ],
+      "status": "match",
+      "maxError": 0.0005028155005053378,
+      "points": [
+        {
+          "input": [
+            45,
+            84.566666666677
+          ],
+          "geoproj": [
+            4972482.639,
+            3229063.27
+          ],
+          "proj": [
+            4972482.638506292,
+            3229063.269904733
+          ],
+          "error": 0.0005028155005053378
+        },
+        {
+          "input": [
+            57,
+            85.766666666677
+          ],
+          "geoproj": [
+            6307089.472,
+            3318261.838
+          ],
+          "proj": [
+            6307089.4723047195,
+            3318261.838238303
+          ],
+          "error": 0.00038683626781627376
+        },
+        {
+          "input": [
+            65,
+            86.366666666677
+          ],
+          "geoproj": [
+            7198773.043,
+            3342490.743
+          ],
+          "proj": [
+            7198773.043291828,
+            3342490.743184062
+          ],
+          "error": 0.00034502548928429786
+        }
+      ]
+    }
+  ]
+}

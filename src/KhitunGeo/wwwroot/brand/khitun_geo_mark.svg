@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Khitun Geo">
+  <rect x="3" y="3" width="122" height="122" rx="27" fill="#10243b"/>
+  <path d="M48 28C31 37 27 51 27 64s4 27 21 36" fill="none" stroke="#35c9b0" stroke-width="6" stroke-linecap="round"/>
+  <path d="M61 16v96M53 20h16M53 108h16" fill="none" stroke="#f5f8fb" stroke-width="6" stroke-linecap="square"/>
+  <path d="m62 64 43-34M62 64l43 34" fill="none" stroke="#2bc3a4" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="62" cy="64" r="10" fill="#10243b" stroke="#f5f8fb" stroke-width="5"/>
+  <circle cx="62" cy="64" r="3.5" fill="#2bc3a4"/>
+</svg>

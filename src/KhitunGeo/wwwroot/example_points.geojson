@@ -1,0 +1,10 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {"name": "G1", "description": "Контрольная точка"},
+      "geometry": {"type": "Point", "coordinates": [84.0, 65.0, 0.0]}
+    }
+  ]
+}

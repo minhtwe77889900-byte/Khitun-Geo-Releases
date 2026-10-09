@@ -1,0 +1,11 @@
+*.cs text eol=lf
+*.html text eol=lf
+*.js text eol=lf
+*.cjs text eol=lf
+*.json text eol=lf
+*.geojson text eol=lf
+*.csv text eol=lf
+src/KhitunGeo/wwwroot/crs/*.txt text eol=lf
+
+
+*.svg text eol=lf

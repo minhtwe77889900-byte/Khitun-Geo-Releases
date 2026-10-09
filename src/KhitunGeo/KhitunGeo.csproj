@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PlatformTarget>x64</PlatformTarget>
+    <Platforms>x64</Platforms>
+    <ApplicationIcon>brand\khitun_geo.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyName>KhitunGeo</AssemblyName>
+    <RootNamespace>KhitunGeo</RootNamespace>
+    <Product>Khitun Geo</Product>
+    <Company>Khitun Ivan</Company>
+    <Authors>Khitun Ivan</Authors>
+    <Description>Офлайн-приложение для геодезических точек, преобразования координат и экспорта Civil 3D.</Description>
+    <Version>1.7.9</Version>
+    <FileVersion>1.7.9.0</FileVersion>
+    <AssemblyVersion>1.7.9.0</AssemblyVersion>
+    <NeutralLanguage>ru-RU</NeutralLanguage>
+    <Copyright>© 2026 Khitun Ivan</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Jint" Version="4.16.2" />
+    <PackageReference Include="PDFsharp" Version="6.2.4" />
+    <PackageReference Include="ACadSharp" Version="3.7.16" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Licenses\*.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="wwwroot\**\*" Exclude="wwwroot\index.html;wwwroot\workspace-ui.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="brand\khitun_geo.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+</Project>

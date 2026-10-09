@@ -1,0 +1,11 @@
+tools/geoproj-cache/
+__pycache__/
+**/bin/
+**/obj/
+dist/
+.vs/
+*.user
+*.pfx
+*.p12
+node_modules/
+test-artifacts/
