@@ -18,6 +18,7 @@ internal static class Program
         Require(picker.DropDownStyle == ComboBoxStyle.DropDownList && picker.AutoCompleteSource == AutoCompleteSource.ListItems, "CRS picker initializes");
         float scale = args.Length > 0 ? float.Parse(args[0], System.Globalization.CultureInfo.InvariantCulture) : 1;
         using var form = (Form)Activator.CreateInstance(assembly.GetType("KhitunGeo.Native.NativeWorkspaceForm", true)!)!;
+        form.MaximumSize = new Size(4000, 3000);
         var settings = Field(form, "settings");
         settings.GetType().GetProperty("AutoUpdateEnabled")!.SetValue(settings, false);
         var pointType = assembly.GetType("KhitunGeo.Native.SurveyPoint", true)!;
@@ -30,6 +31,7 @@ internal static class Program
         if (scale != 1) form.Scale(new SizeF(scale, scale));
         form.ClientSize = new Size((int)(1280 * scale), (int)(760 * scale));
         form.PerformLayout(); Application.DoEvents();
+        Console.WriteLine($"Layout scale={scale}; form={form.Size}; client={form.ClientSize}; screen={Screen.PrimaryScreen!.Bounds}");
         Capture(form, $"native-main-{scale}");
         var import = Descendants(form).OfType<Button>().Single(b => b.Text == "Импорт");
         var export = Descendants(form).OfType<Button>().Single(b => b.Text == "Экспорт");
@@ -69,6 +71,8 @@ internal static class Program
     private static void Require(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }
     private static void CheckButton(Button button)
     {
+        for (Control? parent = button.Parent; parent is not null; parent = parent.Parent)
+            Require(parent.RectangleToScreen(parent.ClientRectangle).Contains(button.RectangleToScreen(button.ClientRectangle)), $"Button '{button.Text}' is clipped by ancestor {parent.GetType().Name}");
         Require(button.Parent!.ClientRectangle.Contains(button.Bounds), $"Button '{button.Text}' is clipped by its parent: {button.Bounds} / {button.Parent.ClientRectangle}");
         var text = TextRenderer.MeasureText(button.Text, button.Font, Size.Empty, TextFormatFlags.SingleLine | TextFormatFlags.NoPadding);
         Require(button.Height >= text.Height + 8 && button.Width >= text.Width + 12, $"Button '{button.Text}' is too small for its text");

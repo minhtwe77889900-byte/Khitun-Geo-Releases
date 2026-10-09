@@ -21,8 +21,9 @@ internal sealed partial class NativeWorkspaceForm : Form
     public NativeWorkspaceForm()
     {
         Text = "Khitun Geo";
-        Width = 1280;
-        Height = 800;
+        var screen = Screen.FromPoint(Cursor.Position).WorkingArea;
+        Width = Math.Min(1280, screen.Width - 40);
+        Height = Math.Min(800, screen.Height - 40);
         MinimumSize = new Size(880, 560);
         AutoScaleMode = AutoScaleMode.Dpi;
         AutoScaleDimensions = new SizeF(96, 96);
@@ -172,7 +173,7 @@ internal sealed partial class NativeWorkspaceForm : Form
         header.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         foreach (var width in new[] { 38, 48, 220 }) header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, width));
         header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        foreach (var width in new[] { 114, 106, 106 }) header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, width));
+        foreach (var width in new[] { 140, 106, 106 }) header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, width));
         var toggle = new Button { Text = "☰", Dock = DockStyle.Fill, FlatStyle = FlatStyle.Flat, AccessibleName = "Показать или скрыть левую панель", Margin = new Padding(0, 4, 4, 4) };
         NativeTheme.StyleNavigation(toggle);
         toggle.Click += (_, _) => sidebar.Visible = !sidebar.Visible;
