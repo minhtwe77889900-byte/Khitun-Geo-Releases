@@ -84,6 +84,8 @@ internal static class Program
         Console.WriteLine("Export diagnostic initial CRS: " + selection.GetType().GetProperty("SourceName")!.GetValue(selection) + " -> " + selection.GetType().GetProperty("TargetName")!.GetValue(selection));
         var source = (ComboBox)Field(selection, "source");
         var target = (ComboBox)Field(selection, "target");
+        Require((string)target.SelectedItem!.GetType().GetProperty("Id")!.GetValue(target.SelectedItem)! == "msk164",
+            "Showing the window reset target CRS to the first catalogue item");
         object Option(ComboBox picker, string id) => picker.Items.Cast<object>().Single(x => (string)x.GetType().GetProperty("Id")!.GetValue(x)! == id);
         source.SelectedItem = Option(source, "wgs");
         target.SelectedItem = Option(target, "msk164");
