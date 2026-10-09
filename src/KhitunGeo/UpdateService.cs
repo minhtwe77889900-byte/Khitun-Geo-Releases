@@ -20,7 +20,7 @@ internal sealed class UpdateService
     public static HttpClient CreateClient()
     {
         var client = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("KhitunGeo-Updater/1.7.9");
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("KhitunGeo-Updater/1.7.10");
         client.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
         return client;
     }

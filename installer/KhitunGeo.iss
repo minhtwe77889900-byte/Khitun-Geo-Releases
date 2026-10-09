@@ -1,5 +1,5 @@
 #define MyAppName "Khitun Geo"
-#define MyAppVersion "1.7.9"
+#define MyAppVersion "1.7.10"
 #define MyAppPublisher "Khitun Ivan"
 #define MyAppExeName "KhitunGeo.exe"
 #define MyAppId "{D6F08F2C-06AF-4F6D-91A0-BA6BD1BC912D}"
@@ -14,7 +14,7 @@ VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription=Установщик Khitun Geo
 VersionInfoProductName={#MyAppName}
 VersionInfoProductVersion={#MyAppVersion}
-VersionInfoVersion=1.7.9.0
+VersionInfoVersion=1.7.10.0
 DefaultDirName={localappdata}\Programs\Khitun Geo
 DefaultGroupName=Khitun Geo
 DisableProgramGroupPage=yes
@@ -26,7 +26,7 @@ UsePreviousTasks=yes
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=..\dist
-OutputBaseFilename=KhitunGeo_Setup_1_7_9_x64
+OutputBaseFilename=KhitunGeo_Setup_1_7_10_x64
 SetupIconFile=..\src\KhitunGeo\brand\khitun_geo.ico
 UninstallDisplayName={#MyAppName}
 UninstallDisplayIcon={app}\{#MyAppExeName}

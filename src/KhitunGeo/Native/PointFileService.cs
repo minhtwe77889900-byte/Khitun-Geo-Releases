@@ -11,8 +11,9 @@ internal static class PointFileService
     public static IReadOnlyList<SurveyPoint> Read(string path)
     {
         var extension = Path.GetExtension(path).ToLowerInvariant();
+        if (extension == ".xlsx") return ExcelXlsxReader.Read(path);
         if (extension is not (".csv" or ".tsv" or ".txt"))
-            throw new FormatException("Поддерживаются CSV, TSV и TXT.");
+            throw new FormatException("Поддерживаются книги Excel XLSX и табличные файлы CSV, TSV, TXT.");
         if (new FileInfo(path).Length > MaxTextBytes)
             throw new FormatException("Табличный файл больше 16 МБ. Разделите файл.");
         return TabularPaste.Parse(File.ReadAllText(path, new UTF8Encoding(false, true)));

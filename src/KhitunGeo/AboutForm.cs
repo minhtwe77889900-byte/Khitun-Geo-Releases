@@ -29,7 +29,7 @@ internal sealed class AboutForm : Form
             try { logo.Image = Image.FromFile(logoPath); } catch { }
         }
 
-        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.7.9";
+        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.7.10";
         var integrityStatus = IntegrityVerifier.GetStatusText(AppContext.BaseDirectory);
 
         var details = new Label

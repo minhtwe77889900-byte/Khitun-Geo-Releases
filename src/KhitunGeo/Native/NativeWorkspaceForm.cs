@@ -31,7 +31,7 @@ internal sealed partial class NativeWorkspaceForm : Form
         {
             if (grid.EndEdit()) workspace.ReplacePoints(workspace.Points.Append(new SurveyPoint((workspace.Points.Count + 1).ToString(), null, null, null, "")).ToArray());
         });
-        AddButton(sidebar, "Импорт текста", ImportText);
+        AddButton(sidebar, "Импорт данных", ImportText);
         AddButton(sidebar, "Импорт DWG/DXF", async () => await ImportDrawing());
         AddButton(sidebar, "Убрать чертёж", ClearDrawing);
         AddButton(sidebar, "Слои", ShowDrawingLayers);
@@ -98,7 +98,7 @@ internal sealed partial class NativeWorkspaceForm : Form
         AllowDrop = true;
         DragEnter += (_, e) =>
         {
-            if (e.Data?.GetData(DataFormats.FileDrop) is string[] paths && paths.All(IsTextFile))
+            if (e.Data?.GetData(DataFormats.FileDrop) is string[] paths && paths.All(IsSupportedDataFile))
                 e.Effect = DragDropEffects.Copy;
         };
         DragDrop += (_, e) =>
@@ -204,12 +204,16 @@ internal sealed partial class NativeWorkspaceForm : Form
 
     private void ImportText()
     {
-        using var dialog = new OpenFileDialog { Filter = "Табличные данные|*.csv;*.tsv;*.txt", Multiselect = true };
+        using var dialog = new OpenFileDialog
+        {
+            Filter = "Все поддерживаемые данные|*.xlsx;*.csv;*.tsv;*.txt|Книга Excel (*.xlsx)|*.xlsx|CSV (*.csv)|*.csv|TSV (*.tsv)|*.tsv|Текст (*.txt)|*.txt|Все файлы (*.*)|*.*",
+            FilterIndex = 1, Multiselect = true, CheckFileExists = true
+        };
         if (dialog.ShowDialog(this) != DialogResult.OK) return;
         ImportFiles(dialog.FileNames);
     }
 
-    private static bool IsTextFile(string path) => Path.GetExtension(path).ToLowerInvariant() is ".csv" or ".tsv" or ".txt";
+    private static bool IsSupportedDataFile(string path) => Path.GetExtension(path).ToLowerInvariant() is ".xlsx" or ".csv" or ".tsv" or ".txt";
 
     private void ImportFiles(string[] paths)
     {
@@ -219,7 +223,7 @@ internal sealed partial class NativeWorkspaceForm : Form
             var imported = paths.SelectMany(PointFileService.Read).ToArray();
             workspace.ReplacePoints(workspace.Points.Concat(imported).ToArray());
         }
-        catch (Exception ex) when (ex is FormatException or IOException or UnauthorizedAccessException or System.Text.DecoderFallbackException)
+        catch (Exception ex) when (ex is FormatException or IOException or UnauthorizedAccessException or System.Text.DecoderFallbackException or System.Xml.XmlException)
         { MessageBox.Show(this, ex.Message, "Импорт данных"); }
     }
 

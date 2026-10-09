@@ -11,5 +11,6 @@
     <Compile Include="../../src/KhitunGeo/Native/HeightCalculator.cs" Link="HeightCalculator.cs" />
     <Compile Include="../../src/KhitunGeo/Native/TabularPaste.cs" Link="TabularPaste.cs" />
     <Compile Include="../../src/KhitunGeo/Native/PointFileService.cs" Link="PointFileService.cs" />
+    <Compile Include="../../src/KhitunGeo/Native/ExcelXlsxReader.cs" Link="ExcelXlsxReader.cs" />
   </ItemGroup>
 </Project>

@@ -95,18 +95,33 @@ internal sealed class PointGrid : DataGridView
 
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
     {
-        if (workspace is null || IsCurrentCellInEditMode) return base.ProcessCmdKey(ref msg, keyData);
-        if (keyData == (Keys.Control | Keys.Z)) { workspace.Undo(); return true; }
+        if (workspace is null) return base.ProcessCmdKey(ref msg, keyData);
         if (keyData == (Keys.Control | Keys.V))
         {
+            if (IsCurrentCellInEditMode && !EndEdit()) return true;
             try
             {
-                var pasted = TabularPaste.Parse(Clipboard.GetText());
-                workspace.ReplacePoints(workspace.Points.Concat(pasted).ToArray());
+                var clipboard = Clipboard.GetText();
+                var rows = TabularPaste.ParseCells(clipboard);
+                if (rows.Length == 0) return true;
+                var columns = rows.Length == 0 ? 0 : rows.Max(row => row.Length);
+                if (columns >= 3)
+                {
+                    var imported = TabularPaste.Parse(clipboard);
+                    if (imported.Count == 0) return true;
+                    workspace.ReplacePoints(workspace.Points.Concat(imported).ToArray());
+                }
+                else
+                {
+                    if (CurrentCell is null) throw new FormatException("Для вставки столбца выберите начальную ячейку таблицы.");
+                    workspace.ReplacePoints(TabularPaste.ApplyCells(workspace.Points, rows, CurrentCell.RowIndex, CurrentCell.ColumnIndex));
+                }
             }
             catch (FormatException ex) { MessageBox.Show(this, ex.Message, "Вставка данных"); }
             return true;
         }
+        if (IsCurrentCellInEditMode) return base.ProcessCmdKey(ref msg, keyData);
+        if (keyData == (Keys.Control | Keys.Z)) { workspace.Undo(); return true; }
         if (keyData == Keys.Delete)
         {
             var next = workspace.Points.ToArray();

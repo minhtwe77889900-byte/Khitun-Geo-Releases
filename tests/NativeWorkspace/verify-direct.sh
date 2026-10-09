@@ -16,6 +16,6 @@ cd "$repo_root"
     "${references[@]}" tests/NativeWorkspace/CompilerUsings.cs tests/NativeWorkspace/Program.cs \
     src/KhitunGeo/Native/SurveyPoint.cs src/KhitunGeo/Native/PointWorkspace.cs \
     src/KhitunGeo/Native/HeightCalculator.cs src/KhitunGeo/Native/TabularPaste.cs \
-    src/KhitunGeo/Native/PointFileService.cs
+    src/KhitunGeo/Native/PointFileService.cs src/KhitunGeo/Native/ExcelXlsxReader.cs
 "$task_dotnet_root/dotnet" exec --runtimeconfig tests/NativeWorkspace/NativeWorkspace.runtimeconfig.json \
     "$task_output/NativeWorkspace.dll"
