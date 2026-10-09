@@ -27,6 +27,7 @@ internal static class Program
         var workspace = Field(form, "workspace");
         workspace.GetType().GetMethod("ReplacePoints")!.Invoke(workspace, new object?[] { points, null, false });
         form.Show(); Application.DoEvents();
+        if (scale == 1) CheckConversionExport(assembly, form, workspace, pointType);
         if (scale == 1) Capture(form, "native-live-window-1");
         // Check the real shown window first, then render its actual controls in an
         // offscreen host: hosted CI desktops are limited to 1024x768 pixels.
@@ -75,6 +76,44 @@ internal static class Program
         foreach (var button in Descendants(dialogHost).OfType<Button>()) CheckButton(button);
         Capture(dialogHost, $"native-height-{scale}");
         Console.WriteLine($"PASS native layout, logo, persistent actions and height dialog at {scale * 100}%");
+    }
+
+    private static void CheckConversionExport(Assembly assembly, Form form, object workspace, Type pointType)
+    {
+        var selection = Field(form, "conversion");
+        Console.WriteLine("Export diagnostic initial CRS: " + selection.GetType().GetProperty("SourceName")!.GetValue(selection) + " -> " + selection.GetType().GetProperty("TargetName")!.GetValue(selection));
+        var source = (ComboBox)Field(selection, "source");
+        var target = (ComboBox)Field(selection, "target");
+        object Option(ComboBox picker, string id) => picker.Items.Cast<object>().Single(x => (string)x.GetType().GetProperty("Id")!.GetValue(x)! == id);
+        source.SelectedItem = Option(source, "wgs");
+        target.SelectedItem = Option(target, "msk164");
+        var input = Array.CreateInstance(pointType, 2);
+        for (var i = 0; i < 2; i++) input.SetValue(Activator.CreateInstance(pointType, new object?[] { "00" + (i + 1), 65.0 + i * .001, 84.0 + i * .001, -12.0 + i, "Глубина" }), i);
+        workspace.GetType().GetMethod("ReplacePoints")!.Invoke(workspace, new object?[] { input, null, false });
+        var task = (Task)form.GetType().GetMethod("ConvertCoordinates", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(form, null)!;
+        var deadline = DateTime.UtcNow.AddSeconds(30);
+        while (!task.IsCompleted && DateTime.UtcNow < deadline) { Application.DoEvents(); Thread.Sleep(10); }
+        Require(task.IsCompleted, "Actual conversion UI must complete");
+        task.GetAwaiter().GetResult();
+        var current = workspace.GetType().GetProperty("Points")!.GetValue(workspace)!;
+        var values = ((System.Collections.IEnumerable)current).Cast<object>().ToArray();
+        Require(values.Length == 2 && (double)pointType.GetProperty("X")!.GetValue(values[0])! > 1000, "Actual conversion writes projected points to workspace");
+        var exportType = assembly.GetType("KhitunGeo.Native.PointExportDialog", true)!;
+        using var export = (Form)Activator.CreateInstance(exportType, new[] { current, selection.GetType().GetProperty("SourceIsGeographic")!.GetValue(selection)!, selection.GetType().GetProperty("SourceName")!.GetValue(selection)!, false })!;
+        export.Show(form); Application.DoEvents();
+        var format = (ComboBox)Field(export, "format");
+        var preview = (DataGridView)Field(export, "preview");
+        foreach (var index in new[] { 0, 1, 3, 4, 5, 6 })
+        {
+            format.SelectedIndex = index; Application.DoEvents();
+            var notice = ((Label)Field(export, "notice")).Text;
+            Console.WriteLine("Export diagnostic " + format.Text + ": " + notice);
+            Capture(export, "native-export-" + index);
+            Require(preview.Rows.Count == 2, "Converted points missing from " + format.Text + ": " + notice);
+            Require(((Button)Field(export, "save")).Enabled, "Saving converted points is disabled: " + notice);
+            Require(preview.Rows[0].Cells.Cast<DataGridViewCell>().Any(c => Convert.ToString(c.Value) == "-12.000"), "Converted height must appear in export preview");
+        }
+        Console.WriteLine("PASS actual WinForms conversion -> AutoCAD and Civil 3D export previews with projected points and heights");
     }
 
     private static object Field(object instance, string name) => instance.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(instance)!;
