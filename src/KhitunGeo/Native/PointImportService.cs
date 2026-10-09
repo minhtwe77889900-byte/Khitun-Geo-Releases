@@ -29,8 +29,8 @@ internal static class PointImportService
             var sheets = ExcelXlsxReader.GetSheetNames(path);
             if (sheets.Count == 0) throw new FormatException("В книге Excel нет листов.");
             var selected = sheets.FirstOrDefault(name => string.Equals(name, sheetName, StringComparison.Ordinal)) ?? sheets[0];
-            var rows = ExcelXlsxReader.ReadSheetRows(path, selected);
-            return Create(path, "Excel XLSX", rows, sheets, selected);
+            var sheetRows = ExcelXlsxReader.ReadSheetRows(path, selected);
+            return Create(path, "Excel XLSX", sheetRows, sheets, selected);
         }
         if (extension is ".json" or ".geojson")
         {
