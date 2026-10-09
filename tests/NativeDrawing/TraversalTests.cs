@@ -12,8 +12,8 @@ static class TraversalTests
     {
         var points = new[] { new SurveyPoint("1", 0, 0, null, ""), new SurveyPoint("2", 100, 100, null, "") };
         var fit = DrawingViewport.Fit(points, new DrawingBounds(-1e8, -1e8, 1e8, 1e8), 500, 500)!;
-        Near(fit.World.MinE, -1.1e8, "Fit includes drawing minE"); Near(fit.World.MinN, -1.1e8, "Fit includes drawing minN");
-        Near(fit.World.MaxE, 1.1e8, "Fit includes drawing maxE"); Near(fit.World.MaxN, 1.1e8, "Fit includes drawing maxN");
+        Near(fit.World.MinE, -1.1e8, "Fit includes drawing minE", 1e-6); Near(fit.World.MinN, -1.1e8, "Fit includes drawing minN", 1e-6);
+        Near(fit.World.MaxE, 1.1e8, "Fit includes drawing maxE", 1e-6); Near(fit.World.MaxN, 1.1e8, "Fit includes drawing maxN", 1e-6);
         var single = DrawingViewport.Fit(points.Take(1).ToArray(), DrawingBounds.Empty, 500, 500)!;
         Near(single.World.MaxE - single.World.MinE, 1.1, "One point width");
         var overview = DrawingViewport.Fit(Array.Empty<SurveyPoint>(), new DrawingBounds(0, 0, 10, 20), 500, 500)!;
