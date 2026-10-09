@@ -37,7 +37,9 @@ Equal("123.125;456.875;-7.250\r\n11.000;22.000;0.000\r\n", PointExport.Create(po
 Equal("123.125 456.875 -7.250\r\n11.000 22.000 0.000\r\n", PointExport.Create(points, new(PointExportFormat.Xyz, " ", 3, false), false).Text);
 Equal("B,L,H\r\n56.123456789,92.987654321,-1.000000000\r\n", PointExport.Create(geo, new(PointExportFormat.Blh, ",", 9, true), true).Text);
 Reject(() => PointExport.Create(points, new(PointExportFormat.Blh, ",", 3, false), false));
-Reject(() => PointExport.Create(geo, new(PointExportFormat.Nez, ",", 3, false), true));
+foreach (var format in new[] { PointExportFormat.AutoCad, PointExportFormat.AutoCadScript, PointExportFormat.Pnezd, PointExportFormat.Penzd, PointExportFormat.Nez, PointExportFormat.Enz, PointExportFormat.Xyz })
+    Equal(PointExport.Create(points, new(format, ",", 3, false), false).Text,
+        PointExport.Create(points, new(format, ",", 3, false), true).Text);
 Reject(() => PointExport.Create(points, new(PointExportFormat.Nez, ",", 10, false), false));
 Reject(() => PointExport.Create(points, new((PointExportFormat)99, ",", 3, false), false));
 Reject(() => PointExport.Create(points, new(PointExportFormat.Nez, "|", 3, false), false));
