@@ -52,3 +52,5 @@ jobs:
           if ($LASTEXITCODE -eq 0) { Write-Host 'Release already exists; keeping its assets unchanged.'; exit 0 }
           gh release create v1.7.12 $installer 'verified-installer/SHA256SUMS.txt' --target b00fc2a633f8aec3dfed5d16c43ee1712d5001ac --title 'Khitun Geo 1.7.12' --notes-file CHANGELOG_1_7_12.md
           if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }
+
+# This workflow publishes the single explicitly approved v1.7.12 artifact.
