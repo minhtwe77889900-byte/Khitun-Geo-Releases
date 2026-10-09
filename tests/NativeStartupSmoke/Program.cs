@@ -27,6 +27,7 @@ internal static class Program
         var workspace = Field(form, "workspace");
         workspace.GetType().GetMethod("ReplacePoints")!.Invoke(workspace, new object?[] { points, null, false });
         form.Show(); Application.DoEvents();
+        if (scale == 1) Capture(form, "native-live-window-1");
         // Check the real shown window first, then render its actual controls in an
         // offscreen host: hosted CI desktops are limited to 1024x768 pixels.
         foreach (var button in Descendants(form).OfType<Button>().Where(b => b.Text is "Импорт" or "Экспорт" or "Вид: скрыть")) CheckButton(button);
@@ -60,6 +61,7 @@ internal static class Program
         Require(createDialog is not null, "Height tool exposes the actual dialog for UI inspection");
         using var dialog = (Form)createDialog!.Invoke(form, null)!;
         dialog.Show(form); Application.DoEvents();
+        if (scale == 1) Capture(dialog, "native-live-height-1");
         var fields = dialog.Controls.Cast<Control>().Single();
         dialog.Controls.Remove(fields);
         using var dialogHost = new Panel { Size = dialog.ClientSize, Font = dialog.Font };
@@ -99,7 +101,7 @@ internal static class Program
         using var image = new Bitmap(form.Width, form.Height);
         form.DrawToBitmap(image, new Rectangle(Point.Empty, image.Size));
         image.Save(Path.Combine("test-artifacts", name + ".png"), ImageFormat.Png);
-        if (name == "native-main-1" || name == "native-height-1")
+        if (name == "native-live-window-1" || name == "native-live-height-1")
         {
             using var bytes = new MemoryStream(); image.Save(bytes, ImageFormat.Png);
             Console.WriteLine("SCREENSHOT " + name + " " + Convert.ToBase64String(bytes.ToArray()));
