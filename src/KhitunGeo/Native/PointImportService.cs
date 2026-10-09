@@ -111,7 +111,8 @@ internal static class PointImportService
             if (row.All(string.IsNullOrWhiteSpace)) continue;
             var xText = Value(row, swapXY ? mapping.Y : mapping.X);
             var yText = Value(row, swapXY ? mapping.X : mapping.Y);
-            if (string.IsNullOrWhiteSpace(xText) && string.IsNullOrWhiteSpace(yText)) continue;
+            if (string.IsNullOrWhiteSpace(xText) && string.IsNullOrWhiteSpace(yText))
+            { errors.Add($"Строка {i + 1}: координаты X и Y не заданы."); invalidRows.Add(i - start); continue; }
             if (!TryNumber(xText, out var x) || !TryNumber(yText, out var y))
             { errors.Add($"Строка {i + 1}: X или Y не является конечным числом."); invalidRows.Add(i - start); continue; }
             var zText = Value(row, mapping.Height);
