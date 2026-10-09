@@ -14,6 +14,11 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+      - name: Set CI desktop size for native DPI screenshots
+        shell: pwsh
+        run: |
+          Set-DisplayResolution -Width 3840 -Height 2160 -Force
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot set CI desktop resolution' }
       - name: Compile actual WinForms application and UI checks
         shell: pwsh
         run: dotnet build tests/NativeStartupSmoke/NativeStartupSmoke.csproj -c Release
