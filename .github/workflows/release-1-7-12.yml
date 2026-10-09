@@ -1,0 +1,54 @@
+name: Publish verified Khitun Geo 1.7.12 only
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/release-1-7-12.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: khitun-release-1-7-12
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Verify the exact successful source build
+        shell: pwsh
+        run: |
+          $run = gh api "repos/$env:GH_REPO/actions/runs/37902502360" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot verify source build' }
+          if ($run.conclusion -ne 'success' -or $run.head_sha -ne 'b00fc2a633f8aec3dfed5d16c43ee1712d5001ac') { throw 'Unexpected source build' }
+      - uses: actions/checkout@v4
+        with:
+          ref: b00fc2a633f8aec3dfed5d16c43ee1712d5001ac
+      - uses: actions/download-artifact@v4
+        with:
+          artifact-ids: 11603450842
+          run-id: 37902502360
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: verified-installer
+      - name: Verify installer and publish this release once
+        shell: pwsh
+        run: |
+          $installer = 'verified-installer/KhitunGeo_Setup_1_7_12_x64.exe'
+          $expected = ((Get-Content 'verified-installer/SHA256SUMS.txt' -Raw).Trim() -split '\s+')[0]
+          if ((Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expected) { throw 'Installer hash mismatch' }
+          gh release view v1.7.12 --json tagName 2>$null
+          if ($LASTEXITCODE -eq 0) { Write-Host 'Release already exists; keeping its assets unchanged.'; exit 0 }
+          gh release create v1.7.12 $installer 'verified-installer/SHA256SUMS.txt' --target b00fc2a633f8aec3dfed5d16c43ee1712d5001ac --title 'Khitun Geo 1.7.12' --notes-file CHANGELOG_1_7_12.md
+          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }
