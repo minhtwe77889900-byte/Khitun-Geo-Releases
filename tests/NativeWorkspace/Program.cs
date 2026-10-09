@@ -19,6 +19,18 @@ Check(HeightCalculator.Apply(heightPoints, HeightOperation.SetAll, 74.65)!.All(p
 Check(HeightCalculator.Apply(heightPoints, HeightOperation.SubtractFromAll, 12)![0].Height == -24.4, "Subtract depth from every existing height");
 Check(HeightCalculator.Apply(heightPoints, HeightOperation.SubtractFromAll, 12)![2].Height is null, "Subtraction preserves missing height");
 Check(HeightCalculator.AbsoluteMinusDepth(86.65, 12) == 74.65, "Absolute elevation minus lake depth");
+var absoluteMinus = HeightCalculator.Apply(heightPoints, HeightOperation.AbsoluteMinusPoint, 65.635);
+Check(Math.Abs(absoluteMinus[0].Height!.Value - 78.035) < 1e-10 && Math.Abs(absoluteMinus[1].Height!.Value - 60.385) < 1e-10, "Absolute mark minus each point's Z (operand order)");
+Check(absoluteMinus.Select(p => (p.Name, p.X, p.Y, p.Description)).SequenceEqual(heightPoints.Select(p => (p.Name, p.X, p.Y, p.Description))), "Height operation preserves identifiers, XY and descriptions");
+Check(Math.Abs(HeightCalculator.Apply(new[] { original with { Height = 12 } }, HeightOperation.AbsoluteMinusPoint, 65.635)[0].Height!.Value - 53.635) < 1e-10, "Absolute 65.635 minus depth 12 equals 53.635");
+Check(absoluteMinus[2].Height is null, "Absolute height operations preserve missing Z");
+var absolutePlus = HeightCalculator.Apply(heightPoints, HeightOperation.AbsolutePlusPoint, 65.635);
+Check(Math.Abs(absolutePlus[0].Height!.Value - 53.235) < 1e-10 && Math.Abs(absolutePlus[1].Height!.Value - 70.885) < 1e-10, "Absolute mark plus each point's Z");
+workspace.ReplacePoints(heightPoints);
+workspace.ReplacePoints(absoluteMinus);
+Check(workspace.Undo() && workspace.Points.SequenceEqual(heightPoints), "Absolute height operation undoes the entire table in one action");
+try { HeightCalculator.Apply(new[] { original with { Height = double.MaxValue } }, HeightOperation.AbsolutePlusPoint, double.MaxValue); throw new Exception("Accepted height overflow"); }
+catch (ArgumentOutOfRangeException) { }
 try { HeightCalculator.Apply(heightPoints, HeightOperation.AddToAll, double.NaN); throw new Exception("Accepted nonfinite height input"); }
 catch (ArgumentOutOfRangeException) { }
 workspace.ReplacePoints(heightPoints);

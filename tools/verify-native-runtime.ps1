@@ -15,8 +15,10 @@ try {
         else { & dotnet run --project "tests/$project/$project.csproj" -c Release }
         if ($LASTEXITCODE -ne 0) { throw "Native check failed: $project (restore, compilation or execution)" }
     }
-    & dotnet run --project tests/NativeStartupSmoke/NativeStartupSmoke.csproj -c Release
-    if ($LASTEXITCODE -ne 0) { throw 'Native WinForms startup smoke test failed' }
+    foreach ($scale in @('1', '1.5', '2')) {
+        & dotnet run --project tests/NativeStartupSmoke/NativeStartupSmoke.csproj -c Release -- $scale
+        if ($LASTEXITCODE -ne 0) { throw "Native WinForms layout test failed at scale $scale" }
+    }
     & dotnet build src/KhitunGeo/KhitunGeo.csproj -c Release
     if ($LASTEXITCODE -ne 0) { throw 'Windows compilation failed' }
     Write-Host 'PASS native migration and embedded-runtime candidate checks. Windows UI inspection remains required.'

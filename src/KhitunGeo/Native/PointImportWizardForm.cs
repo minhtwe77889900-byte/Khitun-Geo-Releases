@@ -13,7 +13,7 @@ internal sealed class PointImportWizardForm : Form
     private readonly DataGridView previewGrid = new() { Dock = DockStyle.Fill, ReadOnly = true, AllowUserToAddRows = false, AllowUserToDeleteRows = false, RowHeadersVisible = false, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells, SelectionMode = DataGridViewSelectionMode.FullRowSelect };
     private readonly Label summary = new() { Dock = DockStyle.Fill, AutoSize = false, TextAlign = ContentAlignment.MiddleLeft };
     private readonly Label fileLabel = new() { Dock = DockStyle.Fill, AutoSize = false, TextAlign = ContentAlignment.MiddleLeft };
-    private readonly Button applyButton = new() { Text = "Загрузить точки", AutoSize = true, Enabled = false };
+    private readonly Button applyButton = new() { Text = "Загрузить точки", AutoSize = true, Enabled = false, Tag = "primary", FlatStyle = FlatStyle.Flat };
     private readonly ComboBox[] mappings = new ComboBox[5];
     private readonly string[] mappingNames = { "№ точки", "X / север / широта", "Y / восток / долгота", "Z / высота", "Описание" };
     private PointImportPreview preview;
@@ -72,6 +72,7 @@ internal sealed class PointImportWizardForm : Form
         headerCheck.Checked = preview.HasHeader;
         ResetMappings();
         RefreshPreview();
+        NativeTheme.Apply(this, false);
     }
 
     private Control BuildOptions()

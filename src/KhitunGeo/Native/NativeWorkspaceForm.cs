@@ -23,11 +23,15 @@ internal sealed partial class NativeWorkspaceForm : Form
         Text = "Khitun Geo";
         Width = 1280;
         Height = 800;
-        MinimumSize = new Size(800, 500);
+        MinimumSize = new Size(880, 560);
+        AutoScaleMode = AutoScaleMode.Dpi;
+        AutoScaleDimensions = new SizeF(96, 96);
         StartPosition = FormStartPosition.CenterScreen;
         Font = new Font("Segoe UI", 10);
+        using (var iconStream = typeof(NativeWorkspaceForm).Assembly.GetManifestResourceStream("KhitunGeo.BrandIcon.ico"))
+            if (iconStream is not null) Icon = new Icon(iconStream);
 
-        var sidebar = new FlowLayoutPanel { Dock = DockStyle.Left, Width = 200, FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true, Padding = new Padding(8) };
+        var sidebar = new FlowLayoutPanel { Dock = DockStyle.Left, Width = 210, FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true, Padding = new Padding(12, 12, 8, 12) };
         sidebar.Controls.Add(new Label { Text = "РАБОЧЕЕ МЕСТО", Width = 178, Height = 28, TextAlign = ContentAlignment.MiddleLeft, ForeColor = Color.DimGray, Font = new Font(Font, FontStyle.Bold) });
         AddButton(sidebar, "Точки и таблица", () => grid.Focus());
         sidebar.Controls.Add(new Label { Text = "ЧЕРТЁЖ", Width = 178, Height = 28, TextAlign = ContentAlignment.MiddleLeft, ForeColor = Color.DimGray, Font = new Font(Font, FontStyle.Bold) });
@@ -44,6 +48,7 @@ internal sealed partial class NativeWorkspaceForm : Form
         sidebar.Controls.Add(new Label { Text = "ВИД", Width = 178, Height = 28, TextAlign = ContentAlignment.MiddleLeft, ForeColor = Color.DimGray, Font = new Font(Font, FontStyle.Bold) });
         visualizationSidebarButton = AddButton(sidebar, "Скрыть визуализацию", ToggleVisualization);
         sidebar.Controls.Add(new Label { Text = "СЕРВИС", Width = 178, Height = 28, TextAlign = ContentAlignment.MiddleLeft, ForeColor = Color.DimGray, Font = new Font(Font, FontStyle.Bold) });
+        foreach (var button in new[] { passportButton, installUpdateButton, cancelUpdateButton }) { button.Width = 178; button.Height = 40; NativeTheme.StyleNavigation(button); }
         sidebar.Controls.Add(passportButton);
         passportButton.Click += async (_, _) => await ExportPassportPdf();
         AddButton(sidebar, "Светлая / тёмная", () => { dark = !dark; NativeTheme.Apply(this, dark); });
@@ -77,27 +82,34 @@ internal sealed partial class NativeWorkspaceForm : Form
         split.Panel1MinSize = 320;
         split.Panel2MinSize = 200;
         split.SplitterDistance = 550;
-        split.Panel1.Controls.Add(grid);
+        split.Panel1.Controls.Add(BuildGridHost());
         split.Panel2.Controls.Add(BuildPreviewHost());
         var footer = new StatusStrip();
         footer.Items.Add(status);
         footer.Items.Add(cancelPdf);
         cancelPdf.Click += (_, _) => pdfCancellation?.Cancel();
-        var content = new Panel { Dock = DockStyle.Fill };
-        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 4, Margin = Padding.Empty };
-        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 58));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 150));
-        layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 27));
-        layout.Controls.Add(BuildApplicationHeader(sidebar), 0, 0);
+        var content = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Padding = new Padding(12), Margin = Padding.Empty };
+        content.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        content.RowStyles.Add(new RowStyle(SizeType.Absolute, 150));
+        content.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         conversion.Dock = DockStyle.Fill;
-        layout.Controls.Add(conversion, 0, 1);
-        layout.Controls.Add(split, 0, 2);
-        layout.Controls.Add(footer, 0, 3);
-        content.Controls.Add(layout);
-        Controls.Add(content);
-        Controls.Add(sidebar);
+        conversion.Margin = new Padding(0, 0, 0, 12);
+        content.Controls.Add(conversion, 0, 0);
+        split.Margin = Padding.Empty;
+        split.SplitterWidth = 12;
+        content.Controls.Add(split, 0, 1);
+        var body = new Panel { Dock = DockStyle.Fill, Margin = Padding.Empty };
+        body.Controls.Add(content); body.Controls.Add(sidebar);
+        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3, Margin = Padding.Empty };
+        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 68));
+        layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 28));
+        layout.Controls.Add(BuildApplicationHeader(sidebar), 0, 0);
+        layout.Controls.Add(body, 0, 1);
+        footer.Dock = DockStyle.Fill; footer.Margin = Padding.Empty;
+        layout.Controls.Add(footer, 0, 2);
+        Controls.Add(layout);
         grid.Bind(workspace);
         preview.DrawingStatusChanged += (_, _) => RefreshStatus();
         workspace.Changed += WorkspaceChanged;
@@ -147,7 +159,8 @@ internal sealed partial class NativeWorkspaceForm : Form
 
     private static Button AddButton(Control parent, string text, Action action)
     {
-        var button = new Button { Text = text, Width = 178, Height = 34, FlatStyle = FlatStyle.Flat, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(8, 0, 0, 0) };
+        var button = new Button { Text = text, Width = 178, Height = 36, FlatStyle = FlatStyle.Flat, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(8, 0, 0, 0) };
+        NativeTheme.StyleNavigation(button);
         button.Click += (_, _) => action();
         parent.Controls.Add(button);
         return button;
@@ -155,52 +168,68 @@ internal sealed partial class NativeWorkspaceForm : Form
 
     private Control BuildApplicationHeader(FlowLayoutPanel sidebar)
     {
-        var header = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 7, RowCount = 1, Padding = new Padding(8, 5, 10, 5), BackColor = Color.White };
-        header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 36));
-        header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 38));
-        header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 160));
+        var header = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 7, RowCount = 1, Padding = new Padding(14, 10, 14, 10), Margin = Padding.Empty, Tag = "surface" };
+        header.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        foreach (var width in new[] { 38, 48, 220 }) header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, width));
         header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 94));
-        header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 88));
-        header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 88));
-        var toggle = new Button { Text = "☰", Dock = DockStyle.Fill, FlatStyle = FlatStyle.Flat, Font = new Font(Font.FontFamily, 15), AccessibleName = "Показать или скрыть левую панель" };
+        foreach (var width in new[] { 114, 106, 106 }) header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, width));
+        var toggle = new Button { Text = "☰", Dock = DockStyle.Fill, FlatStyle = FlatStyle.Flat, AccessibleName = "Показать или скрыть левую панель", Margin = new Padding(0, 4, 4, 4) };
+        NativeTheme.StyleNavigation(toggle);
         toggle.Click += (_, _) => sidebar.Visible = !sidebar.Visible;
-        var logo = new PictureBox { Dock = DockStyle.Fill, SizeMode = PictureBoxSizeMode.Zoom, Margin = new Padding(2) };
-        var logoPath = Path.Combine(AppContext.BaseDirectory, "wwwroot", "brand", "khitun_geo_icon_64.png");
-        if (File.Exists(logoPath)) { using var source = Image.FromFile(logoPath); logo.Image = new Bitmap(source); }
-        var identity = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = new Padding(4, 2, 0, 0) };
+        var logo = new PictureBox { Name = "ApplicationLogo", Dock = DockStyle.Fill, SizeMode = PictureBoxSizeMode.Zoom, Margin = new Padding(4), AccessibleName = "Логотип Khitun Geo" };
+        using (var source = typeof(NativeWorkspaceForm).Assembly.GetManifestResourceStream("KhitunGeo.BrandMark.png"))
+            if (source is not null) { using var image = Image.FromStream(source); logo.Image = new Bitmap(image); }
+        logo.Disposed += (_, _) => logo.Image?.Dispose();
+        var identity = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = new Padding(8, 0, 0, 0) };
+        identity.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         identity.RowStyles.Add(new RowStyle(SizeType.Percent, 58)); identity.RowStyles.Add(new RowStyle(SizeType.Percent, 42));
-        identity.Controls.Add(new Label { Text = "Khitun Geo", Dock = DockStyle.Fill, Font = new Font(Font, FontStyle.Bold), TextAlign = ContentAlignment.BottomLeft }, 0, 0);
-        identity.Controls.Add(new Label { Text = "Геодезическая рабочая среда", Dock = DockStyle.Fill, Font = new Font(Font.FontFamily, 8.5f), ForeColor = Color.DimGray, TextAlign = ContentAlignment.TopLeft }, 0, 1);
-        var import = new Button { Text = "↑  Импорт", Dock = DockStyle.Fill, BackColor = Color.FromArgb(8, 127, 115), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Margin = new Padding(3) };
-        var export = new Button { Text = "↓  Экспорт", Dock = DockStyle.Fill, FlatStyle = FlatStyle.Flat, Margin = new Padding(3) };
-        visualizationHeaderButton = new Button { Text = "Вид: скрыть", Dock = DockStyle.Fill, FlatStyle = FlatStyle.Flat, Margin = new Padding(3) };
+        identity.Controls.Add(new Label { Text = "Khitun Geo", Dock = DockStyle.Fill, Font = new Font(Font.FontFamily, 14, FontStyle.Bold), TextAlign = ContentAlignment.BottomLeft, Margin = Padding.Empty }, 0, 0);
+        identity.Controls.Add(new Label { Text = "Геодезическая рабочая среда", Dock = DockStyle.Fill, Font = new Font(Font.FontFamily, 8.5f), TextAlign = ContentAlignment.TopLeft, Tag = "muted", Margin = Padding.Empty }, 0, 1);
+        var import = HeaderButton("Импорт", true);
+        var export = HeaderButton("Экспорт");
+        visualizationHeaderButton = HeaderButton("Вид: скрыть");
         import.Click += (_, _) => ImportText(); export.Click += (_, _) => ExportPoints();
-        import.Text = "Импорт";
-        export.Text = "Экспорт";
         visualizationHeaderButton.Click += (_, _) => ToggleVisualization();
         header.Controls.Add(toggle, 0, 0); header.Controls.Add(logo, 1, 0); header.Controls.Add(identity, 2, 0);
-        header.Controls.Add(new Panel { Dock = DockStyle.Fill }, 3, 0);
+        header.Controls.Add(new Panel { Dock = DockStyle.Fill, Margin = Padding.Empty }, 3, 0);
         header.Controls.Add(visualizationHeaderButton, 4, 0); header.Controls.Add(import, 5, 0); header.Controls.Add(export, 6, 0);
         return header;
     }
 
+    private static Button HeaderButton(string text, bool primary = false)
+    {
+        var button = new Button { Text = text, Dock = DockStyle.Fill, FlatStyle = FlatStyle.Flat, Margin = new Padding(4), Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+        button.Tag = primary ? "primary" : "button";
+        return button;
+    }
+
+    private Control BuildGridHost()
+    {
+        var host = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Padding = new Padding(10), Margin = Padding.Empty, Tag = "surface" };
+        host.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        host.RowStyles.Add(new RowStyle(SizeType.Absolute, 40)); host.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        host.Controls.Add(new Label { Text = "Таблица точек", Dock = DockStyle.Fill, Font = new Font(Font, FontStyle.Bold), TextAlign = ContentAlignment.MiddleLeft, Margin = Padding.Empty }, 0, 0);
+        grid.Margin = Padding.Empty; host.Controls.Add(grid, 0, 1);
+        return host;
+    }
+
     private Control BuildPreviewHost()
     {
-        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = Padding.Empty };
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36)); layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        var toolbar = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.RightToLeft, WrapContents = false, Padding = new Padding(4, 2, 4, 2) };
-        var hide = new Button { Text = "Скрыть", Width = 72, Height = 28, FlatStyle = FlatStyle.Flat };
-        var fit = new Button { Text = "Вписать", Width = 72, Height = 28, FlatStyle = FlatStyle.Flat };
-        var zoom = new Label { Text = "100%", Width = 48, Height = 28, TextAlign = ContentAlignment.MiddleCenter };
-        var plus = new Button { Text = "+", Width = 30, Height = 28, FlatStyle = FlatStyle.Flat };
-        var minus = new Button { Text = "−", Width = 30, Height = 28, FlatStyle = FlatStyle.Flat };
-        var title = new Label { Text = "Визуализация", AutoSize = true, Dock = DockStyle.Left, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(8, 6, 0, 0) };
-        hide.Click += (_, _) => ToggleVisualization(); fit.Click += (_, _) => preview.FitToContent();
-        plus.Click += (_, _) => preview.ZoomBy(1.2); minus.Click += (_, _) => preview.ZoomBy(1 / 1.2);
+        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Padding = new Padding(10), Margin = Padding.Empty, Tag = "surface" };
+        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40)); layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        var toolbar = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 5, RowCount = 1, Margin = Padding.Empty };
+        toolbar.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        foreach (var width in new[] { 32, 52, 32, 76 }) toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, width));
+        var title = new Label { Text = "Визуализация", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Font = new Font(Font, FontStyle.Bold), Margin = Padding.Empty, AutoEllipsis = true };
+        var minus = HeaderButton("−"); var plus = HeaderButton("+"); var fit = HeaderButton("Вписать");
+        minus.Margin = plus.Margin = fit.Margin = new Padding(1, 4, 1, 4);
+        var zoom = new Label { Text = "100%", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter, Font = new Font(Font.FontFamily, 8.5f), Margin = Padding.Empty };
+        fit.Click += (_, _) => preview.FitToContent(); plus.Click += (_, _) => preview.ZoomBy(1.2); minus.Click += (_, _) => preview.ZoomBy(1 / 1.2);
         preview.ZoomChanged += (_, _) => zoom.Text = $"{preview.ZoomPercent}%";
-        toolbar.Controls.Add(hide); toolbar.Controls.Add(fit); toolbar.Controls.Add(zoom); toolbar.Controls.Add(plus); toolbar.Controls.Add(minus); toolbar.Controls.Add(title);
-        layout.Controls.Add(toolbar, 0, 0); layout.Controls.Add(preview, 0, 1);
+        toolbar.Controls.Add(title, 0, 0); toolbar.Controls.Add(minus, 1, 0); toolbar.Controls.Add(zoom, 2, 0); toolbar.Controls.Add(plus, 3, 0); toolbar.Controls.Add(fit, 4, 0);
+        layout.Controls.Add(toolbar, 0, 0); preview.Margin = Padding.Empty; layout.Controls.Add(preview, 0, 1);
         return layout;
     }
 
@@ -349,66 +378,69 @@ internal sealed partial class NativeWorkspaceForm : Form
     private void OffsetHeight()
     {
         if (!grid.EndEdit()) return;
-        using var dialog = new Form { Text = "Изменить высоты всех точек", Width = 470, Height = 245, StartPosition = FormStartPosition.CenterParent, FormBorderStyle = FormBorderStyle.FixedDialog, MaximizeBox = false, MinimizeBox = false };
+        using var dialog = CreateHeightDialog();
+        dialog.ShowDialog(this);
+    }
+
+    private Form CreateHeightDialog()
+    {
+        var dialog = new Form { Text = "Изменить высоты всех точек", ClientSize = new Size(530, 340), Font = new Font("Segoe UI", 10), AutoScaleMode = AutoScaleMode.Dpi, AutoScaleDimensions = new SizeF(96, 96), StartPosition = FormStartPosition.CenterParent, FormBorderStyle = FormBorderStyle.FixedDialog, MaximizeBox = false, MinimizeBox = false, Icon = Icon };
         var operation = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Dock = DockStyle.Fill };
-        operation.Items.AddRange(new object[]
-        {
-            "Выберите действие…",
-            "Прибавить значение к Z каждой точки",
-            "Вычесть значение из Z каждой точки",
-            "Задать одну абсолютную отметку всем точкам"
+        operation.Items.AddRange(new object[] {
+            "Абсолютная отметка − Z каждой точки",
+            "Абсолютная отметка + Z каждой точки",
+            "Z каждой точки + значение",
+            "Z каждой точки − значение",
+            "Задать одну отметку всем точкам"
         });
         operation.SelectedIndex = 0;
-        var valueLabel = new Label { Text = "Значение, м", AutoSize = true, Anchor = AnchorStyles.Left };
+        var valueLabel = new Label { Text = "Абсолютная отметка, м", Dock = DockStyle.Fill, TextAlign = ContentAlignment.BottomLeft };
         var value = CreateHeightInput();
-        var formula = new Label { AutoSize = true, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, ForeColor = Color.DarkGreen };
-        var fields = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(12), ColumnCount = 2, RowCount = 3 };
-        fields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 38)); fields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 62));
-        fields.RowStyles.Add(new RowStyle(SizeType.Absolute, 42)); fields.RowStyles.Add(new RowStyle(SizeType.Absolute, 42)); fields.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        fields.Controls.Add(new Label { Text = "Операция", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 0); fields.Controls.Add(operation, 1, 0);
-        fields.Controls.Add(valueLabel, 0, 1); fields.Controls.Add(value, 1, 1);
-        fields.Controls.Add(formula, 0, 2); fields.SetColumnSpan(formula, 2);
-        var apply = new Button { Text = "Применить ко всем точкам", Dock = DockStyle.Bottom, Height = 38, DialogResult = DialogResult.None, Enabled = false };
-        dialog.Controls.Add(fields);
-        dialog.Controls.Add(apply);
-        dialog.AcceptButton = apply;
-
+        var formula = new Label { Dock = DockStyle.Fill, Padding = new Padding(10), Tag = "hint", TextAlign = ContentAlignment.MiddleLeft };
+        var fields = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(18), ColumnCount = 1, RowCount = 7 };
+        fields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        foreach (var height in new[] { 26, 40, 28, 38 }) fields.RowStyles.Add(new RowStyle(SizeType.Absolute, height));
+        fields.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); fields.RowStyles.Add(new RowStyle(SizeType.Absolute, 32)); fields.RowStyles.Add(new RowStyle(SizeType.Absolute, 46));
+        fields.Controls.Add(new Label { Text = "Операция для всей таблицы", Dock = DockStyle.Fill, Font = new Font(Font, FontStyle.Bold) }, 0, 0);
+        fields.Controls.Add(operation, 0, 1); fields.Controls.Add(valueLabel, 0, 2); fields.Controls.Add(value, 0, 3); fields.Controls.Add(formula, 0, 4);
+        fields.Controls.Add(new Label { Text = "Пустые Z сохраняются. Отмена изменения — Ctrl+Z.", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Tag = "muted" }, 0, 5);
+        var buttons = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, RowCount = 1, Margin = Padding.Empty };
+        buttons.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        buttons.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100)); buttons.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 100)); buttons.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 170));
+        var cancel = HeaderButton("Отмена"); cancel.DialogResult = DialogResult.Cancel;
+        var apply = HeaderButton("Применить ко всем", true);
+        buttons.Controls.Add(cancel, 1, 0); buttons.Controls.Add(apply, 2, 0); fields.Controls.Add(buttons, 0, 6);
+        dialog.Controls.Add(fields); dialog.AcceptButton = apply; dialog.CancelButton = cancel;
+        HeightOperation Mode() => operation.SelectedIndex switch {
+            0 => HeightOperation.AbsoluteMinusPoint, 1 => HeightOperation.AbsolutePlusPoint,
+            2 => HeightOperation.AddToAll, 3 => HeightOperation.SubtractFromAll, 4 => HeightOperation.SetAll,
+            _ => throw new InvalidOperationException("Выберите операцию высоты.")
+        };
         void UpdateFields()
         {
             var amount = (double)value.Value;
-            valueLabel.Text = operation.SelectedIndex == 3 ? "Абсолютная отметка, м" : "Значение, м";
-            formula.Text = operation.SelectedIndex switch
-            {
-                1 => $"Z новое = Z текущее + {amount:0.###} · применяется ко всем точкам с заданным Z",
-                2 => $"Z новое = Z текущее − {amount:0.###} · применяется ко всем точкам с заданным Z",
-                3 => $"Для каждой точки будет задано Z = {amount:0.###}",
-                _ => "Выберите действие. Изменение можно отменить через Ctrl+Z."
+            valueLabel.Text = operation.SelectedIndex is 0 or 1 or 4 ? "Абсолютная отметка, м" : "Значение, м";
+            formula.Text = operation.SelectedIndex switch {
+                0 => $"Z новое = {amount:0.###} − Z каждой точки",
+                1 => $"Z новое = {amount:0.###} + Z каждой точки",
+                2 => $"Z новое = Z каждой точки + {amount:0.###}",
+                3 => $"Z новое = Z каждой точки − {amount:0.###}",
+                _ => $"Z каждой точки = {amount:0.###}"
             };
-            apply.Enabled = operation.SelectedIndex > 0 && workspace.Points.Count > 0;
-        }
-
-        operation.SelectedIndexChanged += (_, _) => UpdateFields();
-        value.ValueChanged += (_, _) => UpdateFields();
-        UpdateFields();
-        apply.Click += (_, _) =>
-        {
-            try
-            {
-                var mode = operation.SelectedIndex switch
-                {
-                    1 => HeightOperation.AddToAll,
-                    2 => HeightOperation.SubtractFromAll,
-                    3 => HeightOperation.SetAll,
-                    _ => throw new InvalidOperationException("Выберите операцию высоты.")
-                };
-                workspace.ReplacePoints(HeightCalculator.Apply(workspace.Points, mode, (double)value.Value));
-                dialog.DialogResult = DialogResult.OK;
-                dialog.Close();
+            var sample = workspace.Points.FirstOrDefault(p => p.Height is not null);
+            if (sample is not null) {
+                try { formula.Text += $"\nТочка {sample.Name}: {sample.Height:0.###} → {HeightCalculator.Apply(new[] { sample }, Mode(), amount)[0].Height:0.###} м"; }
+                catch (ArgumentException) { formula.Text += "\nРезультат за пределами допустимого диапазона."; }
             }
-            catch (ArgumentException ex)
-            { MessageBox.Show(dialog, ex.Message, "Расчёт высоты"); }
+            apply.Enabled = workspace.Points.Count > 0;
+        }
+        operation.SelectedIndexChanged += (_, _) => UpdateFields(); value.ValueChanged += (_, _) => UpdateFields(); UpdateFields();
+        apply.Click += (_, _) => {
+            try { workspace.ReplacePoints(HeightCalculator.Apply(workspace.Points, Mode(), (double)value.Value)); dialog.DialogResult = DialogResult.OK; dialog.Close(); }
+            catch (ArgumentException ex) { MessageBox.Show(dialog, ex.Message, "Расчёт высоты"); }
         };
-        dialog.ShowDialog(this);
+        NativeTheme.Apply(dialog, dark);
+        return dialog;
     }
 
     private static NumericUpDown CreateHeightInput() => new()

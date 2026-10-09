@@ -12,8 +12,8 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
     private readonly CheckBox targetPrefix = new() { Text = "Префикс целевого Y", Checked = true, AutoSize = true };
     private readonly NumericUpDown manualZone = new() { Minimum = 1, Maximum = 60, Value = 28, Width = 58 };
 
-    private readonly Button convert = new() { Text = "Преобразовать", Dock = DockStyle.Fill, Enabled = false };
-    private readonly Label message = new() { Text = "Расчёт недоступен", AutoSize = true, Dock = DockStyle.Fill };
+    private readonly Button convert = new() { Text = "Преобразовать", Dock = DockStyle.Fill, Enabled = false, Tag = "primary", FlatStyle = FlatStyle.Flat };
+    private readonly Label message = new() { Text = "Расчёт недоступен", AutoSize = false, AutoEllipsis = true, Dock = DockStyle.Fill, Margin = Padding.Empty, Tag = "muted" };
     private bool catalogueReady, runtimeReady, busy, ambiguousSourceZones;
     public event EventHandler? ConvertRequested;
     public bool UsesAutoTargetZone => autoZone.Checked && Kind(target) is "gk6" or "gk3" or "utm";
@@ -32,19 +32,20 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
 
     public CoordinateSelectionPanel(string cataloguePath, Action swapPointAxes)
     {
-        Dock = DockStyle.Top; Height = 150; ColumnCount = 4; RowCount = 4; Padding = new Padding(10, 5, 10, 5);
+        Dock = DockStyle.Top; Height = 150; ColumnCount = 4; RowCount = 4; Padding = new Padding(14, 8, 14, 8);
+        Tag = "surface";
         ColumnStyles.Add(new(SizeType.Percent, 50)); ColumnStyles.Add(new(SizeType.Absolute, 48));
         ColumnStyles.Add(new(SizeType.Percent, 50)); ColumnStyles.Add(new(SizeType.Absolute, 150));
-        RowStyles.Add(new(SizeType.Absolute, 23)); RowStyles.Add(new(SizeType.Absolute, 34));
-        RowStyles.Add(new(SizeType.Absolute, 55)); RowStyles.Add(new(SizeType.Absolute, 24));
-        Controls.Add(new Label { Text = "Координаты в таблице", AutoSize = true }, 0, 0);
-        Controls.Add(new Label { Text = "Преобразовать в", AutoSize = true }, 2, 0);
+        RowStyles.Add(new(SizeType.Absolute, 24)); RowStyles.Add(new(SizeType.Absolute, 34));
+        RowStyles.Add(new(SizeType.Absolute, 50)); RowStyles.Add(new(SizeType.Absolute, 24));
+        Controls.Add(new Label { Text = "Исходная система координат", AutoSize = true, Margin = Padding.Empty, Tag = "muted" }, 0, 0);
+        Controls.Add(new Label { Text = "Целевая система координат", AutoSize = true, Margin = Padding.Empty, Tag = "muted" }, 2, 0);
         Controls.Add(source, 0, 1); Controls.Add(target, 2, 1);
         var swap = new Button { Text = "X↔Y", Dock = DockStyle.Fill };
         swap.Click += (_, _) => swapPointAxes(); Controls.Add(swap, 1, 1);
         convert.Click += (_, _) => ConvertRequested?.Invoke(this, EventArgs.Empty);
         Controls.Add(convert, 3, 1);
-        var options = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = true };
+        var options = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = true, Margin = Padding.Empty, Padding = new Padding(0, 5, 0, 0) };
         options.Controls.Add(autoZone); options.Controls.Add(sourcePrefix); options.Controls.Add(targetPrefix);
         options.Controls.Add(new Label { Text = "Зона", AutoSize = true, Margin = new Padding(8, 5, 3, 0) });
         options.Controls.Add(manualZone); Controls.Add(options, 0, 2); SetColumnSpan(options, 4);
@@ -70,7 +71,7 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
 
     private static ComboBox Picker() => new()
     {
-        Dock = DockStyle.Fill, DropDownStyle = ComboBoxStyle.DropDownList, DropDownWidth = 620,
+        Dock = DockStyle.Fill, Margin = new Padding(0, 2, 0, 2), DropDownStyle = ComboBoxStyle.DropDownList, DropDownWidth = 620,
         DisplayMember = nameof(NativeCrsOption.Name), ValueMember = nameof(NativeCrsOption.Id),
         AutoCompleteSource = AutoCompleteSource.ListItems, AutoCompleteMode = AutoCompleteMode.SuggestAppend
     };

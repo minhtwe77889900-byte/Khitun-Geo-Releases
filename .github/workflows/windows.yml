@@ -16,8 +16,6 @@ jobs:
   build:
     if: github.event_name != 'pull_request'
     runs-on: windows-latest
-    permissions:
-      contents: write
     timeout-minutes: 25
     defaults:
       run:
@@ -85,27 +83,14 @@ jobs:
         run: |
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer/KhitunGeo.iss
           if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed' }
-          $hash = Get-FileHash dist/KhitunGeo_Setup_1_7_11_x64.exe -Algorithm SHA256
-          "$($hash.Hash.ToLowerInvariant())  KhitunGeo_Setup_1_7_11_x64.exe" | Set-Content dist/SHA256SUMS.txt -Encoding utf8
+          $hash = Get-FileHash dist/KhitunGeo_Setup_1_7_12_x64.exe -Algorithm SHA256
+          "$($hash.Hash.ToLowerInvariant())  KhitunGeo_Setup_1_7_12_x64.exe" | Set-Content dist/SHA256SUMS.txt -Encoding utf8
       - uses: actions/upload-artifact@v4
         with:
           name: KhitunGeo-Setup-x64
           path: dist/*
           if-no-files-found: error
           retention-days: 14
-      - name: Publish tested release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          $latest = gh api "repos/$env:GH_REPO/git/ref/heads/main" --jq '.object.sha'
-          if ($LASTEXITCODE -ne 0) { throw 'Cannot verify release branch' }
-          if ($latest -ne $env:GITHUB_SHA) { Write-Host 'A newer commit exists; skipping this outdated release build.'; exit 0 }
-          gh release view v1.7.11 --json tagName 2>$null
-          if ($LASTEXITCODE -eq 0) { Write-Host 'Release v1.7.11 already exists; keeping its assets unchanged.'; exit 0 }
-          gh release create v1.7.11 dist/KhitunGeo_Setup_1_7_11_x64.exe dist/SHA256SUMS.txt --target $env:GITHUB_SHA --title "Khitun Geo 1.7.11" --notes-file CHANGELOG_1_7_11.md
-          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }
       - uses: actions/upload-artifact@v4
         with:
           name: KhitunGeo-App-x64

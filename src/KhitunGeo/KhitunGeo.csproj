@@ -15,12 +15,17 @@
     <Company>Khitun Ivan</Company>
     <Authors>Khitun Ivan</Authors>
     <Description>Офлайн-приложение для геодезических точек, преобразования координат и экспорта Civil 3D.</Description>
-    <Version>1.7.11</Version>
-    <FileVersion>1.7.11.0</FileVersion>
-    <AssemblyVersion>1.7.11.0</AssemblyVersion>
+    <Version>1.7.12</Version>
+    <FileVersion>1.7.12.0</FileVersion>
+    <AssemblyVersion>1.7.12.0</AssemblyVersion>
     <NeutralLanguage>ru-RU</NeutralLanguage>
     <Copyright>© 2026 Khitun Ivan</Copyright>
   </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="wwwroot\brand\khitun_geo_icon_64.png" LogicalName="KhitunGeo.BrandMark.png" />
+    <EmbeddedResource Include="brand\khitun_geo.ico" LogicalName="KhitunGeo.BrandIcon.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Jint" Version="4.16.2" />

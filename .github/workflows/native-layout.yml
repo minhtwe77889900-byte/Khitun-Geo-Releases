@@ -1,0 +1,31 @@
+name: Native Windows layout
+on:
+  push:
+    branches: ['codex/native-interface-1-7-12']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  layout:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Compile actual WinForms application and UI checks
+        shell: pwsh
+        run: dotnet build tests/NativeStartupSmoke/NativeStartupSmoke.csproj -c Release
+      - name: Check native window at 100%, 150% and 200%
+        shell: pwsh
+        run: |
+          foreach ($scale in @('1', '1.5', '2')) {
+            dotnet run --no-build --project tests/NativeStartupSmoke/NativeStartupSmoke.csproj -c Release -- $scale
+            if ($LASTEXITCODE -ne 0) { throw "Native layout failed at scale $scale" }
+          }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-window-screenshots
+          path: test-artifacts/*.png

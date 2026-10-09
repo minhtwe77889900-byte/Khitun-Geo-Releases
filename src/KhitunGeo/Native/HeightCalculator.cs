@@ -4,7 +4,9 @@ internal enum HeightOperation
 {
     SetAll,
     AddToAll,
-    SubtractFromAll
+    SubtractFromAll,
+    AbsoluteMinusPoint,
+    AbsolutePlusPoint
 }
 
 internal static class HeightCalculator
@@ -23,14 +25,23 @@ internal static class HeightCalculator
         Validate(value, nameof(value));
         return points.Select(point => point with
         {
-            Height = operation switch
+            Height = Calculate(point.Height, operation, value)
+        }).ToArray();
+    }
+
+    private static double? Calculate(double? height, HeightOperation operation, double value)
+    {
+        var result = operation switch
             {
                 HeightOperation.SetAll => value,
-                HeightOperation.AddToAll => point.Height + value,
-                HeightOperation.SubtractFromAll => point.Height - value,
+                HeightOperation.AddToAll => height + value,
+                HeightOperation.SubtractFromAll => height - value,
+                HeightOperation.AbsoluteMinusPoint => value - height,
+                HeightOperation.AbsolutePlusPoint => value + height,
                 _ => throw new ArgumentOutOfRangeException(nameof(operation))
-            }
-        }).ToArray();
+            };
+        if (result is double number) Validate(number, nameof(height));
+        return result;
     }
 
     private static void Validate(double value, string name)
