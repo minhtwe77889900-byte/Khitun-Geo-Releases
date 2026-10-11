@@ -32,7 +32,7 @@ internal sealed partial class NativeWorkspaceForm : Form
         using (var iconStream = typeof(NativeWorkspaceForm).Assembly.GetManifestResourceStream("KhitunGeo.BrandIcon.ico"))
             if (iconStream is not null) Icon = new Icon(iconStream);
 
-        var sidebar = new BrandNavigationPanel { Dock = DockStyle.Left, Width = 210, FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true, Padding = new Padding(12, 12, 8, 12) };
+        var sidebar = new BrandNavigationPanel { Dock = DockStyle.Fill, Width = 210, FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true, Padding = new Padding(12, 12, 8, 12) };
         sidebar.Controls.Add(new Label { Text = "РАБОЧЕЕ МЕСТО", Width = 178, Height = 28, TextAlign = ContentAlignment.MiddleLeft, ForeColor = Color.DimGray, Font = new Font(Font, FontStyle.Bold) });
         AddButton(sidebar, "Точки и таблица", () => grid.Focus());
         sidebar.Controls.Add(new Label { Text = "ЧЕРТЁЖ", Width = 178, Height = 28, TextAlign = ContentAlignment.MiddleLeft, ForeColor = Color.DimGray, Font = new Font(Font, FontStyle.Bold) });
@@ -52,9 +52,12 @@ internal sealed partial class NativeWorkspaceForm : Form
         foreach (var button in new[] { passportButton, installUpdateButton, cancelUpdateButton }) { button.Width = 178; button.Height = 40; NativeTheme.StyleNavigation(button); }
         sidebar.Controls.Add(passportButton);
         passportButton.Click += async (_, _) => await ExportPassportPdf();
-        var theme = new ThemeSwitcher { Name = "ThemeSwitcher", Width = 178, Height = 40 };
+        var theme = new ThemeSwitcher { Name = "ThemeSwitcher", Dock = DockStyle.Fill, Width = 178, Height = 40 };
         theme.ThemeChanged += (_, _) => { dark = theme.Dark; ThemeTransition.Apply(this, dark); };
-        sidebar.Controls.Add(theme);
+        var themeHost = new Panel { Dock = DockStyle.Bottom, Height = 56, Padding = new Padding(12, 8, 12, 8), Tag = "brand-overlay" };
+        themeHost.Controls.Add(theme);
+        var navigation = new BrandPanel { Dock = DockStyle.Left, Width = 210 };
+        navigation.Controls.Add(sidebar); navigation.Controls.Add(themeHost);
         AddButton(sidebar, "Настройки", OpenSettings);
         AddButton(sidebar, "Проверить обновления", async () => await CheckForUpdatesAsync(manual: true));
         installUpdateButton.Click += async (_, _) => await InstallUpdateAsync();
@@ -102,13 +105,13 @@ internal sealed partial class NativeWorkspaceForm : Form
         split.SplitterWidth = 8;
         content.Controls.Add(split, 0, 1);
         var body = new BrandPanel { Dock = DockStyle.Fill, Margin = Padding.Empty };
-        body.Controls.Add(content); body.Controls.Add(sidebar);
+        body.Controls.Add(content); body.Controls.Add(navigation);
         var layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3, Margin = Padding.Empty };
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 68));
         layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 28));
-        layout.Controls.Add(BuildApplicationHeader(sidebar), 0, 0);
+        layout.Controls.Add(BuildApplicationHeader(navigation), 0, 0);
         layout.Controls.Add(body, 0, 1);
         footer.Dock = DockStyle.Fill; footer.Margin = Padding.Empty;
         layout.Controls.Add(footer, 0, 2);
@@ -169,7 +172,7 @@ internal sealed partial class NativeWorkspaceForm : Form
         return button;
     }
 
-    private Control BuildApplicationHeader(FlowLayoutPanel sidebar)
+    private Control BuildApplicationHeader(Control sidebar)
     {
         var header = new BrandLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 7, RowCount = 1, Padding = new Padding(14, 10, 14, 10), Margin = Padding.Empty, Tag = "surface" };
         header.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
@@ -179,14 +182,14 @@ internal sealed partial class NativeWorkspaceForm : Form
         var toggle = new Button { Text = "☰", Dock = DockStyle.Fill, FlatStyle = FlatStyle.Flat, AccessibleName = "Показать или скрыть левую панель", Margin = new Padding(0, 4, 4, 4) };
         NativeTheme.StyleNavigation(toggle);
         toggle.Click += (_, _) => sidebar.Visible = !sidebar.Visible;
-        var logo = new PictureBox { Name = "ApplicationLogo", Dock = DockStyle.Fill, SizeMode = PictureBoxSizeMode.Zoom, Margin = new Padding(4), AccessibleName = "Логотип Khitun Geo" };
+        var logo = new PictureBox { Name = "ApplicationLogo", Dock = DockStyle.Fill, SizeMode = PictureBoxSizeMode.Zoom, Margin = new Padding(4), AccessibleName = "Логотип Khitun Geo", Tag = "brand-overlay" };
         using (var source = typeof(NativeWorkspaceForm).Assembly.GetManifestResourceStream("KhitunGeo.BrandMark.png"))
             if (source is not null) { using var image = Image.FromStream(source); logo.Image = new Bitmap(image); }
         logo.Disposed += (_, _) => logo.Image?.Dispose();
-        var identity = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = new Padding(8, 0, 0, 0) };
+        var identity = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = new Padding(8, 0, 0, 0), Tag = "brand-overlay" };
         identity.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         identity.RowStyles.Add(new RowStyle(SizeType.Percent, 58)); identity.RowStyles.Add(new RowStyle(SizeType.Percent, 42));
-        identity.Controls.Add(new Label { Text = "Khitun Geo", Dock = DockStyle.Fill, Font = new Font(Font.FontFamily, 14, FontStyle.Bold), TextAlign = ContentAlignment.BottomLeft, Margin = Padding.Empty }, 0, 0);
+        identity.Controls.Add(new Label { Text = "Khitun Geo", Dock = DockStyle.Fill, Font = new Font(Font.FontFamily, 14, FontStyle.Bold), TextAlign = ContentAlignment.BottomLeft, Margin = Padding.Empty, Tag = "brand-overlay" }, 0, 0);
         identity.Controls.Add(new Label { Text = "Геодезическая рабочая среда", Dock = DockStyle.Fill, Font = new Font(Font.FontFamily, 8.5f), TextAlign = ContentAlignment.TopLeft, Tag = "muted", Margin = Padding.Empty }, 0, 1);
         var import = HeaderButton("Импорт", true);
         var export = HeaderButton("Экспорт");
@@ -194,7 +197,7 @@ internal sealed partial class NativeWorkspaceForm : Form
         import.Click += (_, _) => ImportText(); export.Click += (_, _) => ExportPoints();
         visualizationHeaderButton.Click += (_, _) => ToggleVisualization();
         header.Controls.Add(toggle, 0, 0); header.Controls.Add(logo, 1, 0); header.Controls.Add(identity, 2, 0);
-        header.Controls.Add(new Panel { Dock = DockStyle.Fill, Margin = Padding.Empty }, 3, 0);
+        header.Controls.Add(new Panel { Dock = DockStyle.Fill, Margin = Padding.Empty, Tag = "brand-overlay" }, 3, 0);
         header.Controls.Add(visualizationHeaderButton, 4, 0); header.Controls.Add(import, 5, 0); header.Controls.Add(export, 6, 0);
         return header;
     }

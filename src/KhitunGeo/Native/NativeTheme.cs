@@ -18,6 +18,7 @@ internal static class NativeTheme
         var ink = dark ? Color.FromArgb(229, 238, 240) : Color.FromArgb(32, 51, 57);
         var border = dark ? Color.FromArgb(63, 78, 94) : Color.FromArgb(214, 224, 235);
         root.BackColor = root is Form or SplitContainer or BrandPanel or BrandLayoutPanel or BrandNavigationPanel || root.Tag as string == "navigation" ? canvas : surface;
+        if (root.Tag as string == "brand-overlay") root.BackColor = Color.Transparent;
         root.ForeColor = ink;
         if (root.Tag as string == "muted") root.ForeColor = dark ? Color.FromArgb(155, 176, 195) : Color.FromArgb(111, 131, 153);
         if (root.Tag as string == "hint") { root.BackColor = dark ? Color.FromArgb(25, 62, 62) : Color.FromArgb(235, 247, 245); root.ForeColor = dark ? Color.FromArgb(136, 224, 210) : Accent; }

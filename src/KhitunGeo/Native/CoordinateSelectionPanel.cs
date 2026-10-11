@@ -16,6 +16,8 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
     private readonly Label message = new() { Text = "Расчёт недоступен", AutoSize = false, AutoEllipsis = true, Dock = DockStyle.Fill, Margin = Padding.Empty, Tag = "muted" };
     private IReadOnlyList<MskCrsEntry> entries = Array.Empty<MskCrsEntry>();
     private NativeCrsOption? sourceCurrent, targetCurrent;
+    private Action? sourceSelectionUndo, targetSelectionUndo;
+    private bool selecting;
     private readonly Button sourceZone = new() { Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, AutoEllipsis = true, Margin = Padding.Empty };
     private readonly Button targetZone = new() { Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, AutoEllipsis = true, Margin = Padding.Empty };
     private bool catalogueReady, runtimeReady, busy, ambiguousSourceZones;
@@ -30,6 +32,7 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
         var option = entries.SelectMany(e => e.Zones).FirstOrDefault(item => string.Equals(item.Id, id, StringComparison.OrdinalIgnoreCase));
         if (option is null) return false;
         Select(source, option);
+        ambiguousSourceZones = false; UpdateConvertButton();
         return true;
     }
 
@@ -43,22 +46,30 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
     private void Select(ComboBox picker, NativeCrsOption? option)
     {
         if (option is null) return;
-        if (picker == source) sourceCurrent = option; else targetCurrent = option;
-        picker.SelectedItem = entries.First(e => e.Zones.Any(z => z.Id == option.Id));
-        UpdateZoneControls();
+        var wasSelecting = selecting; selecting = true;
+        try
+        {
+            if (picker == source) sourceCurrent = option; else targetCurrent = option;
+            picker.SelectedItem = entries.First(e => e.Zones.Any(z => z.Id == option.Id));
+            UpdateZoneControls();
+        }
+        finally { selecting = wasSelecting; }
     }
 
     private void ChooseZone(ComboBox picker)
     {
         if (picker.SelectedItem is not MskCrsEntry { IsMskGroup: true } entry) return;
-        var previous = picker == source ? sourceCurrent : targetCurrent;
+        var undo = (picker == source ? sourceSelectionUndo : targetSelectionUndo)
+            ?? CaptureSelectionUndo(sourceCurrent, targetCurrent);
+        if (picker == source) sourceSelectionUndo = null; else targetSelectionUndo = null;
         using var dialog = new MskZoneDialog(entry, Current(picker)!, NativeTheme.IsDark(this));
         if (dialog.ShowDialog(FindForm()) == DialogResult.OK && dialog.SelectedZone is NativeCrsOption selected)
         {
             if (picker == source) sourceCurrent = selected; else targetCurrent = selected;
-            UpdateZoneControls();
+            if (picker == source) ambiguousSourceZones = false;
+            UpdateZoneControls(); UpdateConvertButton();
         }
-        else Select(picker, previous);
+        else undo();
     }
 
     public CoordinateSelectionPanel(string cataloguePath, Action swapPointAxes)
@@ -85,11 +96,18 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
         Controls.Add(message, 0, 4); SetColumnSpan(message, 4);
         source.SelectedIndexChanged += (_, _) =>
         {
-            if (source.SelectedItem is MskCrsEntry { IsMskGroup: false } entry) sourceCurrent = entry.Zones[0];
-            ambiguousSourceZones = false; UpdateZoneControls(); UpdateConvertButton();
+            if (!selecting && catalogueReady)
+                sourceSelectionUndo = source.SelectedItem is MskCrsEntry { IsMskGroup: true }
+                    ? CaptureSelectionUndo(sourceCurrent, Current(target)) : null;
+            if (source.SelectedItem is MskCrsEntry { IsMskGroup: false } entry)
+            { sourceCurrent = entry.Zones[0]; ambiguousSourceZones = false; }
+            UpdateZoneControls(); UpdateConvertButton();
         };
         target.SelectedIndexChanged += (_, _) =>
         {
+            if (!selecting && catalogueReady)
+                targetSelectionUndo = target.SelectedItem is MskCrsEntry { IsMskGroup: true }
+                    ? CaptureSelectionUndo(Current(source), targetCurrent) : null;
             if (target.SelectedItem is MskCrsEntry { IsMskGroup: false } entry) targetCurrent = entry.Zones[0];
             UpdateZoneControls();
         };
@@ -153,9 +171,10 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
         UpdateConvertButton();
     }
 
-    public Action CaptureUndo()
+    public Action CaptureUndo() => CaptureSelectionUndo(Current(source), Current(target));
+
+    private Action CaptureSelectionUndo(NativeCrsOption? s, NativeCrsOption? t)
     {
-        var s = Current(source); var t = Current(target);
         var auto = autoZone.Checked; var zone = manualZone.Value;
         var sp = sourcePrefix.Checked; var tp = targetPrefix.Checked;
         var ambiguous = ambiguousSourceZones; var text = message.Text;
