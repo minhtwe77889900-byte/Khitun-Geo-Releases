@@ -7,12 +7,12 @@ namespace KhitunGeo.Native;
 internal sealed partial class NativeWorkspaceForm
 {
     private readonly CancellationTokenSource updateLifetime = new();
-    private readonly Button cancelUpdateButton = new()
+    private readonly Button cancelUpdateButton = new NavigationIconButton()
     {
         Text = "Отменить загрузку обновления", Width = 130, Height = 40,
         FlatStyle = FlatStyle.Flat, Visible = false
     };
-    private readonly Button installUpdateButton = new()
+    private readonly Button installUpdateButton = new NavigationIconButton()
     {
         Text = "Установить обновление", Width = 130, Height = 40,
         FlatStyle = FlatStyle.Flat, Visible = false, Enabled = false
@@ -45,7 +45,7 @@ internal sealed partial class NativeWorkspaceForm
     {
         var wasAutoUpdate = settings.AutoUpdateEnabled;
         using var dialog = new SettingsForm(settings);
-        if (dialog.ShowDialog(this) != DialogResult.OK) return;
+        if (UiMotion.ShowDialog(dialog, this) != DialogResult.OK) return;
         settings.ExportFolder = dialog.ExportFolder;
         settings.RememberLastExportFolder = dialog.RememberLastExportFolder;
         settings.AutoUpdateEnabled = dialog.AutoUpdateEnabled;

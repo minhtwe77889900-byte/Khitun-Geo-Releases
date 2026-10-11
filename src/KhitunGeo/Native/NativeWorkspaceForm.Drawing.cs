@@ -14,7 +14,7 @@ internal sealed partial class NativeWorkspaceForm
         if (importingDrawing || drawing is null) return;
         var scene = drawing;
         using var dialog = new DrawingLayersDialog(scene, drawingLayers, dark);
-        if (dialog.ShowDialog(this) != DialogResult.OK || !ReferenceEquals(scene, drawing) || IsDisposed || Disposing) return;
+        if (UiMotion.ShowDialog(dialog, this) != DialogResult.OK || !ReferenceEquals(scene, drawing) || IsDisposed || Disposing) return;
         drawingLayers = dialog.VisibleLayers; preview.SetVisibleLayers(drawingLayers); RefreshStatus();
     }
     private async Task ImportDrawing()

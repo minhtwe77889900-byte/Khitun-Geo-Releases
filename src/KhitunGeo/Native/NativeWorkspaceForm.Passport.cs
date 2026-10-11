@@ -6,7 +6,7 @@ internal sealed partial class NativeWorkspaceForm
 {
     private readonly PassportState passportState = new();
     private readonly DeferredCloseRequest pendingClose = new();
-    private readonly Button passportButton = new() { Text = "Паспорт PDF", Width = 130, Height = 40, FlatStyle = FlatStyle.Flat, Enabled = false };
+    private readonly Button passportButton = new NavigationIconButton() { Text = "Паспорт PDF", Width = 130, Height = 40, FlatStyle = FlatStyle.Flat, Enabled = false };
     private readonly ToolStripButton cancelPdf = new() { Text = "Отменить PDF", Visible = false };
     private NativeQualityRuntime? qualityRuntime;
     private CancellationTokenSource? pdfCancellation;

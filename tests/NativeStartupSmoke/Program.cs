@@ -64,13 +64,13 @@ internal static partial class Program
         Require(form.Icon is not null, "Window has application icon");
         var toggle = Descendants(host).OfType<Button>().Single(b => b.AccessibleName == "Показать или скрыть левую панель");
         var collapsedRailWidth = Descendants(host).Single(c => c.Name == "NavigationRail").Width;
-        toggle.PerformClick(); view.PerformClick(); Application.DoEvents();
+        toggle.PerformClick(); PumpFor(300); view.PerformClick(); PumpFor(300);
         Require(import.Visible && export.Visible, "Import/export stay accessible with sidebar and preview hidden");
         foreach (var button in new[] { import, export, view }) CheckButton(button);
         Capture(host, $"native-hidden-{scale}");
-        toggle.PerformClick();
+        toggle.PerformClick(); PumpFor(300);
         Require(Descendants(host).Single(c => c.Name == "NavigationRail").Width == collapsedRailWidth, "Navigation preserves its DPI scale after expanding and collapsing");
-        ((Button)Field(form, "visualizationSidebarButton")).PerformClick();
+        ((Button)Field(form, "visualizationSidebarButton")).PerformClick(); PumpFor(300);
         Require(!((SplitContainer)Field(form, "split")).Panel2Collapsed, "Preview restored through the visible sidebar action");
         host.Size = new Size((int)(880 * scale), (int)(560 * scale));
         host.PerformLayout();

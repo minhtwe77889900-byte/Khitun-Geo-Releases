@@ -15,9 +15,9 @@
     <Company>Khitun Ivan</Company>
     <Authors>Khitun Ivan</Authors>
     <Description>Офлайн-приложение для геодезических точек, преобразования координат и экспорта Civil 3D.</Description>
-    <Version>1.7.14</Version>
-    <FileVersion>1.7.14.0</FileVersion>
-    <AssemblyVersion>1.7.14.0</AssemblyVersion>
+    <Version>1.7.15</Version>
+    <FileVersion>1.7.15.0</FileVersion>
+    <AssemblyVersion>1.7.15.0</AssemblyVersion>
     <NeutralLanguage>ru-RU</NeutralLanguage>
     <Copyright>© 2026 Khitun Ivan</Copyright>
   </PropertyGroup>

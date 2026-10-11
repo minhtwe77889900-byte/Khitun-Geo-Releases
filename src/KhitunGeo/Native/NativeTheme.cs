@@ -3,7 +3,11 @@ namespace KhitunGeo.Native;
 internal static class NativeTheme
 {
     private static readonly Color Accent = Color.FromArgb(0, 127, 141);
-    public static bool IsDark(Control control) => control.BackColor.GetBrightness() < .4;
+    public static bool IsDark(Control control)
+    {
+        while (control.BackColor.A < 255 && control.Parent is not null) control = control.Parent;
+        return control.BackColor.GetBrightness() < .4;
+    }
     public static void StyleNavigation(Button button)
     {
         button.Tag = "navigation";
@@ -18,7 +22,7 @@ internal static class NativeTheme
         var ink = dark ? Color.FromArgb(229, 238, 240) : Color.FromArgb(17, 27, 87);
         var border = dark ? Color.FromArgb(63, 78, 94) : Color.FromArgb(214, 221, 225);
         root.BackColor = root is Form or SplitContainer or BrandPanel or BrandLayoutPanel or BrandNavigationPanel || root.Tag as string == "navigation" ? canvas : surface;
-        if (root.Tag as string == "brand-overlay") root.BackColor = Color.Transparent;
+        if (root.Tag as string == "brand-overlay" || root is NavigationIconButton or ThemeSwitcher) root.BackColor = Color.Transparent;
         root.ForeColor = ink;
         if (root.Tag as string == "muted") root.ForeColor = dark ? Color.FromArgb(155, 176, 195) : Color.FromArgb(111, 131, 153);
         if (root.Tag as string == "hint") { root.BackColor = dark ? Color.FromArgb(25, 62, 62) : Color.FromArgb(235, 247, 245); root.ForeColor = dark ? Color.FromArgb(136, 224, 210) : Accent; }
@@ -29,7 +33,7 @@ internal static class NativeTheme
             button.Cursor = Cursors.Hand;
             button.UseVisualStyleBackColor = false;
             if (button.Tag as string == "primary") { button.BackColor = dark ? Color.FromArgb(9, 158, 170) : Accent; button.ForeColor = Color.White; button.FlatAppearance.BorderSize = 0; }
-            else if (button.Tag as string == "navigation") { button.BackColor = canvas; button.FlatAppearance.BorderSize = 0; }
+            else if (button.Tag as string == "navigation") { if (button is not NavigationIconButton) button.BackColor = canvas; button.FlatAppearance.BorderSize = 0; }
             else if (button.Tag as string == "zone") { button.FlatAppearance.BorderSize = 0; }
             else if (button.Tag as string == "accent-outline") { button.FlatAppearance.BorderSize = 1; button.FlatAppearance.BorderColor = Accent; button.ForeColor = dark ? Color.FromArgb(66, 216, 221) : Accent; }
             else { button.FlatAppearance.BorderSize = 1; }
@@ -59,6 +63,7 @@ internal static class NativeTheme
             grid.DefaultCellStyle.SelectionForeColor = ink;
         }
         if (root is PointPreview) root.BackColor = dark ? Color.FromArgb(17, 32, 41) : Color.White;
+        if (root is ThemeSwitcher switcher) switcher.CommitVisualState();
         foreach (Control child in root.Controls) Apply(child, dark);
         root.Invalidate();
     }

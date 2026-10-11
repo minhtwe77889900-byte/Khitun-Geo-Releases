@@ -63,7 +63,7 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
             ?? CaptureSelectionUndo(sourceCurrent, targetCurrent);
         if (picker == source) sourceSelectionUndo = null; else targetSelectionUndo = null;
         using var dialog = new MskZoneDialog(entry, Current(picker)!, NativeTheme.IsDark(this));
-        if (dialog.ShowDialog(FindForm()) == DialogResult.OK && dialog.SelectedZone is NativeCrsOption selected)
+        if (UiMotion.ShowDialog(dialog, FindForm()) == DialogResult.OK && dialog.SelectedZone is NativeCrsOption selected)
         {
             if (picker == source) sourceCurrent = selected; else targetCurrent = selected;
             if (picker == source) ambiguousSourceZones = false;

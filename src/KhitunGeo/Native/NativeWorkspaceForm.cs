@@ -146,7 +146,7 @@ internal sealed partial class NativeWorkspaceForm : Form
         foreach (var width in new[] { 62, 54, 220 }) header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, width));
         header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         foreach (var width in new[] { 148, 148 }) header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, width));
-        var toggle = new Button { Text = "☰", Dock = DockStyle.Fill, FlatStyle = FlatStyle.Flat, AccessibleName = "Показать или скрыть левую панель", Margin = new Padding(0, 6, 16, 6) };
+        var toggle = new NavigationIconButton { Text = "Меню", Glyph = "\uE700", Dock = DockStyle.Fill, FlatStyle = FlatStyle.Flat, AccessibleName = "Показать или скрыть левую панель", Margin = new Padding(0, 6, 16, 6) };
         NativeTheme.StyleNavigation(toggle); toggle.Click += (_, _) => ToggleNavigation(sidebar);
         var logo = new PictureBox { Name = "ApplicationLogo", Dock = DockStyle.Fill, SizeMode = PictureBoxSizeMode.Zoom, Margin = new Padding(0, 4, 0, 4), AccessibleName = "Логотип Khitun Geo", Tag = "brand-overlay" };
         using (var source = typeof(NativeWorkspaceForm).Assembly.GetManifestResourceStream("KhitunGeo.BrandMark.png"))
@@ -228,6 +228,11 @@ internal sealed partial class NativeWorkspaceForm : Form
     }
 
     private void ToggleVisualization()
+    {
+        ThemeTransition.Change(this, ToggleVisualizationCore);
+    }
+
+    private void ToggleVisualizationCore()
     {
         var show = split.Panel2Collapsed;
         preview.SetActive(show);
@@ -316,7 +321,7 @@ internal sealed partial class NativeWorkspaceForm : Form
             try
             {
                 using var wizard = new PointImportWizardForm(path, workspace.Points.Count);
-                if (wizard.ShowDialog(this) != DialogResult.OK) break;
+                if (UiMotion.ShowDialog(wizard, this) != DialogResult.OK) break;
                 var next = wizard.AppendToCurrent
                     ? workspace.Points.Concat(wizard.ImportedPoints).ToArray()
                     : wizard.ImportedPoints.ToArray();
@@ -337,7 +342,7 @@ internal sealed partial class NativeWorkspaceForm : Form
         try
         {
             using var dialog = new PointExportDialog(workspace.Points, conversion.SourceIsGeographic, conversion.SourceName, dark);
-            if (dialog.ShowDialog(this) == DialogResult.OK)
+            if (UiMotion.ShowDialog(dialog, this) == DialogResult.OK)
                 status.Text = $"Экспортировано точек: {dialog.ExportedCount}.";
         }
         catch (InvalidOperationException ex) { MessageBox.Show(this, ex.Message, "Экспорт точек"); }
@@ -373,7 +378,7 @@ internal sealed partial class NativeWorkspaceForm : Form
     {
         if (!grid.EndEdit()) return;
         using var dialog = CreateHeightDialog();
-        dialog.ShowDialog(this);
+        UiMotion.ShowDialog(dialog, this);
     }
 
     private Form CreateHeightDialog()
@@ -454,6 +459,8 @@ internal sealed partial class NativeWorkspaceForm : Form
             pdfCancellation?.Cancel();
             updateLifetime.Cancel();
             workspace.Changed -= WorkspaceChanged;
+            ThemeTransition.Stop(this);
+            drawingMenu.Dispose(); aboutMenu.Dispose();
             navigationTips.Dispose();
         }
         base.Dispose(disposing);

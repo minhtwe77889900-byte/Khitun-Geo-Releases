@@ -1,14 +1,34 @@
 using System.Drawing.Drawing2D;
+using System.Runtime.CompilerServices;
 
 namespace KhitunGeo.Native;
 
 internal static class BrandArtwork
 {
+    private static readonly ConditionalWeakTable<Control, ArtworkCache> cache = new();
+    private static readonly PointF[][] contours = BuildContours();
     public static void Paint(Control owner, Graphics graphics)
     {
+        if (owner.ClientSize.Height <= 0) return;
+        var cached = cache.GetValue(owner, control =>
+        {
+            var result = new ArtworkCache();
+            control.Disposed += (_, _) => result.Dispose();
+            return result;
+        });
         var dark = NativeTheme.IsDark(owner);
+        if (cached.Image is null || cached.Image.Height != owner.ClientSize.Height || cached.Dark != dark)
+        {
+            cached.Dispose(); cached.Dark = dark;
+            cached.Image = new Bitmap(680, owner.ClientSize.Height);
+            using var buffer = Graphics.FromImage(cached.Image);
+            Render(buffer, 680, owner.ClientSize.Height, dark);
+        }
+        graphics.DrawImageUnscaled(cached.Image, Point.Empty);
+    }
+    private static void Render(Graphics graphics, int width, int height, bool dark)
+    {
         graphics.SmoothingMode = SmoothingMode.AntiAlias;
-        var width = owner.ClientSize.Width; var height = owner.ClientSize.Height;
         using var plane = new SolidBrush(Color.FromArgb(dark ? 35 : 18, 8, 145, 155));
         graphics.FillPolygon(plane, new[] { new Point(0, height * 2 / 3), new Point(Math.Min(width, 240), height), new Point(0, height) });
         graphics.FillPolygon(plane, new[] { new Point(Math.Min(width, 350), 0), new Point(Math.Min(width, 500), 0), new Point(Math.Min(width, 330), 210), new Point(Math.Min(width, 190), 210) });
@@ -17,6 +37,12 @@ internal static class BrandArtwork
         using var contour = new Pen(Color.FromArgb(dark ? 36 : 20, dark ? 37 : 8, dark ? 174 : 132, dark ? 179 : 141), .7f);
         var state = graphics.Save();
         graphics.SetClip(new Rectangle(0, 0, Math.Min(width, 620), height), CombineMode.Intersect);
+        foreach (var points in contours) graphics.DrawLines(contour, points);
+        graphics.Restore(state);
+    }
+    private static PointF[][] BuildContours()
+    {
+        var contours = new List<PointF[]>();
         foreach (var center in new[] { new PointF(65, 75), new PointF(160, 355), new PointF(-30, 640) })
             for (var level = 0; level < 32; level++)
             {
@@ -27,10 +53,17 @@ internal static class BrandArtwork
                     var radius = 14 + level * 6 + 6 * Math.Sin(angle * 5 + level * .08) + 4 * Math.Cos(angle * 9);
                     points[i] = new(center.X + (float)(radius * Math.Cos(angle)), center.Y + (float)(radius * .69 * Math.Sin(angle)));
                 }
-                graphics.DrawLines(contour, points);
+                contours.Add(points);
             }
-        graphics.Restore(state);
+        return contours.ToArray();
     }
+    private sealed class ArtworkCache : IDisposable
+    {
+        public Bitmap? Image;
+        public bool Dark;
+        public void Dispose() { Image?.Dispose(); Image = null; }
+    }
+
 }
 
 internal sealed class BrandPanel : Panel

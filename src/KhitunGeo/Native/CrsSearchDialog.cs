@@ -79,24 +79,61 @@ internal sealed class SearchableCrsPicker : ComboBox
     {
         base.OnDpiChangedAfterParent(e); ItemHeight = Math.Max((int)(28 * DeviceDpi / 96f), Font.Height + (int)(8 * DeviceDpi / 96f));
     }
-    protected override void OnDropDown(EventArgs e)
+    private void OpenSearch()
     {
-        base.OnDropDown(e);
-        if (opening || !IsHandleCreated) return;
+        if (opening || !IsHandleCreated || IsDisposed || !Enabled) return;
         opening = true;
         BeginInvoke(new Action(() =>
         {
             try
             {
-                if (IsDisposed) return;
-                DroppedDown = false;
-                if (DataSource is not IReadOnlyList<MskCrsEntry> entries) return;
+                if (IsDisposed || Disposing || DataSource is not IReadOnlyList<MskCrsEntry> entries) return;
                 using var dialog = new CrsSearchDialog(entries, SelectedItem as MskCrsEntry, NativeTheme.IsDark(this));
-                if (dialog.ShowDialog(FindForm()) != DialogResult.OK || dialog.SelectedEntry is null) return;
+                if (UiMotion.ShowDialog(dialog, FindForm()) != DialogResult.OK || dialog.SelectedEntry is null) return;
                 SelectedItem = dialog.SelectedEntry;
                 OnSelectionChangeCommitted(EventArgs.Empty);
             }
             finally { opening = false; }
         }));
+    }
+    protected override void WndProc(ref Message m)
+    {
+        if (m.Msg == 0x14F) // CB_SHOWDROPDOWN: intercept before Windows can create/show its list.
+        {
+            if (m.WParam != IntPtr.Zero) OpenSearch();
+            m.Result = IntPtr.Zero; return;
+        }
+        if (m.Msg is 0x201 or 0x203) // Mouse click / double click.
+        {
+            Focus(); OpenSearch(); m.Result = IntPtr.Zero; return;
+        }
+        if (m.Msg is 0x100 or 0x104 && (Keys)m.WParam.ToInt32() is Keys.F4 or Keys.Space or Keys.Enter or Keys.Down or Keys.Up)
+        {
+            OpenSearch(); m.Result = IntPtr.Zero; return;
+        }
+        if (m.Msg == 0x20A) { m.Result = IntPtr.Zero; return; } // Wheel must not commit an unreviewed zone.
+        if (m.Msg is 0x317 or 0x318 && m.WParam != IntPtr.Zero)
+        {
+            using var graphics = Graphics.FromHdc(m.WParam); PaintSelection(graphics);
+            m.Result = new IntPtr(1); return;
+        }
+        base.WndProc(ref m);
+        if (m.Msg == 0xF && IsHandleCreated) // Paint the arrow and border consistently in both themes.
+        {
+            using var graphics = Graphics.FromHwnd(Handle); PaintSelection(graphics);
+        }
+    }
+    private void PaintSelection(Graphics graphics)
+    {
+        using var background = new SolidBrush(BackColor); graphics.FillRectangle(background, ClientRectangle);
+        var scale = DeviceDpi / 96f; var arrowWidth = (int)(32 * scale);
+        var textBounds = new Rectangle((int)(10 * scale), 0, Math.Max(1, Width - arrowWidth - (int)(16 * scale)), Height);
+        TextRenderer.DrawText(graphics, Text, Font, textBounds, Enabled ? ForeColor : SystemColors.GrayText,
+            TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+        using var border = new Pen(Focused ? Color.FromArgb(0, 147, 158) : NativeTheme.IsDark(this) ? Color.FromArgb(63, 78, 94) : Color.FromArgb(214, 221, 225));
+        graphics.DrawRectangle(border, 0, 0, Width - 1, Height - 1);
+        using var arrow = new Pen(ForeColor, Math.Max(1, 1.5f * scale));
+        var x = Width - arrowWidth / 2; var y = Height / 2;
+        graphics.DrawLines(arrow, new[] { new PointF(x - 4 * scale, y - 2 * scale), new PointF(x, y + 2 * scale), new PointF(x + 4 * scale, y - 2 * scale) });
     }
 }
