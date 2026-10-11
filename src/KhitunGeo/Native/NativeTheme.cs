@@ -52,7 +52,7 @@ internal static class NativeTheme
             grid.CellBorderStyle = DataGridViewCellBorderStyle.Single;
             grid.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             grid.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            grid.Columns[4].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            if (grid is PointGrid && grid.Columns.Count > 4) grid.Columns[4].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
             grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             grid.RowHeadersDefaultCellStyle = grid.ColumnHeadersDefaultCellStyle.Clone();
             grid.DefaultCellStyle.SelectionBackColor = dark ? Color.FromArgb(32, 90, 87) : Color.FromArgb(220, 240, 235);

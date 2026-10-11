@@ -31,6 +31,10 @@ internal static class Program
         CheckCrsSearch(assembly, form);
         CheckWorkspaceLayout(form);
         CheckTheme(form, scale);
+        var savedSize = form.Size; form.Size = form.MinimumSize; Application.DoEvents();
+        var zoomTools = Descendants(form).Single(c => c.Name == "ZoomTools");
+        Require(zoomTools.Parent!.ClientRectangle.Contains(zoomTools.Bounds), "Zoom and Fit controls fit the real minimum-size window");
+        Capture(form, "native-actual-minimum"); form.Size = savedSize; Application.DoEvents();
         if (scale == 1) CheckConversionExport(assembly, form, workspace, pointType);
         if (scale == 1) Capture(form, "native-live-window-1");
         // Check the real shown window first, then render its actual controls in an
@@ -59,7 +63,9 @@ internal static class Program
         Require(import.Visible && export.Visible, "Import/export stay accessible with sidebar and preview hidden");
         foreach (var button in new[] { import, export, view }) CheckButton(button);
         Capture(host, $"native-hidden-{scale}");
-        toggle.PerformClick(); view.PerformClick();
+        toggle.PerformClick();
+        ((Button)Field(form, "visualizationSidebarButton")).PerformClick();
+        Require(!((SplitContainer)Field(form, "split")).Panel2Collapsed, "Preview restored through the visible sidebar action");
         host.Size = new Size((int)(880 * scale), (int)(560 * scale));
         host.PerformLayout();
         Application.DoEvents();

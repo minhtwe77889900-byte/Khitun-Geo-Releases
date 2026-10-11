@@ -34,7 +34,13 @@ internal sealed partial class NativeWorkspaceForm
         passportButton.Click += async (_, _) => await ExportPassportPdf();
         Add(bottom, "Настройки", "\uE713", OpenSettings);
         Add(bottom, "Проверить обновления", "\uE72C", async () => await CheckForUpdatesAsync(manual: true));
-        Add(bottom, "О программе", "\uE946", () => { using var about = new AboutForm(dark); about.ShowDialog(this); });
+        Add(bottom, "О программе", "\uE946", () =>
+        {
+            var menu = new ContextMenuStrip();
+            menu.Items.Add("О программе", null, (_, _) => { using var about = new AboutForm(dark); about.ShowDialog(this); });
+            menu.Items.Add("Диагностика", null, (_, _) => { using var diagnostics = new DiagnosticsForm(); diagnostics.ShowDialog(this); });
+            menu.Closed += (_, _) => menu.Dispose(); menu.Show(Cursor.Position);
+        });
         themeControl = new ThemeSwitcher { Name = "ThemeSwitcher", Width = 52, Height = 94, Margin = new Padding(2, 5, 2, 0) };
         themeControl.ThemeChanged += (_, _) => { dark = themeControl.Dark; ThemeTransition.Apply(this, dark); };
         bottom.Controls.Add(themeControl);

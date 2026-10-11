@@ -183,7 +183,7 @@ internal sealed partial class NativeWorkspaceForm : Form
         toolbar.RowStyles.Add(new(SizeType.Percent, 100));
         toolbar.Controls.Add(new Label { Text = "Точки", Dock = DockStyle.Fill, Font = new Font(Font.FontFamily, 12, FontStyle.Bold), TextAlign = ContentAlignment.MiddleLeft, Margin = Padding.Empty }, 0, 0);
         var add = HeaderButton("+ Добавить точку"); add.Tag = "accent-outline"; add.Click += (_, _) => AddPoint();
-        var undo = HeaderButton("↶ Отменить"); undo.Tag = "zone"; undo.Click += (_, _) => { if (grid.EndEdit()) workspace.Undo(); };
+        var undo = HeaderButton("Отменить"); undo.Tag = "zone"; undo.Click += (_, _) => { if (grid.EndEdit()) workspace.Undo(); };
         toolbar.Controls.Add(add, 1, 0); toolbar.Controls.Add(undo, 2, 0);
         host.Controls.Add(toolbar, 0, 0); grid.Margin = Padding.Empty; host.Controls.Add(grid, 0, 1);
         return host;
@@ -209,7 +209,21 @@ internal sealed partial class NativeWorkspaceForm : Form
             button.Font = new Font("Segoe UI", 16); button.Click += (_, _) => item.Item3(); zoomTools.Controls.Add(button);
         }
         canvas.Controls.Add(zoomTools); zoomTools.BringToFront();
-        canvas.Resize += (_, _) => zoomTools.Location = new Point(canvas.ClientSize.Width - zoomTools.Width - (int)(12 * DeviceDpi / 96f), (int)(12 * DeviceDpi / 96f));
+        void PositionZoomTools()
+        {
+            var dpi = DeviceDpi / 96f;
+            bool compact = canvas.Height < 140 * dpi;
+            zoomTools.SuspendLayout();
+            zoomTools.ColumnCount = compact ? 3 : 1; zoomTools.RowCount = compact ? 1 : 3;
+            zoomTools.ColumnStyles.Clear(); zoomTools.RowStyles.Clear();
+            for (int i = 0; i < (compact ? 3 : 1); i++) zoomTools.ColumnStyles.Add(new(SizeType.Percent, compact ? 33.333f : 100));
+            for (int i = 0; i < (compact ? 1 : 3); i++) zoomTools.RowStyles.Add(new(SizeType.Percent, compact ? 100 : 33.333f));
+            for (int i = 0; i < zoomTools.Controls.Count; i++) zoomTools.SetCellPosition(zoomTools.Controls[i], new TableLayoutPanelCellPosition(compact ? i : 0, compact ? 0 : i));
+            zoomTools.Size = new Size((int)((compact ? 116 : 36) * dpi), (int)((compact ? 36 : 116) * dpi));
+            zoomTools.Location = new Point(Math.Max(0, canvas.ClientSize.Width - zoomTools.Width - (int)(12 * dpi)), (int)(12 * dpi));
+            zoomTools.ResumeLayout();
+        }
+        canvas.Resize += (_, _) => PositionZoomTools();
         host.Controls.Add(canvas, 0, 1); return host;
     }
 
@@ -440,6 +454,7 @@ internal sealed partial class NativeWorkspaceForm : Form
             pdfCancellation?.Cancel();
             updateLifetime.Cancel();
             workspace.Changed -= WorkspaceChanged;
+            navigationTips.Dispose();
         }
         base.Dispose(disposing);
     }

@@ -13,7 +13,7 @@ internal sealed class PointGrid : DataGridView
         VirtualMode = true;
         AllowUserToAddRows = false;
         AllowUserToDeleteRows = false;
-        AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+        AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         SelectionMode = DataGridViewSelectionMode.CellSelect;
         MultiSelect = true;
         Dock = DockStyle.Fill;
@@ -22,7 +22,7 @@ internal sealed class PointGrid : DataGridView
         BorderStyle = BorderStyle.None;
         DoubleBuffered = true;
         foreach (var (name, width) in new[] { ("№ точки", 90), ("X", 130), ("Y", 130), ("Z", 90), ("Описание", 180) })
-            Columns.Add(new DataGridViewTextBoxColumn { HeaderText = name, Width = width, SortMode = DataGridViewColumnSortMode.NotSortable });
+            Columns.Add(new DataGridViewTextBoxColumn { HeaderText = name, Width = width, FillWeight = width, MinimumWidth = name is "X" or "Y" ? 105 : name == "Описание" ? 110 : 64, SortMode = DataGridViewColumnSortMode.NotSortable });
         CellValueNeeded += (_, e) =>
         {
             if (workspace is null || e.RowIndex >= workspace.Points.Count) return;

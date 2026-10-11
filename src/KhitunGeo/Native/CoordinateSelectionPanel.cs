@@ -7,9 +7,9 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
 {
     private readonly ComboBox source = Picker();
     private readonly ComboBox target = Picker();
-    private readonly CheckBox autoZone = new() { Text = "Автозона", Checked = true, AutoSize = true };
-    private readonly CheckBox sourcePrefix = new() { Text = "Префикс исходного Y", Checked = true, AutoSize = true };
-    private readonly CheckBox targetPrefix = new() { Text = "Префикс целевого Y", Checked = true, AutoSize = true };
+    private readonly CheckBox autoZone = new ThemedCheckBox() { Text = "Автозона", Checked = true, AutoSize = true };
+    private readonly CheckBox sourcePrefix = new ThemedCheckBox() { Text = "Префикс исходного Y", Checked = true, AutoSize = true };
+    private readonly CheckBox targetPrefix = new ThemedCheckBox() { Text = "Префикс целевого Y", Checked = true, AutoSize = true };
     private readonly NumericUpDown manualZone = new() { Minimum = 1, Maximum = 60, Value = 28, Width = 58 };
 
     private readonly Button convert = new() { Text = "Преобразовать", Dock = DockStyle.Fill, Enabled = false, Tag = "primary", FlatStyle = FlatStyle.Flat };

@@ -60,6 +60,21 @@ internal sealed class CrsSearchDialog : Form
 internal sealed class SearchableCrsPicker : ComboBox
 {
     private bool opening;
+    public SearchableCrsPicker()
+    {
+        FlatStyle = FlatStyle.Flat; DrawMode = DrawMode.OwnerDrawFixed; ItemHeight = 28;
+    }
+    protected override void OnDrawItem(DrawItemEventArgs e)
+    {
+        using var background = new SolidBrush(BackColor); e.Graphics.FillRectangle(background, e.Bounds);
+        var text = e.Index >= 0 && e.Index < Items.Count ? GetItemText(Items[e.Index]) : Text;
+        TextRenderer.DrawText(e.Graphics, text, Font, Rectangle.Inflate(e.Bounds, -8, 0), ForeColor, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
+        if ((e.State & DrawItemState.Focus) != 0) e.DrawFocusRectangle();
+    }
+    protected override void OnDpiChangedAfterParent(EventArgs e)
+    {
+        base.OnDpiChangedAfterParent(e); ItemHeight = (int)(28 * DeviceDpi / 96f);
+    }
     protected override void OnDropDown(EventArgs e)
     {
         base.OnDropDown(e);
