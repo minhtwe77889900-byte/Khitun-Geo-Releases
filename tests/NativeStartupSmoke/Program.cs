@@ -35,7 +35,7 @@ internal static class Program
         if (scale == 1) Capture(form, "native-live-window-1");
         // Check the real shown window first, then render its actual controls in an
         // offscreen host: hosted CI desktops are limited to 1024x768 pixels.
-        foreach (var button in Descendants(form).OfType<Button>().Where(b => b.Text is "Импорт" or "Экспорт" or "Вид: скрыть")) CheckButton(button);
+        foreach (var button in Descendants(form).OfType<Button>().Where(b => b.Text is "Импорт" or "Экспорт" or "⌃ Скрыть")) CheckButton(button);
         var root = form.Controls.Cast<Control>().Single();
         form.Controls.Remove(root);
         using var host = new Panel { Size = new Size(1280, 760), Font = form.Font };
@@ -43,11 +43,15 @@ internal static class Program
         ScaleUi(host, scale);
         host.PerformLayout(); Application.DoEvents();
         Capture(host, $"native-main-{scale}");
+        var theme = Descendants(host).Single(c => c.Name == "ThemeSwitcher");
+        var apply = assembly.GetType("KhitunGeo.Native.NativeTheme")!.GetMethod("Apply")!;
+        apply.Invoke(null, new object[] { host, true }); Capture(host, $"native-main-dark-{scale}");
+        apply.Invoke(null, new object[] { host, false });
         var import = Descendants(host).OfType<Button>().Single(b => b.Text == "Импорт");
         var export = Descendants(host).OfType<Button>().Single(b => b.Text == "Экспорт");
-        var view = Descendants(host).OfType<Button>().Single(b => b.Text == "Вид: скрыть");
+        var view = Descendants(host).OfType<Button>().Single(b => b.Text == "⌃ Скрыть");
         foreach (var button in new[] { import, export, view }) CheckButton(button);
-        Require(import.BackColor == Color.FromArgb(8, 127, 115) && import.ForeColor == Color.White, "Primary import button retains the concept accent");
+        Require(import.BackColor == export.BackColor && import.Size == export.Size, "Import/export use symmetric reference buttons");
         Require(Descendants(host).OfType<PictureBox>().Any(p => p.Visible && p.Image is not null && p.Height >= 24 * scale), "Application logo is visible");
         Require(form.Icon is not null, "Window has application icon");
         var toggle = Descendants(host).OfType<Button>().Single(b => b.AccessibleName == "Показать или скрыть левую панель");
@@ -227,6 +231,10 @@ internal static class Program
 
     private static void CheckWorkspaceLayout(Form form)
     {
+        var selection = Field(form, "conversion");
+        var source = (ComboBox)Field(selection, "source"); var target = (ComboBox)Field(selection, "target");
+        Require(Math.Abs(source.Width - target.Width) <= 1 && source.Top == target.Top && source.Height == target.Height, "Source and target selectors are symmetric");
+        Require(Descendants(form).Single(c => c.Name == "NavigationRail").Width == 76, "Navigation starts as the compact reference icon rail");
         var split = (SplitContainer)Field(form, "split");
         Require(split.SplitterWidth == 8, "Workspace divider is a clean narrow line");
         var left = split.Panel1.Controls[0]; var right = split.Panel2.Controls[0];

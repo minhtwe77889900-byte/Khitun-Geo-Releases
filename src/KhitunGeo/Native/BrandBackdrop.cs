@@ -8,23 +8,28 @@ internal static class BrandArtwork
     {
         var dark = NativeTheme.IsDark(owner);
         graphics.SmoothingMode = SmoothingMode.AntiAlias;
-        using var plane = new SolidBrush(Color.FromArgb(dark ? 18 : 15, 8, 127, 115));
         var width = owner.ClientSize.Width; var height = owner.ClientSize.Height;
-        graphics.FillPolygon(plane, new[] { new Point(0, 0), new Point(Math.Min(width, 240), 0), new Point(0, Math.Min(height, 240)) });
-        graphics.FillPolygon(plane, new[] { new Point(0, height), new Point(Math.Min(width, 200), height), new Point(0, Math.Max(0, height - 270)) });
-        using var contour = new Pen(Color.FromArgb(dark ? 32 : 25, dark ? 70 : 8, dark ? 180 : 127, dark ? 170 : 115), 1);
-        // Decorative top-down contour lines; unrelated to the coordinate engine.
-        for (var level = 0; level < 16; level++)
-        {
-            var points = new PointF[65];
-            for (var i = 0; i < points.Length; i++)
+        using var plane = new SolidBrush(Color.FromArgb(dark ? 35 : 18, 8, 145, 155));
+        graphics.FillPolygon(plane, new[] { new Point(0, height * 2 / 3), new Point(Math.Min(width, 240), height), new Point(0, height) });
+        graphics.FillPolygon(plane, new[] { new Point(Math.Min(width, 350), 0), new Point(Math.Min(width, 500), 0), new Point(Math.Min(width, 330), 210), new Point(Math.Min(width, 190), 210) });
+        graphics.FillPolygon(plane, new[] { new Point(Math.Min(width, 520), 0), new Point(Math.Min(width, 680), 0), new Point(Math.Min(width, 600), 115) });
+        // Quiet topographic decoration is generated from fixed contours, with no I/O.
+        using var contour = new Pen(Color.FromArgb(dark ? 36 : 20, dark ? 37 : 8, dark ? 174 : 132, dark ? 179 : 141), .7f);
+        var state = graphics.Save();
+        graphics.SetClip(new Rectangle(0, 0, Math.Min(width, 620), height), CombineMode.Intersect);
+        foreach (var center in new[] { new PointF(65, 75), new PointF(160, 355), new PointF(-30, 640) })
+            for (var level = 0; level < 32; level++)
             {
-                var x = i * Math.Min(width, 640) / 64f;
-                var y = level * 12 + 14 * Math.Sin(x / 49 + level * .19) + 9 * Math.Sin(x / 23 + level * .13);
-                points[i] = new(x, (float)y);
+                var points = new PointF[97];
+                for (var i = 0; i < points.Length; i++)
+                {
+                    var angle = i * Math.PI * 2 / 96;
+                    var radius = 14 + level * 6 + 6 * Math.Sin(angle * 5 + level * .08) + 4 * Math.Cos(angle * 9);
+                    points[i] = new(center.X + (float)(radius * Math.Cos(angle)), center.Y + (float)(radius * .69 * Math.Sin(angle)));
+                }
+                graphics.DrawLines(contour, points);
             }
-            graphics.DrawLines(contour, points);
-        }
+        graphics.Restore(state);
     }
 }
 

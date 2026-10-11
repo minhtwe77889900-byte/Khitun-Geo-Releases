@@ -146,6 +146,7 @@ internal sealed class PointPreview : Control
         if (!active || !Visible) return;
         base.OnPaint(e);
         if (Width <= 48 || Height <= 48) return;
+        PaintGuide(e.Graphics);
         var hasPoints = points.Any(p => p.X is double n && p.Y is double east && double.IsFinite(n) && double.IsFinite(east));
         if (viewport is null)
         {
@@ -157,9 +158,9 @@ internal sealed class PointPreview : Control
         var activeViewport = viewport;
         var region = new RectangleF(0, 0, Width - 1, Height - 1);
         var clip = activeViewport.Clip(e.ClipRectangle.Left, e.ClipRectangle.Top, e.ClipRectangle.Right, e.ClipRectangle.Bottom);
-        using var brush = new SolidBrush(Color.FromArgb(15, 157, 145));
+        using var brush = new SolidBrush(NativeTheme.IsDark(this) ? Color.FromArgb(45, 206, 217) : Color.FromArgb(0, 128, 144));
         using var pen = new Pen(ForeColor);
-        e.Graphics.DrawRectangle(pen, region.X, region.Y, region.Width, region.Height);
+
         var saved = e.Graphics.Save(); var truncated = !hasPoints && overviewTruncated; var detailLimited = false;
         var drawingWork = 0;
         try
@@ -202,12 +203,30 @@ internal sealed class PointPreview : Control
                 if (p.X is not double n || p.Y is not double east || !double.IsFinite(n) || !double.IsFinite(east)) continue;
                 var screen = activeViewport.Screen(east, n);
                 if (screen.X >= e.ClipRectangle.Left - 3 && screen.X <= e.ClipRectangle.Right + 3 && screen.Y >= e.ClipRectangle.Top - 3 && screen.Y <= e.ClipRectangle.Bottom + 3)
-                    e.Graphics.FillEllipse(brush, (float)screen.X - 3, (float)screen.Y - 3, 6, 6);
+                {
+                    e.Graphics.FillEllipse(brush, (float)screen.X - 4, (float)screen.Y - 4, 8, 8);
+                    if (points.Count <= 500) e.Graphics.DrawString(p.Name, Font, brush, (float)screen.X + 6, (float)screen.Y - 20);
+                }
             }
         }
         finally { e.Graphics.Restore(saved); }
         SetStatus(truncated, detailLimited, e.ClipRectangle.Contains(ClientRectangle));
     }
+    private void PaintGuide(Graphics graphics)
+    {
+        var dark = NativeTheme.IsDark(this); var step = Math.Max(12, (int)(20 * DeviceDpi / 96f));
+        using var minor = new Pen(dark ? Color.FromArgb(26, 43, 52) : Color.FromArgb(245, 247, 248));
+        using var major = new Pen(dark ? Color.FromArgb(38, 56, 66) : Color.FromArgb(229, 235, 239));
+        for (int x = 0; x < Width; x += step) graphics.DrawLine(x % (step * 5) == 0 ? major : minor, x, 0, x, Height);
+        for (int y = 0; y < Height; y += step) graphics.DrawLine(y % (step * 5) == 0 ? major : minor, 0, y, Width, y);
+        var scale = DeviceDpi / 96f; var origin = new PointF(24 * scale, Height - 24 * scale);
+        using var axis = new Pen(ForeColor, 1.4f) { EndCap = System.Drawing.Drawing2D.LineCap.ArrowAnchor };
+        graphics.DrawLine(axis, origin.X, origin.Y, origin.X, origin.Y - 38 * scale);
+        graphics.DrawLine(axis, origin.X, origin.Y, origin.X + 38 * scale, origin.Y);
+        TextRenderer.DrawText(graphics, "X", Font, new Point((int)origin.X - 7, (int)(origin.Y - 60 * scale)), ForeColor);
+        TextRenderer.DrawText(graphics, "Y", Font, new Point((int)(origin.X + 42 * scale), (int)origin.Y - 10), ForeColor);
+    }
+
     private void SetStatus(bool truncated, bool detailLimited, bool fullPaint = true)
     {
         if (renderStatus.Record(fullPaint, truncated, detailLimited)) DrawingStatusChanged?.Invoke(this, EventArgs.Empty);

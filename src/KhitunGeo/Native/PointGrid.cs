@@ -17,11 +17,11 @@ internal sealed class PointGrid : DataGridView
         SelectionMode = DataGridViewSelectionMode.CellSelect;
         MultiSelect = true;
         Dock = DockStyle.Fill;
-        RowHeadersWidth = 32;
+        RowHeadersWidth = 24;
         BackgroundColor = Color.White;
         BorderStyle = BorderStyle.None;
         DoubleBuffered = true;
-        foreach (var (name, width) in new[] { ("№ точки", 90), ("X", 130), ("Y", 130), ("Высота", 110), ("Описание", 180) })
+        foreach (var (name, width) in new[] { ("№ точки", 90), ("X", 130), ("Y", 130), ("Z", 90), ("Описание", 180) })
             Columns.Add(new DataGridViewTextBoxColumn { HeaderText = name, Width = width, SortMode = DataGridViewColumnSortMode.NotSortable });
         CellValueNeeded += (_, e) =>
         {

@@ -74,23 +74,35 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
 
     public CoordinateSelectionPanel(string cataloguePath, Action swapPointAxes)
     {
-        Dock = DockStyle.Top; Height = 180; ColumnCount = 4; RowCount = 5; Padding = new Padding(14, 8, 14, 8);
-        Tag = "surface";
-        ColumnStyles.Add(new(SizeType.Percent, 50)); ColumnStyles.Add(new(SizeType.Absolute, 48));
-        ColumnStyles.Add(new(SizeType.Percent, 50)); ColumnStyles.Add(new(SizeType.Absolute, 150));
-        RowStyles.Add(new(SizeType.Absolute, 24)); RowStyles.Add(new(SizeType.Absolute, 34));
-        RowStyles.Add(new(SizeType.Absolute, 26)); RowStyles.Add(new(SizeType.Absolute, 42)); RowStyles.Add(new(SizeType.Absolute, 24));
-        Controls.Add(new Label { Text = "Исходная система координат", AutoSize = true, Margin = Padding.Empty, Tag = "muted" }, 0, 0);
-        Controls.Add(new Label { Text = "Целевая система координат", AutoSize = true, Margin = Padding.Empty, Tag = "muted" }, 2, 0);
+        Dock = DockStyle.Top; Height = 196; ColumnCount = 4; RowCount = 5; Padding = new Padding(18, 12, 18, 10);
+        Name = "CoordinateCard"; Tag = "surface";
+        ColumnStyles.Add(new(SizeType.Percent, 50)); ColumnStyles.Add(new(SizeType.Absolute, 64));
+        ColumnStyles.Add(new(SizeType.Percent, 50)); ColumnStyles.Add(new(SizeType.Absolute, 188));
+        foreach (var height in new[] { 26, 40, 28, 44, 22 }) RowStyles.Add(new(SizeType.Absolute, height));
+        Controls.Add(new Label { Text = "Исходная система координат", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Margin = Padding.Empty }, 0, 0);
+        Controls.Add(new Label { Text = "Целевая система координат", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Margin = Padding.Empty }, 2, 0);
+        source.AccessibleName = "Исходная СК — открыть поиск"; target.AccessibleName = "Целевая СК — открыть поиск";
+        source.Font = target.Font = new Font("Segoe UI", 12);
         Controls.Add(source, 0, 1); Controls.Add(target, 2, 1);
-        var swap = new Button { Text = "X↔Y", Dock = DockStyle.Fill };
+        var swap = new Button { Text = "↔", AccessibleName = "Поменять X и Y у всех точек", Dock = DockStyle.Fill, Margin = new Padding(10, 0, 10, 0), Font = new Font("Segoe UI", 15) };
         swap.Click += (_, _) => swapPointAxes(); Controls.Add(swap, 1, 1);
+        Controls.Add(new Label { Text = "X ↔ Y", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Segoe UI", 9), Margin = Padding.Empty }, 1, 2);
+        convert.Margin = new Padding(18, 0, 0, 0);
         convert.Click += (_, _) => ConvertRequested?.Invoke(this, EventArgs.Empty);
         Controls.Add(convert, 3, 1);
-        var options = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = true, Margin = Padding.Empty, Padding = new Padding(0, 5, 0, 0) };
-        options.Controls.Add(autoZone); options.Controls.Add(sourcePrefix); options.Controls.Add(targetPrefix);
-        options.Controls.Add(new Label { Text = "Зона", AutoSize = true, Margin = new Padding(8, 5, 3, 0) });
-        options.Controls.Add(manualZone); Controls.Add(sourceZone, 0, 2); Controls.Add(targetZone, 2, 2);
+        var options = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, RowCount = 1, Margin = Padding.Empty, Padding = new Padding(0, 6, 0, 0) };
+        foreach (var width in new[] { 34f, 33f, 33f }) options.ColumnStyles.Add(new(SizeType.Percent, width));
+        options.RowStyles.Add(new(SizeType.Percent, 100));
+        var zoneOptions = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, Margin = Padding.Empty };
+        autoZone.Margin = new Padding(0, 4, 12, 0);
+        manualZone.Width = 58; manualZone.Margin = new Padding(4, 2, 0, 0);
+        zoneOptions.Controls.Add(autoZone);
+        zoneOptions.Controls.Add(new Label { Text = "Зона", AutoSize = true, Margin = new Padding(0, 5, 0, 0) });
+        zoneOptions.Controls.Add(manualZone);
+        foreach (var check in new[] { sourcePrefix, targetPrefix }) { check.Dock = DockStyle.Fill; check.CheckAlign = ContentAlignment.MiddleRight; check.TextAlign = ContentAlignment.MiddleLeft; check.Margin = new Padding(16, 0, 0, 0); }
+        options.Controls.Add(zoneOptions, 0, 0); options.Controls.Add(sourcePrefix, 1, 0); options.Controls.Add(targetPrefix, 2, 0);
+        Controls.Add(sourceZone, 0, 2); Controls.Add(targetZone, 2, 2);
+        sourceZone.Tag = targetZone.Tag = "zone";
         sourceZone.Click += (_, _) => ChooseZone(source); targetZone.Click += (_, _) => ChooseZone(target);
         Controls.Add(options, 0, 3); SetColumnSpan(options, 4);
         Controls.Add(message, 0, 4); SetColumnSpan(message, 4);
@@ -131,7 +143,7 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
         }
     }
 
-    private static ComboBox Picker() => new()
+    private static ComboBox Picker() => new SearchableCrsPicker()
     {
         BindingContext = new BindingContext(),
         Dock = DockStyle.Fill, Margin = new Padding(0, 2, 0, 2), DropDownStyle = ComboBoxStyle.DropDownList, DropDownWidth = 620,
