@@ -111,8 +111,76 @@ internal static partial class Program
             Require(rail.Width == width, "Interrupted navigation expansion returns to its original DPI-scaled width");
             setDark.Invoke(switcher, new object[] { false }); PumpFor(350);
         });
+        Check("Ctrl+Z undoes workspace actions with focus outside the table", () =>
+        {
+            var workspace = Field(form, "workspace");
+            var points = ((System.Collections.IEnumerable)workspace.GetType().GetProperty("Points")!.GetValue(workspace)!).Cast<object>().ToArray();
+            workspace.GetType().GetMethod("SwapXY")!.Invoke(workspace, null);
+            Descendants(form).OfType<Button>().Single(b => b.Text == "Импорт").Focus();
+            Require(SendUndo(form), "Main window handles Ctrl+Z when a toolbar button has focus");
+            var restored = ((System.Collections.IEnumerable)workspace.GetType().GetProperty("Points")!.GetValue(workspace)!).Cast<object>().ToArray();
+            Require(restored.SequenceEqual(points), "Ctrl+Z restores all point fields outside table focus");
+        });
+        Check("Explicit GSK-2011 zone 14 converts the saved control and undoes with button focus", () =>
+        {
+            var selection = Field(form, "conversion");
+            selection.GetType().GetMethod("SelectSource")!.Invoke(selection, new object[] { "gsk6" });
+            var zoneButton = (Button)Field(selection, "sourceZone");
+            Require(zoneButton.Visible, "GSK-2011 exposes a visible explicit source-zone selector");
+            bool opened = false; Exception? dialogFailure = null;
+            using var accept = new System.Windows.Forms.Timer { Interval = 30 };
+            accept.Tick += (_, _) =>
+            {
+                var dialog = Application.OpenForms.Cast<Form>().FirstOrDefault(f => f.GetType().Name == "ZonedCrsDialog");
+                if (dialog is null) return;
+                accept.Stop(); opened = true;
+                try
+                {
+                    Descendants(dialog).OfType<NumericUpDown>().Single(c => c.Name == "ZoneNumber").Value = 14;
+                    Descendants(dialog).OfType<CheckBox>().Single(c => c.Name == "ZonePrefix").Checked = false;
+                    Require(Descendants(dialog).OfType<Label>().Any(c => c.Text.Contains("78–84")), "Zone 14 shows its 78–84 degree range");
+                    dialog.DialogResult = DialogResult.OK;
+                }
+                catch (Exception ex) { dialogFailure = ex; dialog.DialogResult = DialogResult.Cancel; }
+                finally { dialog.Close(); }
+            };
+            accept.Start(); zoneButton.PerformClick();
+            if (dialogFailure is not null) throw dialogFailure;
+            Require(opened, "Zone button opens the actual coordinate-zone dialog");
+            var snapshot = (string)selection.GetType().GetMethod("SettingsSnapshot")!.Invoke(selection, null)!;
+            using (var request = System.Text.Json.JsonDocument.Parse(snapshot))
+            {
+                var zone = request.RootElement.GetProperty("zone");
+                Require(!zone.GetProperty("auto").GetBoolean() && zone.GetProperty("manual").GetInt32() == 14 && !zone.GetProperty("sourcePrefix").GetBoolean(),
+                    "Explicit zone selection supplies zone 14 with unprefixed input Y");
+            }
+            var workspace = Field(form, "workspace"); var pointType = form.GetType().Assembly.GetType("KhitunGeo.Native.SurveyPoint", true)!;
+            var input = Array.CreateInstance(pointType, 1);
+            var original = Activator.CreateInstance(pointType, new object?[] { "Контроль", 7465965.922, 599112.246, -12.0, "ГСК-2011 зона 14" })!;
+            input.SetValue(original, 0);
+            workspace.GetType().GetMethod("ReplacePoints")!.Invoke(workspace, new object?[] { input, null, false });
+            var task = (Task)form.GetType().GetMethod("ConvertCoordinates", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.Invoke(form, null)!;
+            var deadline = Environment.TickCount64 + 30000;
+            while (!task.IsCompleted && Environment.TickCount64 < deadline) PumpFor(10);
+            Require(task.IsCompleted, "Real conversion completes"); task.GetAwaiter().GetResult();
+            var converted = ((System.Collections.IEnumerable)workspace.GetType().GetProperty("Points")!.GetValue(workspace)!).Cast<object>().Single();
+            Require(Math.Abs((double)pointType.GetProperty("X")!.GetValue(converted)! - 921553.841) < .002 &&
+                Math.Abs((double)pointType.GetProperty("Y")!.GetValue(converted)! - 55956.792) < .002, "Real Windows conversion matches the previous control within 2 mm");
+            Require((double)pointType.GetProperty("Height")!.GetValue(converted)! == -12, "Conversion preserves entered Z");
+            ((Button)Field(selection, "convert")).Focus();
+            Require(SendUndo(form), "Ctrl+Z is handled with Convert button focus");
+            var restored = ((System.Collections.IEnumerable)workspace.GetType().GetProperty("Points")!.GetValue(workspace)!).Cast<object>().Single();
+            Require(Equals(original, restored) && snapshot == (string)selection.GetType().GetMethod("SettingsSnapshot")!.Invoke(selection, null)!,
+                "Conversion undo restores point fields, source CRS, zone and prefix together");
+        });
         if (failures.Count > 0) throw new InvalidOperationException(string.Join(Environment.NewLine, failures));
         Capture(form, "native-live-interactions");
+    }
+    private static bool SendUndo(Form form)
+    {
+        var message = Message.Create(form.Handle, 0x100, new IntPtr((int)Keys.Z), IntPtr.Zero);
+        return (bool)form.GetType().GetMethod("ProcessCmdKey", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+            .Invoke(form, new object[] { message, Keys.Control | Keys.Z })!;
     }
     private static void PumpFor(int milliseconds)
     {
