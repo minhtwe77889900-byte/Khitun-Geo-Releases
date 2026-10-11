@@ -7,5 +7,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../src/KhitunGeo/Native/NativeCrsCatalogue.cs" Link="NativeCrsCatalogue.cs" />
+    <Compile Include="../../src/KhitunGeo/Native/MskSelectionCatalogue.cs" Link="MskSelectionCatalogue.cs" />
   </ItemGroup>
 </Project>

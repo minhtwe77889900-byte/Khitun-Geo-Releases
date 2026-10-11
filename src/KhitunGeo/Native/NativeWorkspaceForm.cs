@@ -5,7 +5,7 @@ internal sealed partial class NativeWorkspaceForm : Form
     private readonly PointWorkspace workspace = new();
     private readonly PointGrid grid = new();
     private readonly PointPreview preview = new();
-    private readonly SplitContainer split = new();
+    private readonly WorkspaceSplitContainer split = new();
     private readonly ToolStripStatusLabel status = new();
     private readonly CoordinateSelectionPanel conversion;
     private EmbeddedCoordinateRuntime? coordinateRuntime;
@@ -32,7 +32,7 @@ internal sealed partial class NativeWorkspaceForm : Form
         using (var iconStream = typeof(NativeWorkspaceForm).Assembly.GetManifestResourceStream("KhitunGeo.BrandIcon.ico"))
             if (iconStream is not null) Icon = new Icon(iconStream);
 
-        var sidebar = new FlowLayoutPanel { Dock = DockStyle.Left, Width = 210, FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true, Padding = new Padding(12, 12, 8, 12) };
+        var sidebar = new BrandNavigationPanel { Dock = DockStyle.Left, Width = 210, FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true, Padding = new Padding(12, 12, 8, 12) };
         sidebar.Controls.Add(new Label { Text = "РАБОЧЕЕ МЕСТО", Width = 178, Height = 28, TextAlign = ContentAlignment.MiddleLeft, ForeColor = Color.DimGray, Font = new Font(Font, FontStyle.Bold) });
         AddButton(sidebar, "Точки и таблица", () => grid.Focus());
         sidebar.Controls.Add(new Label { Text = "ЧЕРТЁЖ", Width = 178, Height = 28, TextAlign = ContentAlignment.MiddleLeft, ForeColor = Color.DimGray, Font = new Font(Font, FontStyle.Bold) });
@@ -52,7 +52,9 @@ internal sealed partial class NativeWorkspaceForm : Form
         foreach (var button in new[] { passportButton, installUpdateButton, cancelUpdateButton }) { button.Width = 178; button.Height = 40; NativeTheme.StyleNavigation(button); }
         sidebar.Controls.Add(passportButton);
         passportButton.Click += async (_, _) => await ExportPassportPdf();
-        AddButton(sidebar, "Светлая / тёмная", () => { dark = !dark; NativeTheme.Apply(this, dark); });
+        var theme = new ThemeSwitcher { Name = "ThemeSwitcher", Width = 178, Height = 40 };
+        theme.ThemeChanged += (_, _) => { dark = theme.Dark; ThemeTransition.Apply(this, dark); };
+        sidebar.Controls.Add(theme);
         AddButton(sidebar, "Настройки", OpenSettings);
         AddButton(sidebar, "Проверить обновления", async () => await CheckForUpdatesAsync(manual: true));
         installUpdateButton.Click += async (_, _) => await InstallUpdateAsync();
@@ -91,15 +93,15 @@ internal sealed partial class NativeWorkspaceForm : Form
         cancelPdf.Click += (_, _) => pdfCancellation?.Cancel();
         var content = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Padding = new Padding(12), Margin = Padding.Empty };
         content.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        content.RowStyles.Add(new RowStyle(SizeType.Absolute, 150));
+        content.RowStyles.Add(new RowStyle(SizeType.Absolute, 180));
         content.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         conversion.Dock = DockStyle.Fill;
         conversion.Margin = new Padding(0, 0, 0, 12);
         content.Controls.Add(conversion, 0, 0);
         split.Margin = Padding.Empty;
-        split.SplitterWidth = 12;
+        split.SplitterWidth = 8;
         content.Controls.Add(split, 0, 1);
-        var body = new Panel { Dock = DockStyle.Fill, Margin = Padding.Empty };
+        var body = new BrandPanel { Dock = DockStyle.Fill, Margin = Padding.Empty };
         body.Controls.Add(content); body.Controls.Add(sidebar);
         var layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3, Margin = Padding.Empty };
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
@@ -169,7 +171,7 @@ internal sealed partial class NativeWorkspaceForm : Form
 
     private Control BuildApplicationHeader(FlowLayoutPanel sidebar)
     {
-        var header = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 7, RowCount = 1, Padding = new Padding(14, 10, 14, 10), Margin = Padding.Empty, Tag = "surface" };
+        var header = new BrandLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 7, RowCount = 1, Padding = new Padding(14, 10, 14, 10), Margin = Padding.Empty, Tag = "surface" };
         header.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         foreach (var width in new[] { 38, 48, 220 }) header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, width));
         header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));

@@ -27,6 +27,9 @@ internal static class Program
         var workspace = Field(form, "workspace");
         workspace.GetType().GetMethod("ReplacePoints")!.Invoke(workspace, new object?[] { points, null, false });
         form.Show(); Application.DoEvents();
+        CheckMskSelection(form);
+        CheckWorkspaceLayout(form);
+        CheckTheme(form, scale);
         if (scale == 1) CheckConversionExport(assembly, form, workspace, pointType);
         if (scale == 1) Capture(form, "native-live-window-1");
         // Check the real shown window first, then render its actual controls in an
@@ -145,6 +148,63 @@ internal static class Program
         Console.WriteLine("PASS actual Export button and AutoCAD/Civil 3D previews retain projected points and heights even with WGS-84 selected");
     }
 
+    private static void CheckMskSelection(Form form)
+    {
+        var selection = Field(form, "conversion"); var type = selection.GetType();
+        var undo = (Action)type.GetMethod("CaptureUndo")!.Invoke(selection, null)!;
+        var select = type.GetMethod("SelectSource")!;
+        Require((bool)select.Invoke(selection, new object[] { "msk:10|6-градусная|2" })!, "Import can select a concrete MSK zone");
+        var before = (string)type.GetMethod("SettingsSnapshot")!.Invoke(selection, null)!;
+        Require(type.GetProperty("SourceName")!.GetValue(selection)!.ToString()!.Contains("зона 2"), "Selected zone remains visible in source name");
+        using (var timer = new System.Windows.Forms.Timer { Interval = 80 })
+        {
+            timer.Tick += (_, _) =>
+            {
+                var dialog = Application.OpenForms.Cast<Form>().FirstOrDefault(f => f.GetType().Name == "MskZoneDialog");
+                if (dialog is null) return;
+                timer.Stop();
+                var zones = Descendants(dialog).OfType<ListBox>().Single();
+                Require(zones.Items.Count > 1 && zones.Items.Cast<object>().All(z => z.GetType().GetProperty("Id")!.GetValue(z)!.ToString()!.StartsWith("msk:10|")), "Zone dialog contains only matching catalogue records");
+                Require(zones.SelectedItem!.GetType().GetProperty("Id")!.GetValue(zones.SelectedItem)!.ToString() == "msk:10|6-градусная|2", "Opening zone dialog preserves selected concrete zone");
+                Descendants(dialog).OfType<Button>().Single(b => b.Text == "Отмена").PerformClick();
+            };
+            timer.Start();
+            type.GetMethod("ChooseZone", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(selection, new[] { Field(selection, "source") });
+        }
+        Require(before == (string)type.GetMethod("SettingsSnapshot")!.Invoke(selection, null)!, "Cancel zone dialog preserves exact projection parameters");
+        undo();
+        Console.WriteLine("PASS MSK grouping, exact imported zone, actual zone dialog and atomic cancel/undo");
+    }
+
+    private static void CheckWorkspaceLayout(Form form)
+    {
+        var split = (SplitContainer)Field(form, "split");
+        Require(split.SplitterWidth == 8, "Workspace divider is a clean narrow line");
+        var left = split.Panel1.Controls[0]; var right = split.Panel2.Controls[0];
+        Require(left.Padding == right.Padding && left.Top == right.Top && left.Height == right.Height, "Workspace panes share equal padding and vertical edges");
+        var initial = split.SplitterDistance;
+        split.SplitterDistance = Math.Min(initial + 25, split.Width - split.Panel2MinSize - split.SplitterWidth);
+        Application.DoEvents();
+        Require(left.Height == right.Height, "Moving divider preserves pane alignment");
+        split.Panel2Collapsed = true; split.Panel2Collapsed = false; split.SplitterDistance = initial;
+        Console.WriteLine("PASS divider movement, hide/restore and workspace pane alignment");
+    }
+
+    private static void CheckTheme(Form form, float scale)
+    {
+        var switcher = Descendants(form).Single(c => c.Name == "ThemeSwitcher");
+        switcher.GetType().GetMethod("SetDark")!.Invoke(switcher, new object[] { true });
+        var deadline = DateTime.UtcNow.AddMilliseconds(450);
+        while (DateTime.UtcNow < deadline) { Application.DoEvents(); Thread.Sleep(10); }
+        Require(form.BackColor == Color.FromArgb(20, 29, 37), "Dark theme transition reaches the graphite palette");
+        if (scale == 1) Capture(form, "native-live-dark-1");
+        switcher.GetType().GetMethod("SetDark")!.Invoke(switcher, new object[] { false });
+        deadline = DateTime.UtcNow.AddMilliseconds(450);
+        while (DateTime.UtcNow < deadline) { Application.DoEvents(); Thread.Sleep(10); }
+        Require(form.BackColor == Color.FromArgb(244, 245, 241), "Light theme transition restores the approved palette");
+        Console.WriteLine("PASS reversible theme transitions and both native palettes");
+    }
+
     private static object Field(object instance, string name) => instance.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(instance)!;
     private static IEnumerable<Control> Descendants(Control root) => root.Controls.Cast<Control>().SelectMany(c => new[] { c }.Concat(Descendants(c)));
     private static void Require(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }
@@ -169,7 +229,7 @@ internal static class Program
         using var image = new Bitmap(form.Width, form.Height);
         form.DrawToBitmap(image, new Rectangle(Point.Empty, image.Size));
         image.Save(Path.Combine("test-artifacts", name + ".png"), ImageFormat.Png);
-        if (name == "native-live-window-1" || name == "native-live-height-1")
+        if (name == "native-live-window-1" || name == "native-live-height-1" || name == "native-live-dark-1")
         {
             using var bytes = new MemoryStream(); image.Save(bytes, ImageFormat.Png);
             Console.WriteLine("SCREENSHOT " + name + " " + Convert.ToBase64String(bytes.ToArray()));

@@ -3,6 +3,7 @@ namespace KhitunGeo.Native;
 internal static class NativeTheme
 {
     private static readonly Color Accent = Color.FromArgb(8, 127, 115);
+    public static bool IsDark(Control control) => control.BackColor.GetBrightness() < .4;
     public static void StyleNavigation(Button button)
     {
         button.Tag = "navigation";
@@ -12,11 +13,11 @@ internal static class NativeTheme
 
     public static void Apply(Control root, bool dark)
     {
-        var surface = dark ? Color.FromArgb(32, 40, 50) : Color.White;
-        var canvas = dark ? Color.FromArgb(23, 30, 40) : Color.FromArgb(244, 247, 251);
-        var ink = dark ? Color.FromArgb(225, 233, 243) : Color.FromArgb(27, 47, 70);
+        var surface = dark ? Color.FromArgb(32, 44, 54) : Color.White;
+        var canvas = dark ? Color.FromArgb(20, 29, 37) : Color.FromArgb(244, 245, 241);
+        var ink = dark ? Color.FromArgb(229, 238, 240) : Color.FromArgb(32, 51, 57);
         var border = dark ? Color.FromArgb(63, 78, 94) : Color.FromArgb(214, 224, 235);
-        root.BackColor = root is Form or SplitContainer || root.Tag as string == "navigation" ? canvas : surface;
+        root.BackColor = root is Form or SplitContainer or BrandPanel or BrandLayoutPanel or BrandNavigationPanel || root.Tag as string == "navigation" ? canvas : surface;
         root.ForeColor = ink;
         if (root.Tag as string == "muted") root.ForeColor = dark ? Color.FromArgb(155, 176, 195) : Color.FromArgb(111, 131, 153);
         if (root.Tag as string == "hint") { root.BackColor = dark ? Color.FromArgb(25, 62, 62) : Color.FromArgb(235, 247, 245); root.ForeColor = dark ? Color.FromArgb(136, 224, 210) : Accent; }
@@ -26,7 +27,7 @@ internal static class NativeTheme
             button.FlatAppearance.BorderColor = border;
             button.Cursor = Cursors.Hand;
             button.UseVisualStyleBackColor = false;
-            if (button.Tag as string == "primary") { button.BackColor = Accent; button.ForeColor = Color.White; button.FlatAppearance.BorderSize = 0; }
+            if (button.Tag as string == "primary") { button.BackColor = dark ? Color.FromArgb(9, 153, 149) : Accent; button.ForeColor = Color.White; button.FlatAppearance.BorderSize = 0; }
             else if (button.Tag as string == "navigation") { button.BackColor = canvas; button.FlatAppearance.BorderSize = 0; }
             else { button.FlatAppearance.BorderSize = 1; }
             button.FlatAppearance.MouseOverBackColor = button.Tag as string == "primary" ? Color.FromArgb(6, 108, 97) : dark ? Color.FromArgb(45, 65, 77) : Color.FromArgb(226, 241, 237);
