@@ -8,6 +8,7 @@ internal static class Program
     [STAThread]
     private static void Main(string[] args)
     {
+        Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
         Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
@@ -49,7 +50,9 @@ internal static class Program
         Capture(host, $"native-main-{scale}");
         var theme = Descendants(host).Single(c => c.Name == "ThemeSwitcher");
         var apply = assembly.GetType("KhitunGeo.Native.NativeTheme")!.GetMethod("Apply")!;
+        theme.GetType().GetMethod("SetDark")!.Invoke(theme, new object[] { true });
         apply.Invoke(null, new object[] { host, true }); Capture(host, $"native-main-dark-{scale}");
+        theme.GetType().GetMethod("SetDark")!.Invoke(theme, new object[] { false });
         apply.Invoke(null, new object[] { host, false });
         var import = Descendants(host).OfType<Button>().Single(b => b.Text == "Импорт");
         var export = Descendants(host).OfType<Button>().Single(b => b.Text == "Экспорт");
@@ -59,11 +62,13 @@ internal static class Program
         Require(Descendants(host).OfType<PictureBox>().Any(p => p.Visible && p.Image is not null && p.Height >= 24 * scale), "Application logo is visible");
         Require(form.Icon is not null, "Window has application icon");
         var toggle = Descendants(host).OfType<Button>().Single(b => b.AccessibleName == "Показать или скрыть левую панель");
+        var collapsedRailWidth = Descendants(host).Single(c => c.Name == "NavigationRail").Width;
         toggle.PerformClick(); view.PerformClick(); Application.DoEvents();
         Require(import.Visible && export.Visible, "Import/export stay accessible with sidebar and preview hidden");
         foreach (var button in new[] { import, export, view }) CheckButton(button);
         Capture(host, $"native-hidden-{scale}");
         toggle.PerformClick();
+        Require(Descendants(host).Single(c => c.Name == "NavigationRail").Width == collapsedRailWidth, "Navigation preserves its DPI scale after expanding and collapsing");
         ((Button)Field(form, "visualizationSidebarButton")).PerformClick();
         Require(!((SplitContainer)Field(form, "split")).Panel2Collapsed, "Preview restored through the visible sidebar action");
         host.Size = new Size((int)(880 * scale), (int)(560 * scale));
@@ -290,7 +295,12 @@ internal static class Program
     {
         Directory.CreateDirectory("test-artifacts");
         using var image = new Bitmap(form.Width, form.Height);
-        form.DrawToBitmap(image, new Rectangle(Point.Empty, image.Size));
+        if (form is Form live && live.Visible && name.StartsWith("native-live-"))
+        {
+            using var graphics = Graphics.FromImage(image);
+            graphics.CopyFromScreen(live.Location, Point.Empty, image.Size);
+        }
+        else form.DrawToBitmap(image, new Rectangle(Point.Empty, image.Size));
         image.Save(Path.Combine("test-artifacts", name + ".png"), ImageFormat.Png);
         if (name == "native-live-window-1" || name == "native-live-height-1" || name == "native-live-dark-1")
         {

@@ -62,8 +62,8 @@ internal sealed partial class NativeWorkspaceForm
 
     private void ToggleNavigation(Control rail)
     {
+        var dpi = rail.Width / (navigationExpanded ? 224f : 76f);
         navigationExpanded = !navigationExpanded;
-        var dpi = DeviceDpi / 96f;
         rail.Width = (int)((navigationExpanded ? 224 : 76) * dpi);
         foreach (var item in navigationButtons)
         {

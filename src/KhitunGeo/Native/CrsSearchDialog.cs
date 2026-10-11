@@ -71,9 +71,13 @@ internal sealed class SearchableCrsPicker : ComboBox
         TextRenderer.DrawText(e.Graphics, text, Font, Rectangle.Inflate(e.Bounds, -8, 0), ForeColor, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
         if ((e.State & DrawItemState.Focus) != 0) e.DrawFocusRectangle();
     }
+    protected override void OnFontChanged(EventArgs e)
+    {
+        base.OnFontChanged(e); ItemHeight = Math.Max((int)(28 * DeviceDpi / 96f), Font.Height + (int)(8 * DeviceDpi / 96f));
+    }
     protected override void OnDpiChangedAfterParent(EventArgs e)
     {
-        base.OnDpiChangedAfterParent(e); ItemHeight = (int)(28 * DeviceDpi / 96f);
+        base.OnDpiChangedAfterParent(e); ItemHeight = Math.Max((int)(28 * DeviceDpi / 96f), Font.Height + (int)(8 * DeviceDpi / 96f));
     }
     protected override void OnDropDown(EventArgs e)
     {
