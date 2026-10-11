@@ -172,6 +172,28 @@ internal static class Program
             type.GetMethod("ChooseZone", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(selection, new[] { Field(selection, "source") });
         }
         Require(before == (string)type.GetMethod("SettingsSnapshot")!.Invoke(selection, null)!, "Cancel zone dialog preserves exact projection parameters");
+        // Cancellation must restore the ambiguous-zone state as well as CRS IDs.
+        var sourcePicker = (ComboBox)Field(selection, "source");
+        var targetPicker = (ComboBox)Field(selection, "target");
+        targetPicker.SelectedItem = targetPicker.Items.Cast<object>().Single(x => x.GetType().GetProperty("Id")!.GetValue(x)!.ToString() == "gsk3");
+        ((CheckBox)Field(selection, "targetPrefix")).Checked = false;
+        type.GetMethod("AcceptResult")!.Invoke(selection, new object[] { new[] { 3, 4 } });
+        Require((bool)Field(selection, "ambiguousSourceZones"), "Different unprefixed result zones require explicit source selection");
+        before = (string)type.GetMethod("SettingsSnapshot")!.Invoke(selection, null)!;
+        sourcePicker.SelectedItem = sourcePicker.Items.Cast<object>().Single(x => x.GetType().GetProperty("Id")!.GetValue(x)!.ToString() == "msk-group:10");
+        using (var cancelTimer = new System.Windows.Forms.Timer { Interval = 80 })
+        {
+            cancelTimer.Tick += (_, _) =>
+            {
+                var dialog = Application.OpenForms.Cast<Form>().FirstOrDefault(f => f.GetType().Name == "MskZoneDialog");
+                if (dialog is null) return;
+                cancelTimer.Stop(); dialog.DialogResult = DialogResult.Cancel; dialog.Close();
+            };
+            cancelTimer.Start();
+            type.GetMethod("ChooseZone", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(selection, new object[] { sourcePicker });
+        }
+        Require(before == (string)type.GetMethod("SettingsSnapshot")!.Invoke(selection, null)! && (bool)Field(selection, "ambiguousSourceZones"), "Cancelling a different MSK preserves the full previous settings and ambiguous-zone state");
+        Require(!((Button)Field(selection, "convert")).Enabled, "Cancel must retain the prior conversion state");
         undo();
         Console.WriteLine("PASS MSK grouping, exact imported zone, actual zone dialog and atomic cancel/undo");
     }
