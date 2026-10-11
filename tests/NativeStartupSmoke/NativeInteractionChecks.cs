@@ -173,6 +173,41 @@ internal static partial class Program
             Require(Equals(original, restored) && snapshot == (string)selection.GetType().GetMethod("SettingsSnapshot")!.Invoke(selection, null)!,
                 "Conversion undo restores point fields, source CRS, zone and prefix together");
         });
+        Check("Cancelling explicit source-zone selection restores the prior CRS and options", () =>
+        {
+            var selection = Field(form, "conversion");
+            selection.GetType().GetMethod("SelectSource")!.Invoke(selection, new object[] { "wgs" });
+            var snapshot = (string)selection.GetType().GetMethod("SettingsSnapshot")!.Invoke(selection, null)!;
+            var source = (ComboBox)Field(selection, "source");
+            source.SelectedItem = source.Items.Cast<object>().Single(c => (string)c.GetType().GetProperty("Id")!.GetValue(c)! == "gsk6");
+            bool opened = false;
+            using var cancel = new System.Windows.Forms.Timer { Interval = 30 };
+            cancel.Tick += (_, _) =>
+            {
+                var dialog = Application.OpenForms.Cast<Form>().FirstOrDefault(f => f.GetType().Name == "ZonedCrsDialog");
+                if (dialog is null) return;
+                cancel.Stop(); opened = true; dialog.DialogResult = DialogResult.Cancel; dialog.Close();
+            };
+            cancel.Start();
+            source.GetType().GetMethod("OnSelectionChangeCommitted", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(source, new object[] { EventArgs.Empty });
+            Require(opened && snapshot == (string)selection.GetType().GetMethod("SettingsSnapshot")!.Invoke(selection, null)!, "Cancel rolls back the newly chosen source and all options");
+        });
+        Check("Unprefixed Y cannot silently be interpreted as a prefixed manual zone", () =>
+        {
+            var selection = Field(form, "conversion");
+            selection.GetType().GetMethod("SelectSource")!.Invoke(selection, new object[] { "gsk6" });
+            ((CheckBox)Field(selection, "autoZone")).Checked = false;
+            ((NumericUpDown)Field(selection, "manualZone")).Value = 14;
+            ((CheckBox)Field(selection, "sourcePrefix")).Checked = true;
+            var pointType = form.GetType().Assembly.GetType("KhitunGeo.Native.SurveyPoint", true)!;
+            var input = Array.CreateInstance(pointType, 1);
+            input.SetValue(Activator.CreateInstance(pointType, new object?[] { "Контроль", 7465965.922, 599112.246, null, "" }), 0);
+            bool rejected = false;
+            try { selection.GetType().GetMethod("BuildRequest")!.Invoke(selection, new object[] { input }); }
+            catch (System.Reflection.TargetInvocationException e) when (e.InnerException is FormatException && e.InnerException.Message.Contains("префикс", StringComparison.OrdinalIgnoreCase)) { rejected = true; }
+            Require(rejected, "Manual zone 14 must reject unprefixed Y while source-prefix is checked instead of returning far-away coordinates");
+            ((CheckBox)Field(selection, "sourcePrefix")).Checked = false;
+        });
         if (failures.Count > 0) throw new InvalidOperationException(string.Join(Environment.NewLine, failures));
         Capture(form, "native-live-interactions");
     }

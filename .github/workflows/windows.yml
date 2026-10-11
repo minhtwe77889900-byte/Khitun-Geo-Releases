@@ -87,8 +87,8 @@ jobs:
         run: |
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer/KhitunGeo.iss
           if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed' }
-          $hash = Get-FileHash dist/KhitunGeo_Setup_1_7_15_x64.exe -Algorithm SHA256
-          "$($hash.Hash.ToLowerInvariant())  KhitunGeo_Setup_1_7_15_x64.exe" | Set-Content dist/SHA256SUMS.txt -Encoding utf8
+          $hash = Get-FileHash dist/KhitunGeo_Setup_1_7_16_x64.exe -Algorithm SHA256
+          "$($hash.Hash.ToLowerInvariant())  KhitunGeo_Setup_1_7_16_x64.exe" | Set-Content dist/SHA256SUMS.txt -Encoding utf8
       - uses: actions/upload-artifact@v4
         with:
           name: KhitunGeo-Setup-x64

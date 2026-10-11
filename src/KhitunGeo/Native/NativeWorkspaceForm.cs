@@ -18,6 +18,30 @@ internal sealed partial class NativeWorkspaceForm : Form
     private Button? visualizationHeaderButton;
     private Button? visualizationSidebarButton;
 
+    protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+    {
+        if (keyData == (Keys.Control | Keys.Z))
+        {
+            // Text editors keep their own undo. A completed workspace action
+            // must also be undoable while Convert or another toolbar has focus.
+            if (grid.IsCurrentCellInEditMode || DescendantsWithFocus(this).Any(c => c is TextBoxBase))
+                return base.ProcessCmdKey(ref msg, keyData);
+            if (conversionCancellation is null && !importingDrawing && grid.EndEdit()) workspace.Undo();
+            return true;
+        }
+        return base.ProcessCmdKey(ref msg, keyData);
+    }
+
+    private static IEnumerable<Control> DescendantsWithFocus(Control parent)
+    {
+        foreach (Control child in parent.Controls)
+            if (child.ContainsFocus)
+            {
+                yield return child;
+                foreach (var focused in DescendantsWithFocus(child)) yield return focused;
+            }
+    }
+
     public NativeWorkspaceForm()
     {
         Text = "Khitun Geo";

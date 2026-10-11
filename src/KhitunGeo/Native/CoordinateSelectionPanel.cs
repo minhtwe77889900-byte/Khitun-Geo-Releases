@@ -46,6 +46,7 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
     private void Select(ComboBox picker, NativeCrsOption? option)
     {
         if (option is null) return;
+        if (picker == source) sourceSelectionUndo = null; else targetSelectionUndo = null;
         var wasSelecting = selecting; selecting = true;
         try
         {
@@ -58,6 +59,22 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
 
     private void ChooseZone(ComboBox picker)
     {
+        if (picker == source && Kind(source) is "gk6" or "gk3" or "utm")
+        {
+            var restore = sourceSelectionUndo ?? CaptureSelectionUndo(sourceCurrent, targetCurrent);
+            sourceSelectionUndo = null;
+            using var zoneDialog = new ZonedCrsDialog(SourceName, Kind(source)!, (int)manualZone.Value, sourcePrefix.Checked, NativeTheme.IsDark(this), (int)manualZone.Maximum);
+            if (UiMotion.ShowDialog(zoneDialog, FindForm()) == DialogResult.OK)
+            {
+                manualZone.Value = zoneDialog.SelectedZone;
+                sourcePrefix.Checked = zoneDialog.SourcePrefix;
+                autoZone.Checked = false;
+                ambiguousSourceZones = false;
+                UpdateZoneControls(); UpdateConvertButton();
+            }
+            else restore();
+            return;
+        }
         if (picker.SelectedItem is not MskCrsEntry { IsMskGroup: true } entry) return;
         var undo = (picker == source ? sourceSelectionUndo : targetSelectionUndo)
             ?? CaptureSelectionUndo(sourceCurrent, targetCurrent);
@@ -109,7 +126,8 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
         source.SelectedIndexChanged += (_, _) =>
         {
             if (!selecting && catalogueReady)
-                sourceSelectionUndo = source.SelectedItem is MskCrsEntry { IsMskGroup: true }
+                sourceSelectionUndo = source.SelectedItem is MskCrsEntry selected &&
+                    (selected.IsMskGroup || selected.Zones[0].Definition.GetProperty("kind").GetString() is "gk6" or "gk3" or "utm")
                     ? CaptureSelectionUndo(sourceCurrent, Current(target)) : null;
             if (source.SelectedItem is MskCrsEntry { IsMskGroup: false } entry)
             { sourceCurrent = entry.Zones[0]; ambiguousSourceZones = false; }
@@ -126,6 +144,8 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
         source.SelectionChangeCommitted += (_, _) => ChooseZone(source);
         target.SelectionChangeCommitted += (_, _) => ChooseZone(target);
         autoZone.CheckedChanged += (_, _) => UpdateZoneControls();
+        manualZone.ValueChanged += (_, _) => UpdateZoneControls();
+        sourcePrefix.CheckedChanged += (_, _) => UpdateZoneControls();
         try
         {
             var systems = NativeCrsCatalogue.Read(cataloguePath);
@@ -155,9 +175,15 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
 
     private void UpdateZoneControls()
     {
-        sourceZone.Visible = source.SelectedItem is MskCrsEntry { IsMskGroup: true };
+        var sourceKind = Kind(source);
+        var sourceZoned = sourceKind is "gk6" or "gk3" or "utm";
+        sourceZone.Visible = source.SelectedItem is MskCrsEntry { IsMskGroup: true } || sourceZoned;
         targetZone.Visible = target.SelectedItem is MskCrsEntry { IsMskGroup: true };
         sourceZone.Text = Current(source)?.Name + " ▾"; targetZone.Text = Current(target)?.Name + " ▾";
+        if (sourceZoned)
+            sourceZone.Text = autoZone.Checked && sourceKind != "utm" && sourcePrefix.Checked
+                ? "Зона из номера в Y · выбрать явно ▾"
+                : ZonedCrsDialog.ZoneDescription(sourceKind!, (int)manualZone.Value) + " ▾";
         var kinds = new[] { Kind(source), Kind(target) };
         var anyZoned = kinds.Any(k => k is "gk6" or "gk3" or "utm");
         manualZone.Maximum = kinds.Any(k => k is "gk6" or "utm") ? 60 : 120;
