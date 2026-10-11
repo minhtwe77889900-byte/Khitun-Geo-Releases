@@ -139,6 +139,7 @@ internal static partial class Program
                     Descendants(dialog).OfType<NumericUpDown>().Single(c => c.Name == "ZoneNumber").Value = 14;
                     Descendants(dialog).OfType<CheckBox>().Single(c => c.Name == "ZonePrefix").Checked = false;
                     Require(Descendants(dialog).OfType<Label>().Any(c => c.Text.Contains("78–84")), "Zone 14 shows its 78–84 degree range");
+                    Capture(dialog, "native-zone-gsk14");
                     dialog.DialogResult = DialogResult.OK;
                 }
                 catch (Exception ex) { dialogFailure = ex; dialog.DialogResult = DialogResult.Cancel; }
@@ -207,6 +208,20 @@ internal static partial class Program
             catch (System.Reflection.TargetInvocationException e) when (e.InnerException is FormatException && e.InnerException.Message.Contains("префикс", StringComparison.OrdinalIgnoreCase)) { rejected = true; }
             Require(rejected, "Manual zone 14 must reject unprefixed Y while source-prefix is checked instead of returning far-away coordinates");
             ((CheckBox)Field(selection, "sourcePrefix")).Checked = false;
+        });
+        Check("Ctrl+Z keeps text editing undo separate from workspace history", () =>
+        {
+            var workspace = Field(form, "workspace");
+            workspace.GetType().GetMethod("SwapXY")!.Invoke(workspace, null);
+            var points = ((System.Collections.IEnumerable)workspace.GetType().GetProperty("Points")!.GetValue(workspace)!).Cast<object>().ToArray();
+            using var editor = new TextBox { Text = "Поле", Bounds = new Rectangle(100, 100, 160, 30) };
+            form.Controls.Add(editor); editor.BringToFront(); editor.Focus(); editor.AppendText(" ввода");
+            SendUndo(form);
+            Require(points.SequenceEqual(((System.Collections.IEnumerable)workspace.GetType().GetProperty("Points")!.GetValue(workspace)!).Cast<object>()),
+                "Focused text editing must not consume a workspace undo entry");
+            form.Controls.Remove(editor);
+            Descendants(form).OfType<Button>().Single(b => b.Text == "Импорт").Focus();
+            Require(SendUndo(form), "Workspace undo resumes after leaving text editing");
         });
         if (failures.Count > 0) throw new InvalidOperationException(string.Join(Environment.NewLine, failures));
         Capture(form, "native-live-interactions");

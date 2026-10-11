@@ -8,6 +8,17 @@ var points = new[] { new SurveyPoint("001", 65, 84, -12, "Глубина"), new 
 using var source = JsonDocument.Parse("{\"kind\":\"geo\",\"datum\":\"wgs\"}");
 using var target = JsonDocument.Parse("{\"kind\":\"fixedtm\",\"datum\":\"sk42\",\"lon0\":84,\"fe\":86209.8,\"fn\":-6542783.5,\"k\":1}");
 var request = CoordinateBridge.BuildRequest(points, source.RootElement, target.RootElement, new(true, 28, true, true));
+using (var gsk = JsonDocument.Parse("{\"kind\":\"gk6\",\"datum\":\"gsk2011\"}"))
+{
+    var plain = new[] { new SurveyPoint("Контроль", 7465965.922, 599112.246, -12, "") };
+    Rejected(() => CoordinateBridge.BuildRequest(plain, gsk.RootElement, target.RootElement, new(false, 14, true, false)), "Manual prefixed zone accepted unprefixed Y");
+    var prefixed = new[] { plain[0] with { Y = 14599112.246 } };
+    Rejected(() => CoordinateBridge.BuildRequest(prefixed, gsk.RootElement, target.RootElement, new(false, 15, true, false)), "Manual zone accepted another zone prefix");
+    _ = CoordinateBridge.BuildRequest(plain, gsk.RootElement, target.RootElement, new(false, 14, false, false));
+    _ = CoordinateBridge.BuildRequest(prefixed, gsk.RootElement, target.RootElement, new(false, 14, true, false));
+    _ = CoordinateBridge.BuildRequest(prefixed, gsk.RootElement, target.RootElement, new(true, 28, true, false));
+    _ = CoordinateBridge.BuildRequest(Array.Empty<SurveyPoint>(), gsk.RootElement, target.RootElement, new(false, 14, true, false));
+}
 if (args.Length > 0 && args[0] == "--request") { Console.WriteLine(request); return; }
 var workspace = new PointWorkspace(); workspace.ReplacePoints(points);
 if (args.Length == 2 && args[0] == "--response")

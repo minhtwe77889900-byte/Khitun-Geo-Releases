@@ -16,11 +16,21 @@ internal static class CoordinateBridge
             throw new ArgumentException("Не заданы параметры систем координат.");
         if (zone.Manual.HasValue && !double.IsFinite(zone.Manual.Value))
             throw new ArgumentException("Некорректная зона.");
+        var sourceKind = source.GetProperty("kind").GetString();
         foreach (var point in points)
         {
             PointWorkspace.ValidatePoint(point);
             if (!point.X.HasValue || !point.Y.HasValue || point.Name is null || point.Description is null)
                 throw new ArgumentException("Заполните X и Y всех точек.");
+            if (zone.SourcePrefix && sourceKind is "gk6" or "gk3")
+            {
+                var prefix = Math.Floor(Math.Abs(point.Y.Value) / 1_000_000);
+                var maximum = sourceKind == "gk3" ? 120 : 60;
+                if (prefix < 1 || prefix > maximum)
+                    throw new FormatException($"Точка {point.Name}: в Y нет допустимого префикса зоны. Для Y без префикса снимите «Префикс исходного Y» и выберите исходную зону явно.");
+                if (!zone.Auto && prefix != zone.Manual)
+                    throw new FormatException($"Точка {point.Name}: префикс Y указывает зону {prefix}, а выбрана зона {zone.Manual}. Проверьте номер зоны и формат исходного Y.");
+            }
         }
         return JsonSerializer.Serialize(new
         {
