@@ -61,7 +61,7 @@ internal sealed partial class NativeWorkspaceForm : Form
         sidebar.Controls.Add(installUpdateButton);
         cancelUpdateButton.Click += (_, _) => updateOperation?.Cancel();
         sidebar.Controls.Add(cancelUpdateButton);
-        AddButton(sidebar, "О программе", () => { using var about = new AboutForm(); about.ShowDialog(this); });
+        AddButton(sidebar, "О программе", () => { using var about = new AboutForm(dark); about.ShowDialog(this); });
         AddButton(sidebar, "Диагностика", () => { using var diagnostics = new DiagnosticsForm(); diagnostics.ShowDialog(this); });
 
         conversion = new CoordinateSelectionPanel(

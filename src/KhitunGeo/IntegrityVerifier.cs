@@ -12,7 +12,7 @@ internal static class IntegrityVerifier
     private static readonly IReadOnlyDictionary<string, string> ExpectedHashes =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            ["brand/khitun_geo.ico"] = "afb082d9014bb753e8df183990b91bbc454c85386b1d23513ca80dfaa012e94e",
+            ["brand/khitun_geo.ico"] = "9aa6b19f5ef7425a05a6598e8960a8dfc28765e82c5d7bb530deffe7273fcdf8",
             ["wwwroot/brand/khitun_geo.ico"] = "afb082d9014bb753e8df183990b91bbc454c85386b1d23513ca80dfaa012e94e",
             ["wwwroot/brand/khitun_geo_icon_128.png"] = "5ad84141d275fc4a0241ba20ed2ff31e818ed74dcb33e281d017ee885a02ccf3",
             ["wwwroot/brand/khitun_geo_icon_256.png"] = "a481527f3d40b55963128b6082da82c6a97ca5556db28cf34522eef37fb9b533",

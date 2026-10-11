@@ -4,7 +4,7 @@ namespace KhitunGeo;
 
 internal sealed class AboutForm : Form
 {
-    public AboutForm()
+    public AboutForm(bool dark = false)
     {
         Text = "О программе — Khitun Geo";
         StartPosition = FormStartPosition.CenterParent;
@@ -16,7 +16,6 @@ internal sealed class AboutForm : Form
         BackColor = Color.White;
         Font = new Font("Segoe UI", 9F);
 
-        var logoPath = Path.Combine(AppContext.BaseDirectory, "wwwroot", "brand", "khitun_geo_logo.png");
         var logo = new PictureBox
         {
             Dock = DockStyle.Top,
@@ -24,10 +23,9 @@ internal sealed class AboutForm : Form
             SizeMode = PictureBoxSizeMode.Zoom,
             BackColor = Color.White
         };
-        if (File.Exists(logoPath))
-        {
-            try { logo.Image = Image.FromFile(logoPath); } catch { }
-        }
+        using (var source = typeof(AboutForm).Assembly.GetManifestResourceStream("KhitunGeo.BrandMark.png"))
+            if (source is not null) { using var image = Image.FromStream(source); logo.Image = new Bitmap(image); }
+        logo.Disposed += (_, _) => logo.Image?.Dispose();
 
         var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.7.11";
         var integrityStatus = IntegrityVerifier.GetStatusText(AppContext.BaseDirectory);
@@ -82,5 +80,6 @@ internal sealed class AboutForm : Form
         Controls.Add(logo);
         AcceptButton = close;
         CancelButton = close;
+        Native.NativeTheme.Apply(this, dark);
     }
 }
