@@ -104,6 +104,7 @@ internal sealed class NavigationIconButton : Button
     }
     protected override void OnMouseEnter(EventArgs e) { base.OnMouseEnter(e); AnimateHover(1); }
     protected override void OnMouseLeave(EventArgs e) { base.OnMouseLeave(e); AnimateHover(0); }
+    protected override void OnPaintBackground(PaintEventArgs e) => BrandArtwork.PaintBackdrop(this, e.Graphics);
     protected override void OnPaint(PaintEventArgs e)
     {
         var dark = NativeTheme.IsDark(this); var scale = DeviceDpi / 96f;
@@ -117,7 +118,7 @@ internal sealed class NavigationIconButton : Button
         using var glyphFont = new Font("Segoe MDL2 Assets", Font.Size * 1.8f);
         var iconWidth = Math.Min(Width, (int)(56 * scale));
         var ink = Enabled ? (Selected ? accent : ForeColor) : (dark ? Color.FromArgb(121, 145, 159) : Color.FromArgb(143, 154, 171));
-        const TextFormatFlags flags = TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.PreserveGraphicsClipping;
+        const TextFormatFlags flags = TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.PreserveGraphicsClipping | TextFormatFlags.PreserveGraphicsTranslateTransform;
         TextRenderer.DrawText(e.Graphics, Glyph, glyphFont, new Rectangle(0, 0, iconWidth, Height), ink, flags | TextFormatFlags.HorizontalCenter);
         if (Width > 100 * scale)
             TextRenderer.DrawText(e.Graphics, Text, Font, new Rectangle((int)(56 * scale), 0, Width - (int)(60 * scale), Height), ink, flags | TextFormatFlags.Left | TextFormatFlags.EndEllipsis);

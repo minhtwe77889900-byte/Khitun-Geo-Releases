@@ -41,6 +41,7 @@ internal sealed class ThemeSwitcher : Control
         }
         path.CloseFigure(); return path;
     }
+    protected override void OnPaintBackground(PaintEventArgs e) => BrandArtwork.PaintBackdrop(this, e.Graphics);
     protected override void OnPaint(PaintEventArgs e)
     {
         base.OnPaint(e); e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
@@ -54,8 +55,9 @@ internal sealed class ThemeSwitcher : Control
         e.Graphics.DrawPath(border, outer);
         e.Graphics.FillPath(background, selected); e.Graphics.DrawPath(border, selected);
         using var iconFont = new Font("Segoe MDL2 Assets", 20);
-        TextRenderer.DrawText(e.Graphics, "\uE706", iconFont, first, ForeColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-        TextRenderer.DrawText(e.Graphics, "\uE708", iconFont, second, ForeColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+        const TextFormatFlags flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.PreserveGraphicsClipping | TextFormatFlags.PreserveGraphicsTranslateTransform;
+        TextRenderer.DrawText(e.Graphics, "\uE706", iconFont, first, ForeColor, flags);
+        TextRenderer.DrawText(e.Graphics, "\uE708", iconFont, second, ForeColor, flags);
         if (Focused) ControlPaint.DrawFocusRectangle(e.Graphics, ClientRectangle);
     }
 }

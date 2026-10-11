@@ -7,6 +7,19 @@ internal static class BrandArtwork
 {
     private static readonly ConditionalWeakTable<Control, ArtworkCache> cache = new();
     private static readonly PointF[][] contours = BuildContours();
+    public static void PaintBackdrop(Control owner, Graphics graphics)
+    {
+        Control? backdrop = owner.Parent;
+        while (backdrop is not null && backdrop is not BrandPanel and not BrandLayoutPanel and not BrandNavigationPanel && backdrop.BackColor.A < 255) backdrop = backdrop.Parent;
+        using var fill = new SolidBrush(backdrop?.BackColor ?? SystemColors.Control);
+        graphics.FillRectangle(fill, owner.ClientRectangle);
+        if (backdrop is not BrandPanel and not BrandLayoutPanel and not BrandNavigationPanel) return;
+        var position = backdrop.PointToClient(owner.PointToScreen(Point.Empty));
+        var state = graphics.Save();
+        graphics.TranslateTransform(-position.X, -position.Y);
+        Paint(backdrop, graphics);
+        graphics.Restore(state);
+    }
     public static void Paint(Control owner, Graphics graphics)
     {
         if (owner.ClientSize.Height <= 0) return;

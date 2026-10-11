@@ -70,6 +70,7 @@ internal static partial class Program
             var switcher = Descendants(form).Single(c => c.Name == "ThemeSwitcher"); var size = switcher.Size;
             var toggle = Descendants(form).OfType<Button>().Single(b => b.AccessibleName == "Показать или скрыть левую панель");
             toggle.PerformClick(); PumpFor(350);
+            Capture(form, "native-live-expanded-navigation");
             try { Require(switcher.Size == size, "Theme switch must have identical bounds in expanded and collapsed navigation"); }
             finally { toggle.PerformClick(); PumpFor(350); }
         });
@@ -118,6 +119,9 @@ internal static partial class Program
     [DllImport("user32.dll", EntryPoint = "SystemParametersInfoW")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool AnimationSetting(uint action, uint parameter, [MarshalAs(UnmanagedType.Bool)] ref bool value, uint flags);
+    [DllImport("user32.dll", EntryPoint = "SystemParametersInfoW")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetAnimationSetting(uint action, uint parameter, IntPtr value, uint flags);
     private sealed class AnimationSettings : IDisposable
     {
         private bool original;
@@ -125,8 +129,8 @@ internal static partial class Program
         public AnimationSettings()
         {
             restore = AnimationSetting(0x1042, 0, ref original, 0);
-            if (restore) { var enabled = true; AnimationSetting(0x1043, 0, ref enabled, 0); }
+            if (restore) SetAnimationSetting(0x1043, 0, new IntPtr(1), 0);
         }
-        public void Dispose() { if (restore) AnimationSetting(0x1043, 0, ref original, 0); }
+        public void Dispose() { if (restore) SetAnimationSetting(0x1043, 0, original ? new IntPtr(1) : IntPtr.Zero, 0); }
     }
 }
