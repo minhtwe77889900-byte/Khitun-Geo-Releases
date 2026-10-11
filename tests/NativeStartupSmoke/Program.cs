@@ -3,7 +3,7 @@ using System.Drawing.Imaging;
 using System.Reflection;
 using System.Windows.Forms;
 
-internal static class Program
+internal static partial class Program
 {
     [STAThread]
     private static void Main(string[] args)
@@ -28,6 +28,7 @@ internal static class Program
         var workspace = Field(form, "workspace");
         workspace.GetType().GetMethod("ReplacePoints")!.Invoke(workspace, new object?[] { points, null, false });
         form.Show(); Application.DoEvents();
+        if (args.Contains("--interaction")) { CheckInteractionRegressions(form); return; }
         CheckMskSelection(form);
         CheckCrsSearch(assembly, form);
         CheckWorkspaceLayout(form);

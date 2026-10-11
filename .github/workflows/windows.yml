@@ -36,6 +36,10 @@ jobs:
               throw "Integrity check failed: $path"
             }
           }
+      - name: Verify native interaction regressions
+        run: |
+          dotnet run --project tests/NativeStartupSmoke/NativeStartupSmoke.csproj -c Release -- 1 --interaction
+          if ($LASTEXITCODE -ne 0) { throw 'Native interaction checks failed' }
       - name: Verify coordinate systems
         run: |
           node tests/coordinate-systems.cjs
