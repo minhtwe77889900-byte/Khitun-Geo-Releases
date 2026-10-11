@@ -77,7 +77,23 @@ internal static partial class Program
         Check("Navigation icons show the background through their corners", () =>
         {
             var button = Descendants(form).OfType<Button>().Single(b => b.AccessibleName == "Чертёж DWG / DXF");
-            Require(button.BackColor == Color.Transparent, "Unselected navigation icons must not cover the artwork with rectangular background patches");
+            Cursor.Position = form.PointToScreen(new Point(form.ClientSize.Width - 30, 70)); PumpFor(180);
+            var backdrop = button.Parent!;
+            while (backdrop.GetType().Name != "BrandPanel") backdrop = backdrop.Parent!;
+            using var expected = new Bitmap(backdrop.Width, backdrop.Height);
+            using (var graphics = Graphics.FromImage(expected))
+                backdrop.GetType().GetMethod("OnPaintBackground", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                    .Invoke(backdrop, new object[] { new PaintEventArgs(graphics, backdrop.ClientRectangle) });
+            using var actual = new Bitmap(button.Width, button.Height);
+            using (var graphics = Graphics.FromImage(actual)) graphics.CopyFromScreen(button.PointToScreen(Point.Empty), Point.Empty, actual.Size);
+            var offset = backdrop.PointToClient(button.PointToScreen(Point.Empty));
+            foreach (var patch in new[] { new Point(2, 2), new Point(button.Width - 8, 2), new Point(2, button.Height - 8), new Point(button.Width - 8, button.Height - 8) })
+                for (int x = 0; x < 5; x++) for (int y = 0; y < 5; y++)
+                {
+                    var a = actual.GetPixel(patch.X + x, patch.Y + y); var b = expected.GetPixel(offset.X + patch.X + x, offset.Y + patch.Y + y);
+                    Require(Math.Abs(a.R - b.R) + Math.Abs(a.G - b.G) + Math.Abs(a.B - b.B) <= 6,
+                        "Icon corner pixels must match the artwork behind them instead of a rectangle or stale sibling text");
+                }
         });
         Check("Rapid animation reversal leaves the latest theme and navigation state", () =>
         {

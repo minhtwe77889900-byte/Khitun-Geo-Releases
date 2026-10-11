@@ -95,7 +95,7 @@ internal sealed class NavigationIconButton : Button
     public NavigationIconButton()
     {
         SetStyle(ControlStyles.SupportsTransparentBackColor | ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
-        BackColor = Color.Transparent; UseVisualStyleBackColor = false;
+        BackColor = SystemColors.Control; UseVisualStyleBackColor = false;
     }
     private void AnimateHover(double target)
     {

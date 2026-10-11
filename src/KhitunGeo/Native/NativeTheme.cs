@@ -22,7 +22,10 @@ internal static class NativeTheme
         var ink = dark ? Color.FromArgb(229, 238, 240) : Color.FromArgb(17, 27, 87);
         var border = dark ? Color.FromArgb(63, 78, 94) : Color.FromArgb(214, 221, 225);
         root.BackColor = root is Form or SplitContainer or BrandPanel or BrandLayoutPanel or BrandNavigationPanel || root.Tag as string == "navigation" ? canvas : surface;
-        if (root.Tag as string == "brand-overlay" || root is NavigationIconButton or ThemeSwitcher) root.BackColor = Color.Transparent;
+        if (root.Tag as string == "brand-overlay") root.BackColor = Color.Transparent;
+        // These controls paint the exact ancestor artwork themselves. Keep their
+        // HWND background opaque to avoid WinForms replaying sibling foregrounds.
+        if (root is NavigationIconButton or ThemeSwitcher) root.BackColor = canvas;
         root.ForeColor = ink;
         if (root.Tag as string == "muted") root.ForeColor = dark ? Color.FromArgb(155, 176, 195) : Color.FromArgb(111, 131, 153);
         if (root.Tag as string == "hint") { root.BackColor = dark ? Color.FromArgb(25, 62, 62) : Color.FromArgb(235, 247, 245); root.ForeColor = dark ? Color.FromArgb(136, 224, 210) : Accent; }

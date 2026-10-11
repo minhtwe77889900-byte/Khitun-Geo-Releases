@@ -11,7 +11,7 @@ internal sealed class ThemeSwitcher : Control
     {
         Size = new Size(160, 40); Cursor = Cursors.Hand; AccessibleName = "Светлая или тёмная тема";
         SetStyle(ControlStyles.SupportsTransparentBackColor | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.ResizeRedraw | ControlStyles.Selectable, true);
-        BackColor = Color.Transparent;
+        BackColor = SystemColors.Control;
         TabStop = true;
     }
     public void SetDark(bool value)
