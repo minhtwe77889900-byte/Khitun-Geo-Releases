@@ -107,6 +107,9 @@ internal sealed class NavigationIconButton : Button
     protected override void OnPaintBackground(PaintEventArgs e) => BrandArtwork.PaintBackdrop(this, e.Graphics);
     protected override void OnPaint(PaintEventArgs e)
     {
+        // Flat ButtonBase styles set Opaque and skip OnPaintBackground. Always
+        // clear our entire reused double buffer before drawing custom foregrounds.
+        BrandArtwork.PaintBackdrop(this, e.Graphics);
         var dark = NativeTheme.IsDark(this); var scale = DeviceDpi / 96f;
         var accent = dark ? Color.FromArgb(62, 214, 220) : Color.FromArgb(0, 129, 144);
         var alpha = (int)(Selected ? (dark ? 37 : 26) : hoverAmount * (dark ? 32 : 22));

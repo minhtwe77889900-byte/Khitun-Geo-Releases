@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace KhitunGeo.Native;
 
@@ -15,19 +16,33 @@ internal static class ThemeTransition
         if (root.IsDisposed || root.Disposing) return;
         var owner = root.FindForm();
         var bounds = root.RectangleToScreen(root.ClientRectangle);
-        if (!root.Visible || !root.IsHandleCreated || owner is null || owner.WindowState == FormWindowState.Minimized ||
+        if (!root.Visible || !root.IsHandleCreated || bounds.Width <= 0 || bounds.Height <= 0 || owner is null || owner.WindowState == FormWindowState.Minimized ||
             !UiMotion.Enabled || !Screen.AllScreens.Any(screen => screen.Bounds.Contains(bounds)))
         {
             Stop(root); change(); return;
         }
-        Bitmap before;
+        Bitmap? before = null;
         try
         {
             before = new Bitmap(bounds.Width, bounds.Height);
             using var graphics = Graphics.FromImage(before);
-            graphics.CopyFromScreen(bounds.Location, Point.Empty, bounds.Size);
+            var screenDc = GetDC(IntPtr.Zero);
+            if (screenDc == IntPtr.Zero) throw new System.ComponentModel.Win32Exception();
+            var targetDc = IntPtr.Zero;
+            try
+            {
+                targetDc = graphics.GetHdc();
+                // Include the still-visible layered snapshot when reversing a fade.
+                if (!BitBlt(targetDc, 0, 0, bounds.Width, bounds.Height, screenDc, bounds.X, bounds.Y, 0x40CC0020))
+                    throw new System.ComponentModel.Win32Exception();
+            }
+            finally
+            {
+                if (targetDc != IntPtr.Zero) graphics.ReleaseHdc(targetDc);
+                ReleaseDC(IntPtr.Zero, screenDc);
+            }
         }
-        catch (System.ComponentModel.Win32Exception) { Stop(root); change(); return; }
+        catch (System.ComponentModel.Win32Exception) { before?.Dispose(); Stop(root); change(); return; }
         Stop(root);
         var layer = new FadeWindow(before) { Name = "TransitionLayer", Bounds = bounds };
         running.Add(root, layer);
@@ -44,7 +59,7 @@ internal static class ThemeTransition
             root.SuspendLayout();
             try { change(); }
             finally { root.ResumeLayout(true); }
-            UiMotion.Animate(layer, 240, t => layer.Opacity = 1 - t, () => Stop(root));
+            UiMotion.Animate(layer, 240, t => layer.Opacity = .999 * (1 - t), () => Stop(root));
         }
         catch { Stop(root); throw; }
     }
@@ -53,6 +68,11 @@ internal static class ThemeTransition
         if (!running.TryGetValue(root, out var layer)) return;
         running.Remove(root); layer.Dispose(); root.Invalidate(true);
     }
+    [DllImport("user32.dll")] private static extern IntPtr GetDC(IntPtr window);
+    [DllImport("user32.dll")] private static extern int ReleaseDC(IntPtr window, IntPtr dc);
+    [DllImport("gdi32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool BitBlt(IntPtr target, int x, int y, int width, int height, IntPtr source, int sourceX, int sourceY, uint operation);
     private sealed class FadeWindow : Form
     {
         private readonly Bitmap image;
@@ -62,7 +82,7 @@ internal static class ThemeTransition
             FormBorderStyle = FormBorderStyle.None; ShowInTaskbar = false;
             StartPosition = FormStartPosition.Manual; AutoScaleMode = AutoScaleMode.None;
             BackgroundImage = image; BackgroundImageLayout = ImageLayout.None;
-            DoubleBuffered = true; Opacity = 1;
+            DoubleBuffered = true; Opacity = .999;
         }
         protected override bool ShowWithoutActivation => true;
         protected override CreateParams CreateParams
@@ -70,7 +90,7 @@ internal static class ThemeTransition
             get
             {
                 var parameters = base.CreateParams;
-                parameters.ExStyle |= 0x00080000 | 0x00000020 | 0x08000000 | 0x00000080; // Layered, input-transparent, no activation, tool window.
+                parameters.ExStyle |= 0x00000020 | 0x08000000 | 0x00000080; // Input-transparent, no activation, tool window; Opacity owns layered style.
                 return parameters;
             }
         }
