@@ -6,6 +6,7 @@ internal static partial class Program
 {
     private static void CheckInteractionRegressions(Form form)
     {
+        using var animationSettings = new AnimationSettings();
         var failures = new List<string>();
         void Check(string name, Action action)
         {
@@ -77,6 +78,22 @@ internal static partial class Program
             var button = Descendants(form).OfType<Button>().Single(b => b.AccessibleName == "Чертёж DWG / DXF");
             Require(button.BackColor == Color.Transparent, "Unselected navigation icons must not cover the artwork with rectangular background patches");
         });
+        Check("Rapid animation reversal leaves the latest theme and navigation state", () =>
+        {
+            var switcher = Descendants(form).Single(c => c.Name == "ThemeSwitcher");
+            var setDark = switcher.GetType().GetMethod("SetDark")!;
+            setDark.Invoke(switcher, new object[] { true }); PumpFor(70);
+            if (Descendants(form).Any(c => c.Name == "TransitionLayer")) Capture(form, "native-live-theme-frame");
+            setDark.Invoke(switcher, new object[] { false }); PumpFor(45);
+            setDark.Invoke(switcher, new object[] { true }); PumpFor(350);
+            Require(form.BackColor == Color.FromArgb(20, 29, 37), "Last theme request wins");
+            Require(!Descendants(form).Any(c => c.Name == "TransitionLayer"), "Completed fades release their overlay and images");
+            var rail = Descendants(form).Single(c => c.Name == "NavigationRail"); var width = rail.Width;
+            var toggle = Descendants(form).OfType<Button>().Single(b => b.AccessibleName == "Показать или скрыть левую панель");
+            toggle.PerformClick(); PumpFor(60); toggle.PerformClick(); PumpFor(300);
+            Require(rail.Width == width, "Interrupted navigation expansion returns to its original DPI-scaled width");
+            setDark.Invoke(switcher, new object[] { false }); PumpFor(350);
+        });
         if (failures.Count > 0) throw new InvalidOperationException(string.Join(Environment.NewLine, failures));
         Capture(form, "native-live-interactions");
     }
@@ -98,4 +115,18 @@ internal static partial class Program
     private delegate bool EnumWindow(IntPtr handle, IntPtr parameter);
     [DllImport("user32.dll")] private static extern bool EnumThreadWindows(uint threadId, EnumWindow callback, IntPtr parameter);
     [DllImport("kernel32.dll")] private static extern uint GetCurrentThreadId();
+    [DllImport("user32.dll", EntryPoint = "SystemParametersInfoW")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool AnimationSetting(uint action, uint parameter, [MarshalAs(UnmanagedType.Bool)] ref bool value, uint flags);
+    private sealed class AnimationSettings : IDisposable
+    {
+        private bool original;
+        private readonly bool restore;
+        public AnimationSettings()
+        {
+            restore = AnimationSetting(0x1042, 0, ref original, 0);
+            if (restore) { var enabled = true; AnimationSetting(0x1043, 0, ref enabled, 0); }
+        }
+        public void Dispose() { if (restore) AnimationSetting(0x1043, 0, ref original, 0); }
+    }
 }

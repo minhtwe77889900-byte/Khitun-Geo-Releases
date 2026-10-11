@@ -38,7 +38,30 @@ internal static class ThemeTransition
         using var whole = new Bitmap(Math.Max(1, root.Width), Math.Max(1, root.Height));
         root.DrawToBitmap(whole, new Rectangle(Point.Empty, whole.Size));
         var offset = root is Form form ? new Point(form.PointToScreen(Point.Empty).X - form.Left, form.PointToScreen(Point.Empty).Y - form.Top) : Point.Empty;
-        return whole.Clone(new Rectangle(offset, root.ClientSize), PixelFormat.Format32bppPArgb);
+        var client = whole.Clone(new Rectangle(offset, root.ClientSize), PixelFormat.Format32bppPArgb);
+        // DrawToBitmap prints overlapping HWND children in reverse order. Restore
+        // their actual z-order, including zoom tools and an interrupted fade layer.
+        using var graphics = Graphics.FromImage(client);
+        PaintOverlaps(root, root, graphics);
+        return client;
+    }
+    private static void PaintOverlaps(Control root, Control parent, Graphics graphics)
+    {
+        for (var i = parent.Controls.Count - 1; i >= 0; i--)
+        {
+            var child = parent.Controls[i];
+            if (!child.Visible || child.Width <= 0 || child.Height <= 0) continue;
+            if (parent.Controls.Cast<Control>().Skip(i + 1).Any(c => c.Visible && c.Bounds.IntersectsWith(child.Bounds)))
+            {
+                using var image = new Bitmap(child.Width, child.Height);
+                child.DrawToBitmap(image, new Rectangle(Point.Empty, image.Size));
+                var state = graphics.Save();
+                graphics.SetClip(root.RectangleToClient(parent.RectangleToScreen(parent.ClientRectangle)), System.Drawing.Drawing2D.CombineMode.Intersect);
+                graphics.DrawImageUnscaled(image, root.PointToClient(child.PointToScreen(Point.Empty)));
+                graphics.Restore(state);
+            }
+            PaintOverlaps(root, child, graphics);
+        }
     }
     private sealed class FadeLayer : Control
     {
