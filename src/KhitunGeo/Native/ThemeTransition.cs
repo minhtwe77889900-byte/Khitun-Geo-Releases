@@ -1,93 +1,87 @@
-using System.Drawing.Imaging;
 using System.Runtime.CompilerServices;
 
 namespace KhitunGeo.Native;
 
 internal static class ThemeTransition
 {
-    private static readonly ConditionalWeakTable<Control, FadeLayer> running = new();
+    private static readonly ConditionalWeakTable<Control, FadeWindow> running = new();
     public static void Apply(Control root, bool dark) => Change(root, () => NativeTheme.Apply(root, dark));
 
-    // Native controls receive the new state once. Only the buffered layer paints each frame.
+    // DWM fades one snapshot while the real controls receive the new state once.
+    // Never WM_PRINT/DrawToBitmap live native controls: doing so can replay their
+    // foregrounds onto sibling HWNDs during subsequent transparency painting.
     public static void Change(Control root, Action change)
     {
         if (root.IsDisposed || root.Disposing) return;
-        if (!root.Visible || !root.IsHandleCreated || !UiMotion.Enabled) { Stop(root); change(); return; }
-        var before = CaptureClient(root);
-        Stop(root); root.SuspendLayout();
-        try { change(); }
-        catch { before.Dispose(); throw; }
-        finally { root.ResumeLayout(true); }
-        Bitmap after;
-        try { after = CaptureClient(root); }
-        catch { before.Dispose(); throw; }
-        var layer = new FadeLayer(before, after) { Name = "TransitionLayer", Dock = DockStyle.Fill };
-        running.Add(root, layer); root.Controls.Add(layer); layer.BringToFront();
-        EventHandler resized = (_, _) => Stop(root);
-        root.Resize += resized;
-        layer.Disposed += (_, _) => { root.Resize -= resized; running.Remove(root); };
-        UiMotion.Animate(layer, 240, t => { layer.Progress = (float)t; layer.Invalidate(); }, () => Stop(root));
+        var owner = root.FindForm();
+        var bounds = root.RectangleToScreen(root.ClientRectangle);
+        if (!root.Visible || !root.IsHandleCreated || owner is null || owner.WindowState == FormWindowState.Minimized ||
+            !UiMotion.Enabled || !Screen.AllScreens.Any(screen => screen.Bounds.Contains(bounds)))
+        {
+            Stop(root); change(); return;
+        }
+        Bitmap before;
+        try
+        {
+            before = new Bitmap(bounds.Width, bounds.Height);
+            using var graphics = Graphics.FromImage(before);
+            graphics.CopyFromScreen(bounds.Location, Point.Empty, bounds.Size);
+        }
+        catch (System.ComponentModel.Win32Exception) { Stop(root); change(); return; }
+        Stop(root);
+        var layer = new FadeWindow(before) { Name = "TransitionLayer", Bounds = bounds };
+        running.Add(root, layer);
+        EventHandler moved = (_, _) => Stop(root);
+        root.Resize += moved; root.LocationChanged += moved; owner.Deactivate += moved;
+        layer.Disposed += (_, _) =>
+        {
+            root.Resize -= moved; root.LocationChanged -= moved; owner.Deactivate -= moved;
+            running.Remove(root);
+        };
+        try
+        {
+            layer.Show(owner); layer.Update();
+            root.SuspendLayout();
+            try { change(); }
+            finally { root.ResumeLayout(true); }
+            UiMotion.Animate(layer, 240, t => layer.Opacity = 1 - t, () => Stop(root));
+        }
+        catch { Stop(root); throw; }
     }
     public static void Stop(Control root)
     {
         if (!running.TryGetValue(root, out var layer)) return;
-        running.Remove(root); root.Controls.Remove(layer); layer.Dispose(); root.Invalidate(true);
+        running.Remove(root); layer.Dispose(); root.Invalidate(true);
     }
-    private static Bitmap CaptureClient(Control root)
+    private sealed class FadeWindow : Form
     {
-        using var whole = new Bitmap(Math.Max(1, root.Width), Math.Max(1, root.Height));
-        root.DrawToBitmap(whole, new Rectangle(Point.Empty, whole.Size));
-        var offset = root is Form form ? new Point(form.PointToScreen(Point.Empty).X - form.Left, form.PointToScreen(Point.Empty).Y - form.Top) : Point.Empty;
-        var client = whole.Clone(new Rectangle(offset, root.ClientSize), PixelFormat.Format32bppPArgb);
-        // DrawToBitmap prints overlapping HWND children in reverse order. Restore
-        // their actual z-order, including zoom tools and an interrupted fade layer.
-        using var graphics = Graphics.FromImage(client);
-        PaintOverlaps(root, root, graphics);
-        return client;
-    }
-    private static void PaintOverlaps(Control root, Control parent, Graphics graphics)
-    {
-        for (var i = parent.Controls.Count - 1; i >= 0; i--)
+        private readonly Bitmap image;
+        public FadeWindow(Bitmap image)
         {
-            var child = parent.Controls[i];
-            if (!child.Visible || child.Width <= 0 || child.Height <= 0) continue;
-            if (parent.Controls.Cast<Control>().Skip(i + 1).Any(c => c.Visible && c.Bounds.IntersectsWith(child.Bounds)))
+            this.image = image;
+            FormBorderStyle = FormBorderStyle.None; ShowInTaskbar = false;
+            StartPosition = FormStartPosition.Manual; AutoScaleMode = AutoScaleMode.None;
+            BackgroundImage = image; BackgroundImageLayout = ImageLayout.None;
+            DoubleBuffered = true; Opacity = 1;
+        }
+        protected override bool ShowWithoutActivation => true;
+        protected override CreateParams CreateParams
+        {
+            get
             {
-                using var image = new Bitmap(child.Width, child.Height);
-                child.DrawToBitmap(image, new Rectangle(Point.Empty, image.Size));
-                var state = graphics.Save();
-                graphics.SetClip(root.RectangleToClient(parent.RectangleToScreen(parent.ClientRectangle)), System.Drawing.Drawing2D.CombineMode.Intersect);
-                graphics.DrawImageUnscaled(image, root.PointToClient(child.PointToScreen(Point.Empty)));
-                graphics.Restore(state);
+                var parameters = base.CreateParams;
+                parameters.ExStyle |= 0x00080000 | 0x00000020 | 0x08000000 | 0x00000080; // Layered, input-transparent, no activation, tool window.
+                return parameters;
             }
-            PaintOverlaps(root, child, graphics);
-        }
-    }
-    private sealed class FadeLayer : Control
-    {
-        private readonly Bitmap before, after;
-        public float Progress { get; set; }
-        public FadeLayer(Bitmap before, Bitmap after)
-        {
-            this.before = before; this.after = after;
-            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.Opaque, true);
-            TabStop = false;
-        }
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            e.Graphics.DrawImageUnscaled(after, Point.Empty);
-            using var attributes = new ImageAttributes();
-            attributes.SetColorMatrix(new ColorMatrix { Matrix33 = 1 - Progress });
-            e.Graphics.DrawImage(before, ClientRectangle, 0, 0, before.Width, before.Height, GraphicsUnit.Pixel, attributes);
         }
         protected override void WndProc(ref Message m)
         {
-            if (m.Msg == 0x84) { m.Result = new IntPtr(-1); return; } // HTTRANSPARENT preserves input during a fade.
+            if (m.Msg == 0x84) { m.Result = new IntPtr(-1); return; }
             base.WndProc(ref m);
         }
         protected override void Dispose(bool disposing)
         {
-            if (disposing) { UiMotion.Cancel(this); before.Dispose(); after.Dispose(); }
+            if (disposing) { UiMotion.Cancel(this); BackgroundImage = null; image.Dispose(); }
             base.Dispose(disposing);
         }
     }

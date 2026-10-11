@@ -100,11 +100,11 @@ internal static partial class Program
             var switcher = Descendants(form).Single(c => c.Name == "ThemeSwitcher");
             var setDark = switcher.GetType().GetMethod("SetDark")!;
             setDark.Invoke(switcher, new object[] { true }); PumpFor(70);
-            if (Descendants(form).Any(c => c.Name == "TransitionLayer")) Capture(form, "native-live-theme-frame");
+            if (Application.OpenForms.Cast<Form>().Any(c => c.Name == "TransitionLayer")) Capture(form, "native-live-theme-frame");
             setDark.Invoke(switcher, new object[] { false }); PumpFor(45);
             setDark.Invoke(switcher, new object[] { true }); PumpFor(350);
             Require(form.BackColor == Color.FromArgb(20, 29, 37), "Last theme request wins");
-            Require(!Descendants(form).Any(c => c.Name == "TransitionLayer"), "Completed fades release their overlay and images");
+            Require(!Application.OpenForms.Cast<Form>().Any(c => c.Name == "TransitionLayer"), "Completed fades release their overlay and images");
             var rail = Descendants(form).Single(c => c.Name == "NavigationRail"); var width = rail.Width;
             var toggle = Descendants(form).OfType<Button>().Single(b => b.AccessibleName == "Показать или скрыть левую панель");
             toggle.PerformClick(); PumpFor(60); toggle.PerformClick(); PumpFor(300);
