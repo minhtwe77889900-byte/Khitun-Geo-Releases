@@ -28,6 +28,7 @@ internal static class Program
         workspace.GetType().GetMethod("ReplacePoints")!.Invoke(workspace, new object?[] { points, null, false });
         form.Show(); Application.DoEvents();
         CheckMskSelection(form);
+        CheckCrsSearch(assembly, form);
         CheckWorkspaceLayout(form);
         CheckTheme(form, scale);
         if (scale == 1) CheckConversionExport(assembly, form, workspace, pointType);
@@ -196,6 +197,32 @@ internal static class Program
         Require(!((Button)Field(selection, "convert")).Enabled, "Cancel must retain the prior conversion state");
         undo();
         Console.WriteLine("PASS MSK grouping, exact imported zone, actual zone dialog and atomic cancel/undo");
+    }
+
+    private static void CheckCrsSearch(Assembly assembly, Form form)
+    {
+        var selection = Field(form, "conversion");
+        var picker = (ComboBox)Field(selection, "source");
+        var before = (string)selection.GetType().GetMethod("SettingsSnapshot")!.Invoke(selection, null)!;
+        var dialogType = assembly.GetType("KhitunGeo.Native.CrsSearchDialog");
+        Require(dialogType is not null, "CRS dropdown must offer a searchable system catalogue");
+        using var dialog = (Form)Activator.CreateInstance(dialogType!, new object?[] { picker.DataSource, picker.SelectedItem, false })!;
+        dialog.Show(form); Application.DoEvents();
+        var search = Descendants(dialog).OfType<TextBox>().Single();
+        var results = Descendants(dialog).OfType<ListBox>().Single();
+        var count = results.Items.Count;
+        search.Text = "мск 164"; Application.DoEvents();
+        Require(results.Items.Count > 0 && results.Items.Count < count, "CRS search filters Cyrillic names ignoring separators");
+        search.Text = "not-a-coordinate-system"; Application.DoEvents();
+        Require(results.Items.Count == 0 && !((Button)dialog.AcceptButton!).Enabled, "Empty search cannot select a CRS");
+        search.Text = ""; Application.DoEvents();
+        Require(results.Items.Count == count, "Clearing search restores the full catalogue");
+        search.Text = "гск2011"; Application.DoEvents();
+        Require(results.Items.Count > 0, "Search supports GSK-2011 without spaces or hyphens");
+        Capture(dialog, "native-crs-search");
+        dialog.Close();
+        Require(before == (string)selection.GetType().GetMethod("SettingsSnapshot")!.Invoke(selection, null)!, "Searching and cancelling must not mutate conversion settings");
+        Console.WriteLine("PASS searchable CRS catalogue, empty results and cancellation");
     }
 
     private static void CheckWorkspaceLayout(Form form)
