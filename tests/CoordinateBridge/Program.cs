@@ -19,6 +19,20 @@ using (var gsk = JsonDocument.Parse("{\"kind\":\"gk6\",\"datum\":\"gsk2011\"}"))
     _ = CoordinateBridge.BuildRequest(prefixed, gsk.RootElement, target.RootElement, new(true, 28, true, false));
     _ = CoordinateBridge.BuildRequest(Array.Empty<SurveyPoint>(), gsk.RootElement, target.RootElement, new(false, 14, true, false));
 }
+using (var gsk = JsonDocument.Parse("{\"kind\":\"gk6\",\"datum\":\"gsk2011\"}"))
+{
+    var method = typeof(CoordinateBridge).GetMethods().SingleOrDefault(m => m.Name == "BuildRequest" && m.GetParameters().Length == 5);
+    Check(method is not null, "Confirmed manual-zone continuation is missing");
+    foreach (var y in new[] { 7599112.246, 599112.246, 14599112.246 })
+    {
+        var input = new[] { new SurveyPoint("Контроль", 7465965.922, y, -12, "") };
+        var corrected = (string)method!.Invoke(null, new object[] { input, gsk.RootElement, target.RootElement, new CoordinateZoneOptions(false, 14, true, false), true })!;
+        using var doc = JsonDocument.Parse(corrected);
+        Check(Math.Abs(doc.RootElement.GetProperty("points")[0].GetProperty("y").GetDouble() - 14599112.246) < .000001,
+            "Continuation uses the chosen meridian while retaining the within-zone easting");
+        Check(input[0].Y == y, "Continuation must preserve original points for undo");
+    }
+}
 if (args.Length > 0 && args[0] == "--request") { Console.WriteLine(request); return; }
 var workspace = new PointWorkspace(); workspace.ReplacePoints(points);
 if (args.Length == 2 && args[0] == "--response")

@@ -14,10 +14,10 @@ internal sealed class PassportConversion
     public string Request => conversion.Request;
 
     public PassportConversion(IReadOnlyList<SurveyPoint> points, string settings, string sourceName,
-        string targetName, string appVersion, DateTimeOffset startedAt)
+        string targetName, string appVersion, DateTimeOffset startedAt, bool useSelectedSourceZone = false)
     {
         this.points = points.ToArray();
-        conversion = new CoordinateConversion(this.points, settings);
+        conversion = new CoordinateConversion(this.points, settings, useSelectedSourceZone);
         capture = PassportCapture.Capture(this.points, sourceName, targetName, settings, appVersion, startedAt);
     }
 

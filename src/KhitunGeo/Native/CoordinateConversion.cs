@@ -9,7 +9,7 @@ internal sealed class CoordinateConversion
     private readonly string settings;
     public string Request { get; }
 
-    public CoordinateConversion(IReadOnlyList<SurveyPoint> points, string settings)
+    public CoordinateConversion(IReadOnlyList<SurveyPoint> points, string settings, bool useSelectedSourceZone = false)
     {
         this.points = points.ToArray();
         this.settings = settings;
@@ -19,7 +19,7 @@ internal sealed class CoordinateConversion
             throw new FormatException("Некорректный снимок настроек расчёта.");
         var zone = JsonSerializer.Deserialize<CoordinateZoneOptions>(root.GetProperty("zone").GetRawText(), new JsonSerializerOptions(JsonSerializerDefaults.Web))
             ?? throw new FormatException("Не заданы настройки зоны.");
-        Request = CoordinateBridge.BuildRequest(this.points, root.GetProperty("source"), root.GetProperty("target"), zone);
+        Request = CoordinateBridge.BuildRequest(this.points, root.GetProperty("source"), root.GetProperty("target"), zone, useSelectedSourceZone);
     }
 
     public IReadOnlyList<int> Apply(PointWorkspace workspace, string currentSettings, string response, Action? onUndo = null, bool recordUnchanged = false)

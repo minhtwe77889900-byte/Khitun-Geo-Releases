@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Diagnostics;
 
 namespace KhitunGeo;
 
@@ -8,8 +9,8 @@ internal sealed class AboutForm : Form
     {
         Text = "О программе — Khitun Geo";
         StartPosition = FormStartPosition.CenterParent;
-        ClientSize = new Size(590, 420);
-        MinimumSize = new Size(560, 420);
+        ClientSize = new Size(640, 510);
+        MinimumSize = new Size(640, 510);
         MaximizeBox = false;
         MinimizeBox = false;
         ShowInTaskbar = false;
@@ -58,10 +59,26 @@ internal sealed class AboutForm : Form
                     $".NET: {Environment.Version}\r\n" +
                     "Платформа: .NET 8 / Windows Forms\r\n" +
                     $"Integrity: {integrityStatus}\r\n" +
-                    $"Data: {AppPaths.AppDataDirectory}");
+                    $"Data: {AppPaths.AppDataDirectory}\r\n" +
+                    "GitHub: https://github.com/" + UpdateService.Repository + "\r\n" +
+                    "Email: Vaniahit46@gmail.com");
             }
             catch { }
         };
+
+        const string publicRepository = "https://github.com/" + UpdateService.Repository;
+        const string email = "Vaniahit46@gmail.com";
+        var contacts = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 85, FlowDirection = FlowDirection.TopDown,
+            WrapContents = false, Padding = new Padding(28, 4, 12, 4) };
+        var github = new LinkLabel { Name = "PublicGitHub", Text = "GitHub: " + publicRepository, AutoSize = true };
+        github.LinkClicked += (_, _) => OpenContact(publicRepository);
+        var mail = new LinkLabel { Name = "ContactEmail", Text = email, AutoSize = true };
+        mail.LinkClicked += (_, _) => OpenContact("mailto:" + email);
+        var copyEmail = new Button { Name = "CopyContactEmail", Text = "Копировать почту", AutoSize = true };
+        copyEmail.Click += (_, _) => { try { Clipboard.SetText(email); } catch (Exception ex) { MessageBox.Show(this, ex.Message, "Копирование почты"); } };
+        var emailRow = new FlowLayoutPanel { AutoSize = true, WrapContents = false, Margin = Padding.Empty };
+        emailRow.Controls.Add(mail); emailRow.Controls.Add(copyEmail);
+        contacts.Controls.Add(github); contacts.Controls.Add(emailRow);
 
         var close = new Button { Text = "Закрыть", DialogResult = DialogResult.OK, AutoSize = true };
         var buttons = new FlowLayoutPanel
@@ -76,10 +93,16 @@ internal sealed class AboutForm : Form
         buttons.Controls.Add(copy);
 
         Controls.Add(details);
+        Controls.Add(contacts);
         Controls.Add(buttons);
         Controls.Add(logo);
         AcceptButton = close;
         CancelButton = close;
         Native.NativeTheme.Apply(this, dark);
+    }
+    private void OpenContact(string uri)
+    {
+        try { Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true }); }
+        catch (Exception ex) { MessageBox.Show(this, ex.Message, "Открытие ссылки"); }
     }
 }

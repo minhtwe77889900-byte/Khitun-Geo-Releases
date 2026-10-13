@@ -7,8 +7,8 @@ namespace KhitunGeo.Native;
 internal static class UiMotion
 {
     private static readonly ConditionalWeakTable<Control, Motion> active = new();
-    public static bool Enabled => !SystemInformation.HighContrast &&
-        (!SystemParametersInfo(0x1042, 0, out var enabled, 0) || enabled);
+    // Instant transitions avoid layout/paint stalls on large tables and drawings.
+    public static bool Enabled => false;
     public static void Animate(Control owner, int duration, Action<double> frame, Action? completed = null)
     {
         Cancel(owner);

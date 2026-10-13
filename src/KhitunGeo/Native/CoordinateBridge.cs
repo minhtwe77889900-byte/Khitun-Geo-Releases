@@ -4,18 +4,25 @@ namespace KhitunGeo.Native;
 
 internal sealed record CoordinateZoneOptions(bool Auto, double? Manual, bool SourcePrefix, bool TargetPrefix);
 
+internal sealed class ZonePrefixConflictException : FormatException
+{
+    public ZonePrefixConflictException(string message) : base(message) { }
+}
+
 // Transport and state validation only. Coordinate mathematics stays in JavaScript.
 internal static class CoordinateBridge
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
     public static string BuildRequest(IReadOnlyList<SurveyPoint> points, JsonElement source,
-        JsonElement target, CoordinateZoneOptions zone)
+        JsonElement target, CoordinateZoneOptions zone, bool useSelectedSourceZone = false)
     {
         if (source.ValueKind != JsonValueKind.Object || target.ValueKind != JsonValueKind.Object)
             throw new ArgumentException("Не заданы параметры систем координат.");
         if (zone.Manual.HasValue && !double.IsFinite(zone.Manual.Value))
             throw new ArgumentException("Некорректная зона.");
+        if (useSelectedSourceZone && (zone.Auto || zone.Manual is null || zone.Manual != Math.Truncate(zone.Manual.Value)))
+            throw new ArgumentException("Для продолжения явно выберите исходную зону.");
         var sourceKind = source.GetProperty("kind").GetString();
         foreach (var point in points)
         {
@@ -26,16 +33,21 @@ internal static class CoordinateBridge
             {
                 var prefix = Math.Floor(Math.Abs(point.Y.Value) / 1_000_000);
                 var maximum = sourceKind == "gk3" ? 120 : 60;
-                if (prefix < 1 || prefix > maximum)
-                    throw new FormatException($"Точка {point.Name}: в Y нет допустимого префикса зоны. Для Y без префикса снимите «Префикс исходного Y» и выберите исходную зону явно.");
-                if (!zone.Auto && prefix != zone.Manual)
-                    throw new FormatException($"Точка {point.Name}: префикс Y указывает зону {prefix}, а выбрана зона {zone.Manual}. Проверьте номер зоны и формат исходного Y.");
+                if (prefix > maximum || point.Y.Value < 0)
+                    throw new FormatException("Недопустимый формат исходного Y.");
+                if (prefix < 1 && zone.Auto)
+                    throw new FormatException("В Y нет префикса зоны. Отключите «Автозона» и выберите исходную зону.");
+                if (prefix < 1 && !useSelectedSourceZone)
+                    throw new ZonePrefixConflictException($"Точка {point.Name}: в Y нет допустимого префикса зоны. Для Y без префикса снимите «Префикс исходного Y» и выберите исходную зону явно.");
+                if (!zone.Auto && prefix != zone.Manual && !useSelectedSourceZone)
+                    throw new ZonePrefixConflictException($"Точка {point.Name}: префикс Y указывает зону {prefix}, а выбрана зона {zone.Manual}. Проверьте номер зоны и формат исходного Y.");
             }
         }
         return JsonSerializer.Serialize(new
         {
             version = 1, source, target, zone,
-            points = points.Select(p => new { name = p.Name, x = p.X!.Value, y = p.Y!.Value, height = p.Height, description = p.Description })
+            points = points.Select(p => new { name = p.Name, x = p.X!.Value, y = useSelectedSourceZone && zone.SourcePrefix && sourceKind is "gk6" or "gk3"
+                ? p.Y!.Value % 1_000_000 + zone.Manual!.Value * 1_000_000 : p.Y!.Value, height = p.Height, description = p.Description })
         }, JsonOptions);
     }
 

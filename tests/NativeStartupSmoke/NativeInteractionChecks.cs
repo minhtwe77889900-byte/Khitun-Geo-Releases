@@ -13,6 +13,26 @@ internal static partial class Program
             try { action(); Console.WriteLine("PASS " + name); }
             catch (Exception e) { failures.Add(name + ": " + e.Message); Console.WriteLine("FAIL " + failures[^1]); }
         }
+        Check("Navigation expands in one layout change without animation timers", () =>
+        {
+            var rail = Descendants(form).Single(c => c.Name == "NavigationRail");
+            var toggle = Descendants(form).OfType<Button>().Single(b => b.AccessibleName == "Показать или скрыть левую панель");
+            var before = rail.Width; var resized = 0;
+            EventHandler handler = (_, _) => resized++;
+            rail.SizeChanged += handler;
+            try { toggle.PerformClick(); Require(rail.Width != before && resized == 1, "Navigation reaches final width immediately"); }
+            finally { rail.SizeChanged -= handler; toggle.PerformClick(); }
+        });
+        Check("About provides public repository and copyable contact email", () =>
+        {
+            using var about = (Form)Activator.CreateInstance(form.GetType().Assembly.GetType("KhitunGeo.AboutForm", true)!, new object[] { false })!;
+            about.Show(form); Application.DoEvents();
+            Require(Descendants(about).OfType<LinkLabel>().Single(c => c.Name == "PublicGitHub").Text == "GitHub: https://github.com/minhtwe77889900-byte/Khitun-Geo-Releases", "Public repository link is visible");
+            Require(Descendants(about).OfType<LinkLabel>().Single(c => c.Name == "ContactEmail").Text == "Vaniahit46@gmail.com", "Requested contact email is visible");
+            Descendants(about).OfType<Button>().Single(c => c.Name == "CopyContactEmail").PerformClick();
+            Require(Clipboard.GetText() == "Vaniahit46@gmail.com", "Email copy works");
+            Capture(about, "native-about-contacts"); about.Close();
+        });
         Check("Drawing menu stays alive through close and reopen", () =>
         {
             var button = Descendants(form).OfType<Button>().Single(b => b.AccessibleName == "Чертёж DWG / DXF");
@@ -208,6 +228,49 @@ internal static partial class Program
             catch (System.Reflection.TargetInvocationException e) when (e.InnerException is FormatException && e.InnerException.Message.Contains("префикс", StringComparison.OrdinalIgnoreCase)) { rejected = true; }
             Require(rejected, "Manual zone 14 must reject unprefixed Y while source-prefix is checked instead of returning far-away coordinates");
             ((CheckBox)Field(selection, "sourcePrefix")).Checked = false;
+        });
+        Check("Conflicting zone offers Continue or Cancel, preserves originals and records the choice", () =>
+        {
+            var selection = Field(form, "conversion");
+            selection.GetType().GetMethod("SelectSource")!.Invoke(selection, new object[] { "gsk6" });
+            ((CheckBox)Field(selection, "autoZone")).Checked = false;
+            ((NumericUpDown)Field(selection, "manualZone")).Value = 14;
+            ((CheckBox)Field(selection, "sourcePrefix")).Checked = true;
+            var target = (ComboBox)Field(selection, "target");
+            target.SelectedItem = target.Items.Cast<object>().Single(c => (string)c.GetType().GetProperty("Id")!.GetValue(c)! == "msk164");
+            var workspace = Field(form, "workspace");
+            var pointType = form.GetType().Assembly.GetType("KhitunGeo.Native.SurveyPoint", true)!;
+            var input = Array.CreateInstance(pointType, 1);
+            var original = Activator.CreateInstance(pointType, new object?[] { "Контроль", 7465965.922, 7599112.246, -12.0, "Конфликт префикса" })!;
+            input.SetValue(original, 0);
+            workspace.GetType().GetMethod("ReplacePoints")!.Invoke(workspace, new object?[] { input, null, false });
+            foreach (var accept in new[] { false, true })
+            {
+                bool opened = false;
+                using var dismiss = new System.Windows.Forms.Timer { Interval = 30 };
+                dismiss.Tick += (_, _) =>
+                {
+                    var dialog = Application.OpenForms.Cast<Form>().FirstOrDefault(f => f.Name == "ZonePrefixWarning");
+                    if (dialog is null) return;
+                    dismiss.Stop(); opened = true;
+                    if (accept) Capture(dialog, "native-zone-prefix-warning");
+                    Descendants(dialog).OfType<Button>().Single(b => b.Text == (accept ? "Продолжить" : "Отмена")).PerformClick();
+                };
+                dismiss.Start();
+                var task = (Task)form.GetType().GetMethod("ConvertCoordinates", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.Invoke(form, null)!;
+                var deadline = Environment.TickCount64 + 30000;
+                while (!task.IsCompleted && Environment.TickCount64 < deadline) PumpFor(10);
+                Require(task.IsCompleted && opened, "Conflict is presented by the actual conversion flow"); task.GetAwaiter().GetResult();
+                var result = ((System.Collections.IEnumerable)workspace.GetType().GetProperty("Points")!.GetValue(workspace)!).Cast<object>().Single();
+                if (!accept) Require(Equals(original, result), "Cancelling conflict preserves all original coordinates");
+                else
+                {
+                    Require(Math.Abs((double)pointType.GetProperty("X")!.GetValue(result)! - 921553.841) < .002 && Math.Abs((double)pointType.GetProperty("Y")!.GetValue(result)! - 55956.792) < .002,
+                        "Confirmed zone 14 preserves within-zone easting and matches the control");
+                    Require(SendUndo(form), "Confirmed conversion remains undoable");
+                    Require(Equals(original, ((System.Collections.IEnumerable)workspace.GetType().GetProperty("Points")!.GetValue(workspace)!).Cast<object>().Single()), "Undo restores the original prefixed Y");
+                }
+            }
         });
         Check("Ctrl+Z keeps text editing undo separate from workspace history", () =>
         {

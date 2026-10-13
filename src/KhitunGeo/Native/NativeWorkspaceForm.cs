@@ -284,6 +284,24 @@ internal sealed partial class NativeWorkspaceForm : Form
         passportButton.Enabled = passportState.Current is not null && conversionCancellation is null && pdfCancellation is null;
     }
 
+    private bool ConfirmSelectedSourceZone(string warning)
+    {
+        using var dialog = new Form
+        {
+            Name = "ZonePrefixWarning", Text = "Проверьте исходную зону", StartPosition = FormStartPosition.CenterParent,
+            ClientSize = new Size(560, 230), FormBorderStyle = FormBorderStyle.FixedDialog,
+            MaximizeBox = false, MinimizeBox = false, ShowInTaskbar = false, Font = Font
+        };
+        var text = new Label { Dock = DockStyle.Fill, Padding = new Padding(20), Text = warning +
+            "\n\n«Продолжить» использует выбранную вручную зону. Номер зоны в миллионном префиксе Y будет заменён, а координата внутри зоны сохранена. Проверьте порядок X (север) и Y (восток)." };
+        var buttons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 50, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(10) };
+        var cancel = new Button { Text = "Отмена", DialogResult = DialogResult.Cancel, AutoSize = true };
+        var proceed = new Button { Text = "Продолжить", DialogResult = DialogResult.OK, AutoSize = true };
+        buttons.Controls.Add(cancel); buttons.Controls.Add(proceed); dialog.Controls.Add(text); dialog.Controls.Add(buttons);
+        dialog.CancelButton = cancel; dialog.AcceptButton = cancel; NativeTheme.Apply(dialog, dark);
+        return dialog.ShowDialog(this) == DialogResult.OK;
+    }
+
     private async Task ConvertCoordinates()
     {
         if (conversionCancellation is not null) { conversionCancellation.Cancel(); return; }
@@ -293,8 +311,21 @@ internal sealed partial class NativeWorkspaceForm : Form
         try
         {
             var pointSnapshot = workspace.Points.ToArray();
-            var operation = new PassportConversion(pointSnapshot, conversion.SettingsSnapshot(), conversion.SourceName,
-                conversion.TargetName, Application.ProductVersion, DateTimeOffset.UtcNow);
+            var settings = conversion.SettingsSnapshot();
+            PassportConversion operation;
+            string? zoneWarning = null;
+            try
+            {
+                operation = new PassportConversion(pointSnapshot, settings, conversion.SourceName,
+                    conversion.TargetName, Application.ProductVersion, DateTimeOffset.UtcNow);
+            }
+            catch (ZonePrefixConflictException ex)
+            {
+                if (!ConfirmSelectedSourceZone(ex.Message)) return;
+                zoneWarning = "Пользователь подтвердил выбранную исходную зону: миллионный префикс Y заменён на выбранную зону; Y без префикса принят как внутри зонной координаты.";
+                operation = new PassportConversion(pointSnapshot, settings, conversion.SourceName,
+                    conversion.TargetName, Application.ProductVersion, DateTimeOffset.UtcNow, useSelectedSourceZone: true);
+            }
             var geographic = conversion.SourceIsGeographic;
             var reportZones = conversion.UsesAutoTargetZone;
             var restoreSettings = conversion.CaptureUndo();
@@ -310,7 +341,8 @@ internal sealed partial class NativeWorkspaceForm : Form
             }, cancellation.Token);
             cancellation.Token.ThrowIfCancellationRequested();
             if (IsDisposed || Disposing || !grid.EndEdit()) return;
-            var zones = operation.Apply(workspace, conversion.SettingsSnapshot(), result.Response, result.Issues, passportState, restoreSettings);
+            var issues = zoneWarning is null ? result.Issues : result.Issues.Concat(new[] { new QualityIssue(0, "warning", zoneWarning) }).ToArray();
+            var zones = operation.Apply(workspace, conversion.SettingsSnapshot(), result.Response, issues, passportState, restoreSettings);
             conversion.AcceptResult(zones);
             if (reportZones && zones.Count > 0)
                 MessageBox.Show(this, "Автоматически выбраны зоны: " + string.Join(", ", zones), "Преобразование выполнено");

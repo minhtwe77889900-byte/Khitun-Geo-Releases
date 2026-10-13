@@ -42,6 +42,30 @@ internal sealed class ThemeSwitcher : Control
         path.CloseFigure(); return path;
     }
     protected override void OnPaintBackground(PaintEventArgs e) => BrandArtwork.PaintBackdrop(this, e.Graphics);
+    private void DrawIcon(Graphics graphics, Rectangle bounds, bool moon)
+    {
+        var scale = DeviceDpi / 96f;
+        var radius = Math.Min(10 * scale, Math.Min(bounds.Width, bounds.Height) * .28f);
+        var cx = bounds.Left + bounds.Width / 2f; var cy = bounds.Top + bounds.Height / 2f;
+        using var pen = new Pen(ForeColor, Math.Max(1.5f, 1.7f * scale)) { StartCap = LineCap.Round, EndCap = LineCap.Round };
+        if (moon)
+        {
+            // Both icons share exactly the same horizontal anchor; no glyph bearings.
+            graphics.DrawEllipse(pen, cx - radius, cy - radius, radius * 2, radius * 2);
+            graphics.DrawArc(pen, cx - radius * .25f, cy - radius, radius * 1.25f, radius * 2, 90, 180);
+        }
+        else
+        {
+            var disk = radius * .53f;
+            graphics.DrawEllipse(pen, cx - disk, cy - disk, disk * 2, disk * 2);
+            for (int i = 0; i < 8; i++)
+            {
+                var angle = i * Math.PI / 4;
+                graphics.DrawLine(pen, cx + (float)Math.Cos(angle) * radius * .78f, cy + (float)Math.Sin(angle) * radius * .78f,
+                    cx + (float)Math.Cos(angle) * radius, cy + (float)Math.Sin(angle) * radius);
+            }
+        }
+    }
     protected override void OnPaint(PaintEventArgs e)
     {
         base.OnPaint(e); e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
@@ -54,10 +78,8 @@ internal sealed class ThemeSwitcher : Control
         using var selected = Capsule(paintedDark ? second : first);
         e.Graphics.DrawPath(border, outer);
         e.Graphics.FillPath(background, selected); e.Graphics.DrawPath(border, selected);
-        using var iconFont = new Font("Segoe MDL2 Assets", 20);
-        const TextFormatFlags flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.PreserveGraphicsClipping | TextFormatFlags.PreserveGraphicsTranslateTransform;
-        TextRenderer.DrawText(e.Graphics, "\uE706", iconFont, first, ForeColor, flags);
-        TextRenderer.DrawText(e.Graphics, "\uE708", iconFont, second, ForeColor, flags);
+        DrawIcon(e.Graphics, first, false);
+        DrawIcon(e.Graphics, second, true);
         if (Focused) ControlPaint.DrawFocusRectangle(e.Graphics, ClientRectangle);
     }
 }

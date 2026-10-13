@@ -66,20 +66,17 @@ internal sealed partial class NativeWorkspaceForm
 
     private void ToggleNavigation(Control rail)
     {
-        // Derive scale only at rest; interruption continues from the current width.
-        if (!navigationAnimating) navigationScale = rail.Width / (navigationExpanded ? 224f : 76f);
+        navigationScale = rail.Width / (navigationExpanded ? 224f : 76f);
         navigationExpanded = !navigationExpanded;
-        var start = rail.Width; var finish = (int)((navigationExpanded ? 224 : 76) * navigationScale);
-        navigationAnimating = true;
-        UiMotion.Animate(rail, 210, t =>
+        SuspendLayout(); rail.SuspendLayout();
+        try
         {
-            rail.SuspendLayout();
-            rail.Width = (int)Math.Round(start + (finish - start) * t);
-            foreach (var item in navigationButtons) item.Button.Width = Math.Max((int)(56 * navigationScale), rail.ClientSize.Width - rail.Padding.Horizontal);
-            rail.ResumeLayout(true);
-        }, () => navigationAnimating = false);
+            rail.Width = (int)Math.Round((navigationExpanded ? 224 : 76) * navigationScale);
+            foreach (var item in navigationButtons)
+                item.Button.Width = Math.Max((int)(56 * navigationScale), rail.ClientSize.Width - rail.Padding.Horizontal);
+        }
+        finally { rail.ResumeLayout(false); ResumeLayout(true); }
     }
-    private bool navigationAnimating;
 
     private void AddPoint()
     {
