@@ -1,6 +1,10 @@
 # Khitun Geo
 
-Windows x64 geodesy application. Source version 1.7.9.
+Windows x64 geodesy application. Version 1.7.17.
+
+[Скачать последнюю стабильную версию](https://github.com/minhtwe77889900-byte/Khitun-Geo-Releases/releases/latest) · [Изменения 1.7.17](CHANGELOG_1_7_17.md)
+
+В 1.7.17 отключены анимации, выровнен переключатель темы, добавлено явное продолжение при конфликте зоны исходного Y и контакты в «О программе». Обновления приложения доступны из стабильных GitHub Releases.
 
 The application starts with its native WinForms interface. It includes
 point editing/import/export, the unchanged coordinate mathematics hosted in Jint,
@@ -75,9 +79,10 @@ offset; geoid and vertical-datum conversion is not implemented yet.
 GitHub Actions builds the application and Inno Setup installer on pushes to
 `main`, pull requests, and manual runs. Open Actions > Build Windows to find
 `KhitunGeo-Setup-x64` and `KhitunGeo-App-x64` artifacts after a successful run.
-Regression checks run before compilation. Successful pushes
-publish the new v1.7.9 installer and its SHA256 in GitHub Releases; existing
-release assets are not overwritten by repeat builds.
+Regression checks run before compilation. Stable releases are published separately from an exactly verified successful build,
+with the installer and SHA-256. Ordinary branch builds remain Actions artifacts.
+The updater uses the latest stable GitHub Release; existing release assets are
+not overwritten by repeat builds.
 The application uses the native Windows Forms interface and includes .NET 8;
 Microsoft Edge WebView2 Runtime is not required. The installer is unsigned.
 
