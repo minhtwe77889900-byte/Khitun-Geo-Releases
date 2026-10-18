@@ -1,0 +1,30 @@
+name: Probe installed 1.7.18 export
+on:
+  push:
+    branches: [codex/diagnose-installed-export]
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Install exact public release and probe installed DLL
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          gh release download v1.7.18 --repo minhtwe77889900-byte/Khitun-Geo-Releases --pattern KhitunGeo_Setup_1_7_18_x64.exe --dir downloaded
+          if ($LASTEXITCODE -ne 0) { throw 'Download failed' }
+          $setup = (Resolve-Path downloaded/KhitunGeo_Setup_1_7_18_x64.exe).Path
+          if ((Get-FileHash $setup -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'bff480e39046c8e5d1473e0b73efc19b441432230a5e8e9ff848092a8a84be47') { throw 'Published installer hash differs' }
+          $app = Join-Path $env:RUNNER_TEMP 'khitun-installed-probe'
+          $process = Start-Process $setup -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', "/DIR=`"$app`"") -PassThru -Wait
+          if ($process.ExitCode -ne 0) { throw "Installer failed: $($process.ExitCode)" }
+          dotnet run --project tests/InstalledExportProbe/InstalledExportProbe.csproj -c Release -- $app
+          if ($LASTEXITCODE -ne 0) { throw 'Installed export probe failed' }
