@@ -52,6 +52,9 @@ internal sealed class PointExportDialog : Form
         {
             decimals.Value = Formats[format.SelectedIndex] is PointExportFormat.Blh or PointExportFormat.ExcelXlsx ? 9 : 3;
             delimiter.SelectedIndex = Formats[format.SelectedIndex] == PointExportFormat.AutoCad ? 2 : 0;
+            var civil = PointExport.IsCivilFormat(Formats[format.SelectedIndex]);
+            header.Enabled = !civil;
+            if (civil) header.Checked = false;
             var specialFormat = Formats[format.SelectedIndex] is PointExportFormat.AutoCadScript or PointExportFormat.ExcelXlsx;
             delimiter.Visible = header.Visible = !specialFormat;
             RefreshPreview();
@@ -63,6 +66,7 @@ internal sealed class PointExportDialog : Form
     }
 
     private PointExportOptions Options() => new(Formats[format.SelectedIndex], Delimiters[delimiter.SelectedIndex], (int)decimals.Value,
+        !PointExport.IsCivilFormat(Formats[format.SelectedIndex]) &&
         Formats[format.SelectedIndex] is not (PointExportFormat.AutoCadScript or PointExportFormat.ExcelXlsx) && header.Checked);
 
     private void RefreshPreview()
@@ -74,6 +78,8 @@ internal sealed class PointExportDialog : Form
             foreach (var column in result.Columns) preview.Columns.Add(column, column);
             foreach (var row in result.Rows.Take(10)) preview.Rows.Add(row.Cast<object>().ToArray());
             notice.Text = $"Точек: {result.Rows.Count}. Порядок: {string.Join(", ", result.Columns)}. Показаны первые 10.\nПустая высота экспортируется как 0.";
+            if (PointExport.IsCivilFormat(Formats[format.SelectedIndex]))
+                notice.Text = $"Civil 3D: импорт точек → {Formats[format.SelectedIndex].ToString().ToUpperInvariant()}, разделитель: {delimiter.Text.ToLowerInvariant()}.\nТочек: {result.Rows.Count}. N — север, E — восток. Без заголовка. Пустая высота → 0.";
             if (Formats[format.SelectedIndex] == PointExportFormat.AutoCadScript)
                 notice.Text = $"Точек: {result.Rows.Count}. Файл создаёт объекты POINT в мировой СК. В AutoCAD запустите команду SCRIPT и выберите сохранённый .scr.";
             if (Formats[format.SelectedIndex] == PointExportFormat.ExcelXlsx)

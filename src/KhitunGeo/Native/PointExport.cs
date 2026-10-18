@@ -11,6 +11,9 @@ internal sealed record PointExportResult(string[] Columns, IReadOnlyList<string[
 
 internal static class PointExport
 {
+    public static bool IsCivilFormat(PointExportFormat format)
+        => format is PointExportFormat.Pnezd or PointExportFormat.Penzd or PointExportFormat.Nez or PointExportFormat.Enz;
+
     public static PointExportResult Create(IReadOnlyList<SurveyPoint> points, PointExportOptions options, bool geographic)
     {
         if (options.Decimals is < 0 or > 9) throw new ArgumentException("Точность должна быть от 0 до 9.");
@@ -54,7 +57,7 @@ internal static class PointExport
         }
         if (rows.Count == 0) throw new ArgumentException("Нет заполненных точек для экспорта.");
         var text = new StringBuilder();
-        if (options.Header) text.AppendJoin(options.Delimiter, columns).Append("\r\n");
+        if (options.Header && !IsCivilFormat(options.Format)) text.AppendJoin(options.Delimiter, columns).Append("\r\n");
         foreach (var row in rows) text.AppendJoin(options.Delimiter, row).Append("\r\n");
         return new(columns, rows, text.ToString());
     }
@@ -71,7 +74,9 @@ internal static class PointExport
         var temporary = fullPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {
-            File.WriteAllText(temporary, result.Text, new UTF8Encoding(options.Format != PointExportFormat.AutoCadScript));
+            // Civil 3D reads the first field as a number; a BOM becomes part of it.
+            var numericCadFile = IsCivilFormat(options.Format) || options.Format is PointExportFormat.AutoCad or PointExportFormat.AutoCadScript;
+            File.WriteAllText(temporary, result.Text, new UTF8Encoding(encoderShouldEmitUTF8Identifier: !numericCadFile));
             File.Move(temporary, fullPath, overwrite: true);
         }
         finally { if (File.Exists(temporary)) File.Delete(temporary); }
