@@ -64,6 +64,7 @@ try
     // would hide a BOM and miss the actual on-disk incompatibility.
     var survey = Enumerable.Range(1, 304)
         .Select(i => new SurveyPoint(i.ToString(CultureInfo.InvariantCulture), 924000 + i, 55000 + i, 71.5, "")).ToArray();
+    var civilFailures = new List<string>();
     foreach (var (format, expectedFirst) in new[] {
         (PointExportFormat.Pnezd, "1,924001.000,55001.000,71.500,"),
         (PointExportFormat.Penzd, "1,55001.000,924001.000,71.500,"),
@@ -74,9 +75,13 @@ try
         PointExport.Save(path, survey, new(format, ",", 3, false), false);
         var bytes = File.ReadAllBytes(path);
         if (bytes.AsSpan().StartsWith(new byte[] { 0xef, 0xbb, 0xbf }))
-            throw new Exception($"{format}: BOM before the first numeric field breaks Civil 3D import");
-        var rows = System.Text.Encoding.UTF8.GetString(bytes).Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
+            civilFailures.Add($"{format}: BOM before the first numeric field breaks Civil 3D import");
+        var rows = System.Text.Encoding.UTF8.GetString(bytes).TrimStart('\uFEFF').Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
         Equal(expectedFirst, rows[0]);
+        if (format != PointExportFormat.AutoCad &&
+            PointExport.Create(survey, new(format, ",", 3, true), false).Text !=
+            PointExport.Create(survey, new(format, ",", 3, false), false).Text)
+            civilFailures.Add($"{format}: Civil import profile must not emit a text header");
         if (rows.Length != 304) throw new Exception($"{format}: first or last point lost");
         var last = rows[^1].Split(',');
         var eastFirst = format is PointExportFormat.Penzd or PointExportFormat.Enz or PointExportFormat.AutoCad;
@@ -88,6 +93,7 @@ try
                 if (!double.TryParse(field, NumberStyles.Float, CultureInfo.InvariantCulture, out _))
                     throw new Exception($"{format}: nonnumeric coordinate/number field");
     }
+    if (civilFailures.Count > 0) throw new Exception(string.Join("\n", civilFailures));
     var scriptPath = Path.Combine(directory, "points.scr");
     PointExport.Save(scriptPath, points, new(PointExportFormat.AutoCadScript, ",", 3, false), false);
     Equal("_.UCS\r\n_World\r\n_.POINT\r\n456.875,123.125,-7.250\r\n_.POINT\r\n22.000,11.000,0.000\r\n_.UCS\r\n_Previous\r\n\r\n", File.ReadAllText(scriptPath));

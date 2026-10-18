@@ -162,6 +162,23 @@ internal static partial class Program
             Require(((Button)Field(export, "save")).Enabled, "Saving converted points is disabled: " + notice);
             Require(preview.Rows[0].Cells.Cast<DataGridViewCell>().Any(c => Convert.ToString(c.Value) == "-12.000"), "Converted height must appear in export preview");
         }
+        // Switching from a generic text export must clear its header option.
+        format.SelectedIndex = 7;
+        var header = (CheckBox)Field(export, "header");
+        header.Checked = true;
+        foreach (var index in new[] { 3, 4, 5, 6 })
+        {
+            format.SelectedIndex = index;
+            Require(!header.Checked && !header.Enabled, "Civil export must disable text headers");
+            var expectedNorth = ((double)pointType.GetProperty("X")!.GetValue(values[0])!).ToString("F3", System.Globalization.CultureInfo.InvariantCulture);
+            var expectedEast = ((double)pointType.GetProperty("Y")!.GetValue(values[0])!).ToString("F3", System.Globalization.CultureInfo.InvariantCulture);
+            var offset = index is 3 or 4 ? 1 : 0;
+            var eastFirst = index is 4 or 6;
+            Require(Convert.ToString(preview.Rows[0].Cells[offset].Value) == (eastFirst ? expectedEast : expectedNorth), "Selected Civil profile has wrong first axis");
+            Require(Convert.ToString(preview.Rows[0].Cells[offset + 1].Value) == (eastFirst ? expectedNorth : expectedEast), "Selected Civil profile has wrong second axis");
+            var options = exportType.GetMethod("Options", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(export, null)!;
+            Require(options.GetType().GetProperty("Format")!.GetValue(options)!.ToString() == new[] { "Pnezd", "Penzd", "Nez", "Enz" }[index - 3], "Preview and save must use the selected profile");
+        }
         Console.WriteLine("PASS actual Export button and AutoCAD/Civil 3D previews retain projected points and heights even with WGS-84 selected");
     }
 
