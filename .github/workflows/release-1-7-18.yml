@@ -1,0 +1,60 @@
+name: Publish verified Khitun Geo 1.7.18 only
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/release-1-7-18.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: khitun-release-1-7-18
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Verify the exact successful source build
+        shell: pwsh
+        run: |
+          $run = gh api "repos/$env:GH_REPO/actions/runs/39116703321" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot verify source build' }
+          if ($run.conclusion -ne 'success' -or $run.head_sha -ne '02a2c3191f1e77873b35ec32d712d733752da496') { throw 'Unexpected source build' }
+      - uses: actions/checkout@v4
+        with:
+          ref: 02a2c3191f1e77873b35ec32d712d733752da496
+      - uses: actions/download-artifact@v4
+        with:
+          artifact-ids: 12133080314
+          run-id: 39116703321
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: verified-installer
+      - name: Verify installer and publish this release once
+        shell: pwsh
+        run: |
+          $installer = 'verified-installer/KhitunGeo_Setup_1_7_18_x64.exe'
+          $expected = ((Get-Content 'verified-installer/SHA256SUMS.txt' -Raw).Trim() -split '\s+')[0]
+          if ((Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expected) { throw 'Installer hash mismatch' }
+          gh release view v1.7.18 --json tagName 2>$null
+          if ($LASTEXITCODE -eq 0) { Write-Host 'Release already exists; keeping its assets unchanged.'; exit 0 }
+          gh release create v1.7.18 $installer 'verified-installer/SHA256SUMS.txt' --target 02a2c3191f1e77873b35ec32d712d733752da496 --title 'Khitun Geo 1.7.18' --notes-file CHANGELOG_1_7_18.md --latest
+          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }
+          $latest = gh api "repos/$env:GH_REPO/releases/latest" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $latest.tag_name -ne 'v1.7.18' -or $latest.draft -or $latest.prerelease) { throw 'Stable latest release is not visible' }
+          $asset = $latest.assets | Where-Object name -eq 'KhitunGeo_Setup_1_7_18_x64.exe'
+          if ($asset.state -ne 'uploaded' -or $asset.digest -ne "sha256:$expected") { throw 'Updater installer digest mismatch' }
+
+# This workflow publishes the single explicitly approved v1.7.18 artifact.

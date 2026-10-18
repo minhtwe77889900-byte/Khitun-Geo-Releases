@@ -10,3 +10,10 @@ Scope: Windows native export only; no coordinate math or UI animation changes.
 - Verify actual UI profile selection and all rows; do not change already-correct axis mapping without reproduction.
 - Run the complete Windows build/test pipeline and review changes.
 - Bump to 1.7.18; publish exactly the verified installer as a stable release with checksum and accurate limitations (Civil 3D itself not available here).
+
+Validation evidence:
+- Local NativeExport tests failed on all four Civil BOM/header cases and AutoCAD BOM before the implementation, then passed after it.
+- An additional local check passed every row of the supplied 304-point data through production PNEZD/PENZD/ENZ/AutoCAD exports; coordinates and heights were preserved. User files were not added to the repository.
+- Windows build/test candidate: 02a2c3191f1e77873b35ec32d712d733752da496, Actions run 39116703321. All test stages and installer packaging passed. Verified installer artifact: 12133080314.
+- Independent code review found no critical or important issues. The captured native Civil export dialog has the disabled header and readable import instructions.
+- Actual Civil 3D import remains a user-machine validation; the original 303/304 difference was not reproduced as an export defect.

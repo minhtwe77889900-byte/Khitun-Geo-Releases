@@ -1,10 +1,10 @@
 # Khitun Geo
 
-Windows x64 geodesy application. Version 1.7.17.
+Windows x64 geodesy application. Version 1.7.18.
 
-[Скачать последнюю стабильную версию](https://github.com/minhtwe77889900-byte/Khitun-Geo-Releases/releases/latest) · [Изменения 1.7.17](CHANGELOG_1_7_17.md)
+[Скачать последнюю стабильную версию](https://github.com/minhtwe77889900-byte/Khitun-Geo-Releases/releases/latest) · [Изменения 1.7.18](CHANGELOG_1_7_18.md)
 
-В 1.7.17 отключены анимации, выровнен переключатель темы, добавлено явное продолжение при конфликте зоны исходного Y и контакты в «О программе». Обновления приложения доступны из стабильных GitHub Releases.
+В 1.7.18 экспорт Civil 3D записывается без BOM и строки заголовков. В окне экспорта указан соответствующий профиль импорта и разделитель. Обновления приложения доступны из стабильных GitHub Releases.
 
 The application starts with its native WinForms interface. It includes
 point editing/import/export, the unchanged coordinate mathematics hosted in Jint,
