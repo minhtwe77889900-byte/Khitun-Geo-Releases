@@ -60,6 +60,34 @@ try
     Equal("original", File.ReadAllText(path));
     PointExport.Save(path, points, new(PointExportFormat.Xyz, ",", 3, false), false);
     Equal("123.125,456.875,-7.250\r\n11.000,22.000,0.000\r\n", File.ReadAllText(path));
+    // Civil 3D parses the first field as a number: decoding with ReadAllText
+    // would hide a BOM and miss the actual on-disk incompatibility.
+    var survey = Enumerable.Range(1, 304)
+        .Select(i => new SurveyPoint(i.ToString(CultureInfo.InvariantCulture), 924000 + i, 55000 + i, 71.5, "")).ToArray();
+    foreach (var (format, expectedFirst) in new[] {
+        (PointExportFormat.Pnezd, "1,924001.000,55001.000,71.500,"),
+        (PointExportFormat.Penzd, "1,55001.000,924001.000,71.500,"),
+        (PointExportFormat.Nez, "924001.000,55001.000,71.500"),
+        (PointExportFormat.Enz, "55001.000,924001.000,71.500"),
+        (PointExportFormat.AutoCad, "55001.000,924001.000,71.500") })
+    {
+        PointExport.Save(path, survey, new(format, ",", 3, false), false);
+        var bytes = File.ReadAllBytes(path);
+        if (bytes.AsSpan().StartsWith(new byte[] { 0xef, 0xbb, 0xbf }))
+            throw new Exception($"{format}: BOM before the first numeric field breaks Civil 3D import");
+        var rows = System.Text.Encoding.UTF8.GetString(bytes).Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
+        Equal(expectedFirst, rows[0]);
+        if (rows.Length != 304) throw new Exception($"{format}: first or last point lost");
+        var last = rows[^1].Split(',');
+        var eastFirst = format is PointExportFormat.Penzd or PointExportFormat.Enz or PointExportFormat.AutoCad;
+        var offset = format is PointExportFormat.Pnezd or PointExportFormat.Penzd ? 1 : 0;
+        Equal(eastFirst ? "55304.000" : "924304.000", last[offset]);
+        Equal(eastFirst ? "924304.000" : "55304.000", last[offset + 1]);
+        foreach (var row in rows)
+            foreach (var field in row.Split(',').Take(offset + 3))
+                if (!double.TryParse(field, NumberStyles.Float, CultureInfo.InvariantCulture, out _))
+                    throw new Exception($"{format}: nonnumeric coordinate/number field");
+    }
     var scriptPath = Path.Combine(directory, "points.scr");
     PointExport.Save(scriptPath, points, new(PointExportFormat.AutoCadScript, ",", 3, false), false);
     Equal("_.UCS\r\n_World\r\n_.POINT\r\n456.875,123.125,-7.250\r\n_.POINT\r\n22.000,11.000,0.000\r\n_.UCS\r\n_Previous\r\n\r\n", File.ReadAllText(scriptPath));
