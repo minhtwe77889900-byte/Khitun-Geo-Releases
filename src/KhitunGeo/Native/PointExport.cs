@@ -75,8 +75,7 @@ internal static class PointExport
         try
         {
             // Civil 3D reads the first field as a number; a BOM becomes part of it.
-            var numericCadFile = IsCivilFormat(options.Format) || options.Format is PointExportFormat.AutoCad or PointExportFormat.AutoCadScript;
-            File.WriteAllText(temporary, result.Text, new UTF8Encoding(encoderShouldEmitUTF8Identifier: !numericCadFile));
+            File.WriteAllText(temporary, result.Text, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
             File.Move(temporary, fullPath, overwrite: true);
         }
         finally { if (File.Exists(temporary)) File.Delete(temporary); }
