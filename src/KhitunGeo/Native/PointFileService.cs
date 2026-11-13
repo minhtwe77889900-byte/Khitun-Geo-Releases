@@ -33,7 +33,7 @@ internal static class PointFileService
         var temporary = fullPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {
-            File.WriteAllText(temporary, text, new UTF8Encoding(true));
+            File.WriteAllText(temporary, text, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
             File.Move(temporary, fullPath, overwrite: true);
         }
         finally { if (File.Exists(temporary)) File.Delete(temporary); }
