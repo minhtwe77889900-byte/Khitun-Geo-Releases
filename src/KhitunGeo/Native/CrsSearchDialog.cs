@@ -37,6 +37,12 @@ internal sealed class CrsSearchDialog : Form
         Shown += (_, _) => search.Focus(); NativeTheme.Apply(this, dark);
     }
 
+    public void SetInitialQuery(string value)
+    {
+        search.Text = value;
+        search.SelectionStart = value.Length;
+    }
+
     private static string Normalize(string value) => new(value.ToUpperInvariant().Where(char.IsLetterOrDigit).ToArray());
     private void Filter()
     {
@@ -79,7 +85,7 @@ internal sealed class SearchableCrsPicker : ComboBox
     {
         base.OnDpiChangedAfterParent(e); ItemHeight = Math.Max((int)(28 * DeviceDpi / 96f), Font.Height + (int)(8 * DeviceDpi / 96f));
     }
-    private void OpenSearch()
+    private void OpenSearch(string? initialQuery = null)
     {
         if (opening || !IsHandleCreated || IsDisposed || !Enabled) return;
         opening = true;
@@ -89,6 +95,7 @@ internal sealed class SearchableCrsPicker : ComboBox
             {
                 if (IsDisposed || Disposing || DataSource is not IReadOnlyList<MskCrsEntry> entries) return;
                 using var dialog = new CrsSearchDialog(entries, SelectedItem as MskCrsEntry, NativeTheme.IsDark(this));
+                if (initialQuery is not null) dialog.SetInitialQuery(initialQuery);
                 if (UiMotion.ShowDialog(dialog, FindForm()) != DialogResult.OK || dialog.SelectedEntry is null) return;
                 SelectedItem = dialog.SelectedEntry;
                 OnSelectionChangeCommitted(EventArgs.Empty);
@@ -107,9 +114,15 @@ internal sealed class SearchableCrsPicker : ComboBox
         {
             Focus(); OpenSearch(); m.Result = IntPtr.Zero; return;
         }
-        if (m.Msg is 0x100 or 0x104 && (Keys)m.WParam.ToInt32() is Keys.F4 or Keys.Space or Keys.Enter or Keys.Down or Keys.Up)
+        if (m.Msg is 0x100 or 0x104 && (Keys)m.WParam.ToInt32() is Keys.F4 or Keys.Space or Keys.Enter or Keys.Down or Keys.Up or Keys.Home or Keys.End or Keys.PageUp or Keys.PageDown)
         {
             OpenSearch(); m.Result = IntPtr.Zero; return;
+        }
+        if (m.Msg == 0x102) // Route type-to-search through the same confirmation as a mouse selection.
+        {
+            var character = (char)m.WParam.ToInt32();
+            if (!char.IsControl(character)) OpenSearch(character.ToString());
+            m.Result = IntPtr.Zero; return;
         }
         if (m.Msg == 0x20A) { m.Result = IntPtr.Zero; return; } // Wheel must not commit an unreviewed zone.
         if (m.Msg is 0x317 or 0x318 && m.WParam != IntPtr.Zero)
