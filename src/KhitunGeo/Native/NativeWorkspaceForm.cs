@@ -15,8 +15,8 @@ internal sealed partial class NativeWorkspaceForm : Form
     private DrawingScene? drawing;
     private SurveyPoint[] savedPoints = Array.Empty<SurveyPoint>();
     private readonly AppSettings settings = AppSettingsStore.Load();
-    private Button? visualizationHeaderButton;
-    private Button? visualizationSidebarButton;
+    private NavigationIconButton? visualizationHeaderButton;
+    private NavigationIconButton? visualizationSidebarButton;
 
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
     {
@@ -61,6 +61,7 @@ internal sealed partial class NativeWorkspaceForm : Form
         conversion = new CoordinateSelectionPanel(
             Path.Combine(AppContext.BaseDirectory, "wwwroot", "crs", "native-systems.json"),
             () => { if (grid.EndEdit()) workspace.SwapXY(); });
+        conversion.SettingsChanged += undo => workspace.ReplacePoints(workspace.Points, undo, true);
         conversion.ConvertRequested += async (_, _) => await ConvertCoordinates();
         try
         {
@@ -88,7 +89,7 @@ internal sealed partial class NativeWorkspaceForm : Form
         cancelPdf.Click += (_, _) => pdfCancellation?.Cancel();
         var content = new TableLayoutPanel { Name = "WorkspaceContent", Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3, Padding = new Padding(20, 8, 20, 16), Margin = Padding.Empty, Tag = "brand-overlay" };
         content.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        content.RowStyles.Add(new RowStyle(SizeType.Absolute, 212));
+        content.RowStyles.Add(new RowStyle(SizeType.Absolute, 132));
         content.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         content.RowStyles.Add(new RowStyle(SizeType.Absolute, 52));
         conversion.Dock = DockStyle.Fill; conversion.Margin = new Padding(0, 0, 0, 16);
@@ -108,6 +109,8 @@ internal sealed partial class NativeWorkspaceForm : Form
         Controls.Add(layout);
         Shown += (_, _) => { if (split.Width > 550) split.SplitterDistance = (split.Width - split.SplitterWidth) / 2; };
         grid.Bind(workspace);
+        grid.PointSelectionChanged += preview.SetSelectedPoints;
+        preview.PointPicked += grid.SelectPoint;
         preview.DrawingStatusChanged += (_, _) => RefreshStatus();
         workspace.Changed += WorkspaceChanged;
         WorkspaceChanged(this, EventArgs.Empty);
@@ -199,17 +202,45 @@ internal sealed partial class NativeWorkspaceForm : Form
         return host;
     }
 
+    private readonly Label tableCrsCaption = new()
+    {
+        Name = "TableCrsCaption", AutoSize = true, Dock = DockStyle.Fill,
+        Margin = new Padding(12, 2, 12, 6), Visible = false
+    };
+
     private Control BuildGridHost()
     {
         var host = WorkspaceCard("PointsCard");
-        var toolbar = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, RowCount = 1, Margin = Padding.Empty, Padding = new Padding(14, 0, 12, 0) };
-        toolbar.ColumnStyles.Add(new(SizeType.Percent, 100)); toolbar.ColumnStyles.Add(new(SizeType.Absolute, 152)); toolbar.ColumnStyles.Add(new(SizeType.Absolute, 96));
+        host.RowCount = 4;
+        host.RowStyles.Clear();
+        host.RowStyles.Add(new RowStyle(SizeType.Absolute, 46));
+        host.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
+        host.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        host.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        var toolbar = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, RowCount = 1, Margin = Padding.Empty, Padding = new Padding(10, 0, 8, 0) };
+        toolbar.ColumnStyles.Add(new(SizeType.Percent, 100)); toolbar.ColumnStyles.Add(new(SizeType.AutoSize)); toolbar.ColumnStyles.Add(new(SizeType.AutoSize));
         toolbar.RowStyles.Add(new(SizeType.Percent, 100));
-        toolbar.Controls.Add(new Label { Text = "Точки", Dock = DockStyle.Fill, Font = new Font(Font.FontFamily, 12, FontStyle.Bold), TextAlign = ContentAlignment.MiddleLeft, Margin = Padding.Empty }, 0, 0);
-        var add = HeaderButton("+ Добавить точку"); add.Tag = "accent-outline"; add.Click += (_, _) => AddPoint();
-        var undo = HeaderButton("Отменить"); undo.Tag = "zone"; undo.Click += (_, _) => { if (grid.EndEdit()) workspace.Undo(); };
+        toolbar.Controls.Add(new Label { Text = "Точки", AutoEllipsis = true, Dock = DockStyle.Fill, Font = new Font(Font.FontFamily, 12, FontStyle.Bold), TextAlign = ContentAlignment.MiddleLeft, Margin = Padding.Empty }, 0, 0);
+        var add = HeaderButton("+ Добавить точку"); add.AutoSize = true; add.Tag = "accent-outline"; add.Click += (_, _) => AddPoint();
+        var undo = HeaderButton("Отменить"); undo.AutoSize = true; undo.Tag = "zone"; undo.Click += (_, _) => { if (grid.EndEdit()) workspace.Undo(); };
         toolbar.Controls.Add(add, 1, 0); toolbar.Controls.Add(undo, 2, 0);
-        host.Controls.Add(toolbar, 0, 0); grid.Margin = Padding.Empty; host.Controls.Add(grid, 0, 1);
+
+        var actions = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, Margin = Padding.Empty, Padding = new Padding(8, 0, 8, 0) };
+        actions.ColumnStyles.Add(new(SizeType.Percent, 60)); actions.ColumnStyles.Add(new(SizeType.Percent, 40));
+        actions.RowStyles.Add(new(SizeType.Percent, 100));
+        var remove = HeaderButton("Удалить выбранные");
+        var clear = HeaderButton("Удалить все");
+        remove.Margin = new Padding(2, 1, 3, 6); clear.Margin = new Padding(3, 1, 2, 6);
+        remove.Enabled = false; clear.Enabled = false;
+        remove.Click += (_, _) => grid.DeleteSelectedPoints();
+        clear.Click += (_, _) => grid.DeleteAllPoints();
+        grid.PointSelectionChanged += indices => remove.Enabled = indices.Count > 0;
+        workspace.Changed += (_, _) => clear.Enabled = workspace.Points.Count > 0;
+        actions.Controls.Add(remove, 0, 0); actions.Controls.Add(clear, 1, 0);
+        host.Controls.Add(toolbar, 0, 0);
+        host.Controls.Add(actions, 0, 1);
+        host.Controls.Add(tableCrsCaption, 0, 2);
+        grid.Margin = Padding.Empty; host.Controls.Add(grid, 0, 3);
         return host;
     }
 
@@ -217,9 +248,10 @@ internal sealed partial class NativeWorkspaceForm : Form
     {
         var host = WorkspaceCard("PreviewCard");
         var toolbar = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, Margin = Padding.Empty, Padding = new Padding(14, 0, 12, 0) };
-        toolbar.RowStyles.Add(new(SizeType.Percent, 100)); toolbar.ColumnStyles.Add(new(SizeType.Percent, 100)); toolbar.ColumnStyles.Add(new(SizeType.Absolute, 102));
+        toolbar.RowStyles.Add(new(SizeType.Percent, 100)); toolbar.ColumnStyles.Add(new(SizeType.Percent, 100)); toolbar.ColumnStyles.Add(new(SizeType.Absolute, 52));
         toolbar.Controls.Add(new Label { Text = "Визуализация", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Font = new Font(Font.FontFamily, 12, FontStyle.Bold), Margin = Padding.Empty, AutoEllipsis = true }, 0, 0);
-        visualizationHeaderButton = HeaderButton("⌃ Скрыть"); visualizationHeaderButton.AccessibleName = "Скрыть визуализацию";
+        visualizationHeaderButton = new NavigationIconButton { HeaderIcon = true, Dock = DockStyle.Fill, Margin = new Padding(6, 8, 0, 8) };
+        UpdateVisualizationButton(visualizationHeaderButton, true);
         visualizationHeaderButton.Click += (_, _) => ToggleVisualization(); toolbar.Controls.Add(visualizationHeaderButton, 1, 0);
         host.Controls.Add(toolbar, 0, 0);
         var canvas = new Panel { Dock = DockStyle.Fill, Margin = Padding.Empty };
@@ -251,6 +283,17 @@ internal sealed partial class NativeWorkspaceForm : Form
         host.Controls.Add(canvas, 0, 1); return host;
     }
 
+    private void UpdateVisualizationButton(NavigationIconButton button, bool visible)
+    {
+        var action = visible ? "Скрыть визуализацию" : "Показать визуализацию";
+        button.PreviewVisible = visible;
+        button.Text = button.HeaderIcon ? string.Empty : action;
+        button.AccessibleName = action;
+        button.AccessibleDescription = visible ? "Визуализация открыта" : "Визуализация скрыта";
+        navigationTips.SetToolTip(button, action);
+        button.Invalidate();
+    }
+
     private void ToggleVisualization()
     {
         ThemeTransition.Change(this, ToggleVisualizationCore);
@@ -261,9 +304,8 @@ internal sealed partial class NativeWorkspaceForm : Form
         var show = split.Panel2Collapsed;
         preview.SetActive(show);
         split.Panel2Collapsed = !show;
-        var text = show ? "⌃ Скрыть" : "⌄ Показать";
-        if (visualizationHeaderButton is not null) visualizationHeaderButton.Text = text;
-        if (visualizationSidebarButton is not null) visualizationSidebarButton.Text = show ? "Скрыть визуализацию" : "Показать визуализацию";
+        if (visualizationHeaderButton is not null) UpdateVisualizationButton(visualizationHeaderButton, show);
+        if (visualizationSidebarButton is not null) UpdateVisualizationButton(visualizationSidebarButton, show);
         RefreshStatus();
     }
 
@@ -328,7 +370,13 @@ internal sealed partial class NativeWorkspaceForm : Form
             }
             var geographic = conversion.SourceIsGeographic;
             var reportZones = conversion.UsesAutoTargetZone;
-            var restoreSettings = conversion.CaptureUndo();
+            var undoSelection = conversion.CaptureUndo();
+            var previousCaption = tableCrsCaption.Text;
+            void RestoreSettings()
+            {
+                undoSelection();
+                SetTableCaption(previousCaption);
+            }
             conversionCancellation = cancellation;
             conversion.SetBusy(true); WorkspaceChanged(this, EventArgs.Empty);
             var runtime = coordinateRuntime;
@@ -342,8 +390,10 @@ internal sealed partial class NativeWorkspaceForm : Form
             cancellation.Token.ThrowIfCancellationRequested();
             if (IsDisposed || Disposing || !grid.EndEdit()) return;
             var issues = zoneWarning is null ? result.Issues : result.Issues.Concat(new[] { new QualityIssue(0, "warning", zoneWarning) }).ToArray();
-            var zones = operation.Apply(workspace, conversion.SettingsSnapshot(), result.Response, issues, passportState, restoreSettings);
+            var zones = operation.Apply(workspace, conversion.SettingsSnapshot(), result.Response, issues, passportState, RestoreSettings);
             conversion.AcceptResult(zones);
+            var zoneText = zones.Count == 0 ? "" : " · " + (zones.Count == 1 ? "зона " : "зоны ") + string.Join(", ", zones);
+            SetTableCaption("Пересчитано в " + conversion.SourceName + zoneText);
             if (reportZones && zones.Count > 0)
                 MessageBox.Show(this, "Автоматически выбраны зоны: " + string.Join(", ", zones), "Преобразование выполнено");
         }
@@ -381,10 +431,18 @@ internal sealed partial class NativeWorkspaceForm : Form
                 var next = wizard.AppendToCurrent
                     ? workspace.Points.Concat(wizard.ImportedPoints).ToArray()
                     : wizard.ImportedPoints.ToArray();
-                workspace.ReplacePoints(next);
+                var oldCaption = tableCrsCaption.Text;
+                var undoSelection = conversion.CaptureUndo();
+                workspace.ReplacePoints(next, () => { undoSelection(); SetTableCaption(oldCaption); }, true);
+                SetTableCaption("");
                 preview.FitToContent();
                 if (wizard.SourceCrsId is string sourceId && conversion.SelectSource(sourceId))
                     status.Text = $"Импортировано точек: {wizard.ImportedPoints.Count}. Исходная СК из файла: {conversion.SourceName}.";
+                else if (wizard.SourceCrsId is { Length: > 0 } unknownId)
+                {
+                    status.Text = $"Импортировано точек: {wizard.ImportedPoints.Count}. Укажите исходную СК.";
+                    MessageBox.Show(this, $"Система из файла «{unknownId}» отсутствует в списке. Выберите исходную СК перед пересчётом.", "Исходная система координат");
+                }
                 else status.Text = $"Импортировано точек: {wizard.ImportedPoints.Count}.";
             }
             catch (Exception ex)
@@ -392,12 +450,24 @@ internal sealed partial class NativeWorkspaceForm : Form
         }
     }
 
+    private void SetTableCaption(string caption)
+    {
+        tableCrsCaption.Text = caption;
+        tableCrsCaption.Visible = caption.Length > 0;
+    }
+
+    private void StartTutorial()
+    {
+        using var tutorial = new TrainingDialog(coordinateRuntime, settings, dark);
+        UiMotion.ShowDialog(tutorial, this);
+    }
+
     private void ExportPoints()
     {
         if (conversionCancellation is not null || !grid.EndEdit()) return;
         try
         {
-            using var dialog = new PointExportDialog(workspace.Points, conversion.SourceIsGeographic, conversion.SourceName, dark);
+            using var dialog = new PointExportDialog(workspace.Points, conversion.SourceIsGeographic, conversion.SourceName, dark, settings);
             if (UiMotion.ShowDialog(dialog, this) == DialogResult.OK)
                 status.Text = $"Экспортировано точек: {dialog.ExportedCount}.";
         }

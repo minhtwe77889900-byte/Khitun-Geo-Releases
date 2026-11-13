@@ -21,10 +21,16 @@ internal sealed class PointExportDialog : Form
         PointExportFormat.Nez, PointExportFormat.Enz, PointExportFormat.Xyz, PointExportFormat.Blh
     };
     private static readonly string[] Delimiters = { ",", ";", "\t", " " };
+    private readonly AppSettings settings;
+    public PointExportOptions? SavedOptions { get; private set; }
     public int ExportedCount { get; private set; }
 
     public PointExportDialog(IReadOnlyList<SurveyPoint> points, bool geographic, string sourceName, bool dark)
+        : this(points, geographic, sourceName, dark, AppSettingsStore.Load()) { }
+
+    public PointExportDialog(IReadOnlyList<SurveyPoint> points, bool geographic, string sourceName, bool dark, AppSettings settings)
     {
+        this.settings = settings;
         this.points = points.ToArray(); this.geographic = geographic; this.coordinateSystem = sourceName;
         Text = "Экспорт всех точек — " + sourceName;
         Size = new Size(840, 500); MinimumSize = new Size(700, 400);
@@ -35,8 +41,6 @@ internal sealed class PointExportDialog : Form
         var options = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoScroll = true };
         format.Items.AddRange(new object[] { "AutoCAD — X,Y,Z", "AutoCAD — скрипт POINT (.scr)", "Excel — книга (.xlsx)", "Civil 3D — PNEZD", "Civil 3D — PENZD", "Civil 3D — NEZ", "Civil 3D — ENZ", "Геодезические — X,Y,Z", "Географические — B,L,H" });
         delimiter.Items.AddRange(new object[] { "Запятая", "Точка с запятой", "Табуляция", "Пробел" });
-        format.SelectedIndex = geographic ? Formats.Length - 1 : 0; delimiter.SelectedIndex = geographic ? 0 : 2;
-        decimals.Value = geographic ? 9 : 3;
         options.Controls.Add(format); options.Controls.Add(delimiter);
         options.Controls.Add(new Label { Text = "Знаков", AutoSize = true, Margin = new Padding(5, 7, 3, 0) });
         options.Controls.Add(decimals); options.Controls.Add(header);
@@ -48,10 +52,13 @@ internal sealed class PointExportDialog : Form
         actions.Controls.Add(save); actions.Controls.Add(cancel); footer.Controls.Add(actions, 1, 0);
         layout.Controls.Add(options, 0, 0); layout.Controls.Add(preview, 0, 1); layout.Controls.Add(footer, 0, 2);
         Controls.Add(layout); CancelButton = cancel;
+        var preference = geographic ? settings.GeographicExport : settings.ProjectedExport;
+        var remembered = Array.FindIndex(Formats, f => f.ToString() == preference?.Format && (geographic || f != PointExportFormat.Blh));
         format.SelectedIndexChanged += (_, _) =>
         {
             decimals.Value = Formats[format.SelectedIndex] is PointExportFormat.Blh or PointExportFormat.ExcelXlsx ? 9 : 3;
-            delimiter.SelectedIndex = Formats[format.SelectedIndex] == PointExportFormat.AutoCad ? 2 : 0;
+            var savedDelimiter = Array.IndexOf(Delimiters, preference?.Delimiter);
+            delimiter.SelectedIndex = savedDelimiter >= 0 ? savedDelimiter : Formats[format.SelectedIndex] == PointExportFormat.AutoCad ? 2 : 0;
             var civil = PointExport.IsCivilFormat(Formats[format.SelectedIndex]);
             header.Enabled = !civil;
             if (civil) header.Checked = false;
@@ -59,6 +66,7 @@ internal sealed class PointExportDialog : Form
             delimiter.Visible = header.Visible = !specialFormat;
             RefreshPreview();
         };
+        format.SelectedIndex = remembered >= 0 ? remembered : geographic ? Formats.Length - 1 : 0;
         delimiter.SelectedIndexChanged += (_, _) => RefreshPreview();
         decimals.ValueChanged += (_, _) => RefreshPreview(); header.CheckedChanged += (_, _) => RefreshPreview();
         save.Click += (_, _) => SaveFile();
@@ -106,7 +114,13 @@ internal sealed class PointExportDialog : Form
         try
         {
             PointExport.Save(dialog.FileName, points, options, geographic, coordinateSystem);
-            ExportedCount = PointExport.Create(points, options, geographic).Rows.Count;
+            ExportedCount = points.Count(p => p.X.HasValue && p.Y.HasValue);
+            var previous = geographic ? settings.GeographicExport : settings.ProjectedExport;
+            var preference = new PointExportPreference(options.Format.ToString(), script || excel ? previous?.Delimiter : options.Delimiter);
+            if (geographic) settings.GeographicExport = preference;
+            else settings.ProjectedExport = preference;
+            AppSettingsStore.Save(settings);
+            SavedOptions = options;
             DialogResult = DialogResult.OK; Close();
         }
         catch (Exception ex) when (ex is ArgumentException or System.IO.IOException or UnauthorizedAccessException)

@@ -6,7 +6,8 @@ internal sealed class PointGrid : DataGridView
 {
     private PointWorkspace? workspace;
     private int columnAnchor;
-    private int rowAnchor;
+    private bool selectionUpdatePending;
+    public event Action<IReadOnlySet<int>>? PointSelectionChanged;
 
     public PointGrid()
     {
@@ -17,7 +18,7 @@ internal sealed class PointGrid : DataGridView
         SelectionMode = DataGridViewSelectionMode.CellSelect;
         MultiSelect = true;
         Dock = DockStyle.Fill;
-        RowHeadersWidth = 24;
+        RowHeadersVisible = false;
         BackgroundColor = Color.White;
         BorderStyle = BorderStyle.None;
         DoubleBuffered = true;
@@ -65,17 +66,42 @@ internal sealed class PointGrid : DataGridView
             }
             if (!shift) columnAnchor = e.ColumnIndex;
         };
-        RowHeaderMouseClick += (_, e) =>
+    }
+
+    private HashSet<int> SelectedPointIndices() =>
+        SelectedCells.Cast<DataGridViewCell>().Select(cell => cell.RowIndex).ToHashSet();
+
+    protected override void OnSelectionChanged(EventArgs e)
+    {
+        base.OnSelectionChanged(e);
+        if (selectionUpdatePending || !IsHandleCreated || IsDisposed || Disposing) return;
+        selectionUpdatePending = true;
+        BeginInvoke((Action)(() =>
         {
-            var shift = (ModifierKeys & Keys.Shift) != 0;
-            var control = (ModifierKeys & Keys.Control) != 0;
-            var selected = Rows[e.RowIndex].Selected;
-            if (!control) ClearSelection();
-            var start = shift ? Math.Min(Math.Clamp(rowAnchor, 0, Math.Max(0, RowCount - 1)), e.RowIndex) : e.RowIndex;
-            var end = shift ? Math.Max(Math.Clamp(rowAnchor, 0, Math.Max(0, RowCount - 1)), e.RowIndex) : e.RowIndex;
-            for (var r = start; r <= end; r++) Rows[r].Selected = !control || !selected;
-            if (!shift) rowAnchor = e.RowIndex;
-        };
+            selectionUpdatePending = false;
+            if (!IsDisposed) PointSelectionChanged?.Invoke(SelectedPointIndices());
+        }));
+    }
+
+    public void SelectPoint(int index)
+    {
+        if (index < 0 || index >= RowCount || !EndEdit()) return;
+        CurrentCell = Rows[index].Cells[0];
+        ClearSelection();
+        foreach (DataGridViewCell cell in Rows[index].Cells) cell.Selected = true;
+    }
+
+    public void DeleteSelectedPoints()
+    {
+        if (workspace is null || !EndEdit()) return;
+        var selected = SelectedPointIndices();
+        if (selected.Count > 0)
+            workspace.ReplacePoints(workspace.Points.Where((_, index) => !selected.Contains(index)).ToArray());
+    }
+
+    public void DeleteAllPoints()
+    {
+        if (workspace is not null && EndEdit()) workspace.ReplacePoints(Array.Empty<SurveyPoint>());
     }
 
     public void Bind(PointWorkspace value)
@@ -122,19 +148,9 @@ internal sealed class PointGrid : DataGridView
         }
         if (IsCurrentCellInEditMode) return base.ProcessCmdKey(ref msg, keyData);
         if (keyData == (Keys.Control | Keys.Z)) { workspace.Undo(); return true; }
-        if (keyData == Keys.Delete)
+        if (keyData is Keys.Delete or Keys.Back)
         {
-            var next = workspace.Points.ToArray();
-            foreach (DataGridViewCell cell in SelectedCells)
-            {
-                var p = next[cell.RowIndex];
-                next[cell.RowIndex] = cell.ColumnIndex switch
-                {
-                    0 => p with { Name = "" }, 1 => p with { X = null }, 2 => p with { Y = null },
-                    3 => p with { Height = null }, _ => p with { Description = "" }
-                };
-            }
-            workspace.ReplacePoints(next);
+            DeleteSelectedPoints();
             return true;
         }
         return base.ProcessCmdKey(ref msg, keyData);

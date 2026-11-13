@@ -131,6 +131,42 @@ internal static partial class Program
             Require(rail.Width == width, "Interrupted navigation expansion returns to its original DPI-scaled width");
             setDark.Invoke(switcher, new object[] { false }); PumpFor(350);
         });
+        Check("Swapping CRS leaves the table untouched and Ctrl+Z restores the settings", () =>
+        {
+            var selection = Field(form, "conversion");
+            var workspace = Field(form, "workspace");
+            var before = selection.GetType().GetMethod("SettingsSnapshot")!.Invoke(selection, null);
+            var source = selection.GetType().GetProperty("SourceName")!;
+            var target = selection.GetType().GetProperty("TargetName")!;
+            var sourceName = source.GetValue(selection);
+            var targetName = target.GetValue(selection);
+            object[] Points() => ((System.Collections.IEnumerable)workspace.GetType().GetProperty("Points")!.GetValue(workspace)!).Cast<object>().ToArray();
+            var original = Points();
+            Descendants(form).OfType<Button>().Single(b => b.Name == "SwapCrs").PerformClick();
+            Require(Equals(source.GetValue(selection), targetName) && Equals(target.GetValue(selection), sourceName), "Button swaps source and target");
+            Require(Points().SequenceEqual(original), "Swapping systems preserves every table coordinate");
+            Require(SendUndo(form) && Equals(before, selection.GetType().GetMethod("SettingsSnapshot")!.Invoke(selection, null)), "Ctrl+Z restores both CRS and zone settings");
+        });
+        Check("Delete and Backspace remove selected rows, and Ctrl+Z restores them", () =>
+        {
+            var grid = (DataGridView)Field(form, "grid");
+            var workspace = Field(form, "workspace");
+            object[] Points() => ((System.Collections.IEnumerable)workspace.GetType().GetProperty("Points")!.GetValue(workspace)!).Cast<object>().ToArray();
+            Require(!grid.RowHeadersVisible, "Point grid hides the empty row header");
+            var original = Points();
+            foreach (var key in new[] { Keys.Delete, Keys.Back })
+            {
+                grid.Focus();
+                grid.CurrentCell = grid.Rows[1].Cells[1];
+                grid.ClearSelection();
+                grid.Rows[1].Cells[1].Selected = true;
+                grid.Rows[1].Cells[3].Selected = true;
+                grid.Rows[3].Cells[2].Selected = true;
+                Require(SendCommand(grid, key), $"{key} handled by point grid");
+                Require(Points().SequenceEqual(original.Where((_, i) => i != 1 && i != 3)), $"{key} removes each touched row once");
+                Require(SendUndo(form) && Points().SequenceEqual(original), "One undo restores original rows, order and all fields");
+            }
+        });
         Check("Ctrl+Z undoes workspace actions with focus outside the table", () =>
         {
             var workspace = Field(form, "workspace");
@@ -156,6 +192,7 @@ internal static partial class Program
                 accept.Stop(); opened = true;
                 try
                 {
+                    Descendants(dialog).OfType<CheckBox>().Single(c => c.Name == "ZoneAuto").Checked = false;
                     Descendants(dialog).OfType<NumericUpDown>().Single(c => c.Name == "ZoneNumber").Value = 14;
                     Descendants(dialog).OfType<CheckBox>().Single(c => c.Name == "ZonePrefix").Checked = false;
                     Require(Descendants(dialog).OfType<Label>().Any(c => c.Text.Contains("78–84")), "Zone 14 shows its 78–84 degree range");
@@ -217,9 +254,9 @@ internal static partial class Program
         {
             var selection = Field(form, "conversion");
             selection.GetType().GetMethod("SelectSource")!.Invoke(selection, new object[] { "gsk6" });
-            ((CheckBox)Field(selection, "autoZone")).Checked = false;
-            ((NumericUpDown)Field(selection, "manualZone")).Value = 14;
-            ((CheckBox)Field(selection, "sourcePrefix")).Checked = true;
+            SetField(selection, "autoZone", false);
+            SetField(selection, "manualZone", 14);
+            SetField(selection, "sourcePrefix", true);
             var pointType = form.GetType().Assembly.GetType("KhitunGeo.Native.SurveyPoint", true)!;
             var input = Array.CreateInstance(pointType, 1);
             input.SetValue(Activator.CreateInstance(pointType, new object?[] { "Контроль", 7465965.922, 599112.246, null, "" }), 0);
@@ -227,17 +264,17 @@ internal static partial class Program
             try { selection.GetType().GetMethod("BuildRequest")!.Invoke(selection, new object[] { input }); }
             catch (System.Reflection.TargetInvocationException e) when (e.InnerException is FormatException && e.InnerException.Message.Contains("префикс", StringComparison.OrdinalIgnoreCase)) { rejected = true; }
             Require(rejected, "Manual zone 14 must reject unprefixed Y while source-prefix is checked instead of returning far-away coordinates");
-            ((CheckBox)Field(selection, "sourcePrefix")).Checked = false;
+            SetField(selection, "sourcePrefix", false);
         });
         Check("Conflicting zone offers Continue or Cancel, preserves originals and records the choice", () =>
         {
             var selection = Field(form, "conversion");
             selection.GetType().GetMethod("SelectSource")!.Invoke(selection, new object[] { "gsk6" });
-            ((CheckBox)Field(selection, "autoZone")).Checked = false;
-            ((NumericUpDown)Field(selection, "manualZone")).Value = 14;
-            ((CheckBox)Field(selection, "sourcePrefix")).Checked = true;
+            SetField(selection, "autoZone", false);
+            SetField(selection, "manualZone", 14);
+            SetField(selection, "sourcePrefix", true);
             var target = (ComboBox)Field(selection, "target");
-            target.SelectedItem = target.Items.Cast<object>().Single(c => (string)c.GetType().GetProperty("Id")!.GetValue(c)! == "msk164");
+            target.SelectedItem = target.Items.Cast<object>().Single(c => (string)c.GetType().GetProperty("Id")!.GetValue(c)! == "msk-group:164");
             var workspace = Field(form, "workspace");
             var pointType = form.GetType().Assembly.GetType("KhitunGeo.Native.SurveyPoint", true)!;
             var input = Array.CreateInstance(pointType, 1);
@@ -289,11 +326,12 @@ internal static partial class Program
         if (failures.Count > 0) throw new InvalidOperationException(string.Join(Environment.NewLine, failures));
         Capture(form, "native-live-interactions");
     }
-    private static bool SendUndo(Form form)
+    private static bool SendUndo(Form form) => SendCommand(form, Keys.Control | Keys.Z);
+    private static bool SendCommand(Control control, Keys keys)
     {
-        var message = Message.Create(form.Handle, 0x100, new IntPtr((int)Keys.Z), IntPtr.Zero);
-        return (bool)form.GetType().GetMethod("ProcessCmdKey", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
-            .Invoke(form, new object[] { message, Keys.Control | Keys.Z })!;
+        var message = Message.Create(control.Handle, 0x100, new IntPtr((int)(keys & Keys.KeyCode)), IntPtr.Zero);
+        return (bool)control.GetType().GetMethod("ProcessCmdKey", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+            .Invoke(control, new object[] { message, keys })!;
     }
     private static void PumpFor(int milliseconds)
     {

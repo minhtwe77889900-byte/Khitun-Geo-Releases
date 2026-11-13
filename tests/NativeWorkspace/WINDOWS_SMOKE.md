@@ -16,7 +16,7 @@ Launch a locally built executable with `--native-preview`. Default startup must 
 - [ ] Build the entire Windows project without errors.
 - [ ] Empty table, Add point, invalid edit, negative height and cleared cells.
 - [ ] Paste TSV from Excel, quoted CSV and malformed input; malformed input changes no points.
-- [ ] Ctrl/Shift rows and columns; Delete clears only selected cells; Ctrl+Z restores them.
+- [ ] Ctrl/Shift-select points with the row header hidden. Delete and Backspace remove the selected rows. Ctrl+Z restores their values and original order.
 - [ ] Offset heights for every point; one undo restores all heights.
 - [ ] Edit 10,000 points without per-keystroke table rebuilding.
 - [ ] Resize to minimum, switch light/dark, resize splitter, hide/show preview.
@@ -61,7 +61,7 @@ Stage 4 coordinate module checks:
 Stage 6 native CRS selection checks (pending):
 
 - [ ] Select builtin WGS-84 / GSK-2011 and regional MSK/SK-63 entries using autocomplete.
-- [ ] Verify source/target default to WGS-84 and existing MSK-164 preset; lists are independent.
+- [ ] Verify source/target default to WGS-84 and regional MSK-164 Krasnoyarsk entry; lists are independent.
 - [ ] Switch GK 3° / GK 6° / UTM: manual maximum becomes 120 / 60 / 60 and invalid values cannot remain.
 - [ ] Manual zone remains available for source UTM even with auto target zone enabled.
 - [ ] Prefix options only apply to GK systems; disabled options do not affect the request.

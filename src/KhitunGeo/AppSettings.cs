@@ -6,8 +6,12 @@ internal sealed class AppSettings
 {
     public string ExportFolder { get; set; } = AppPaths.DefaultExportDirectory;
     public bool RememberLastExportFolder { get; set; } = true;
+    public PointExportPreference? GeographicExport { get; set; }
+    public PointExportPreference? ProjectedExport { get; set; }
     public bool AutoUpdateEnabled { get; set; } = true;
 }
+
+internal sealed record PointExportPreference(string Format, string? Delimiter);
 
 internal static class AppSettingsStore
 {

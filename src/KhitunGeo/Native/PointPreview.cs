@@ -18,6 +18,14 @@ internal sealed class PointPreview : Control
     public int ZoomPercent => (int)Math.Round(zoomFactor * 100);
     public event EventHandler? DrawingStatusChanged;
     public event EventHandler? ZoomChanged;
+    public event Action<int>? PointPicked;
+    private IReadOnlySet<int> selectedPoints = new HashSet<int>();
+
+    public void SetSelectedPoints(IReadOnlySet<int> indices)
+    {
+        selectedPoints = indices;
+        if (active && Visible) Invalidate();
+    }
 
     public void SetVisibleLayers(IReadOnlySet<string> layers)
     {
@@ -112,7 +120,25 @@ internal sealed class PointPreview : Control
     {
         base.OnMouseDown(e);
         Focus();
-        if (e.Button != MouseButtons.Middle || viewport is null) return;
+        if (viewport is null) return;
+        if (e.Button == MouseButtons.Left)
+        {
+            var radius = 9 * DeviceDpi / 96d;
+            var best = radius * radius;
+            var hit = -1;
+            for (var i = 0; i < points.Count; i++)
+            {
+                if (points[i].X is not double north || points[i].Y is not double east) continue;
+                var screen = viewport.Screen(east, north);
+                var dx = screen.X - e.X;
+                var dy = screen.Y - e.Y;
+                var distance = dx * dx + dy * dy;
+                if (distance <= best) { hit = i; best = distance; }
+            }
+            if (hit >= 0) PointPicked?.Invoke(hit);
+            return;
+        }
+        if (e.Button != MouseButtons.Middle) return;
         panStart = e.Location; Capture = true; Cursor = Cursors.Hand;
     }
     protected override void OnMouseMove(MouseEventArgs e)
@@ -207,6 +233,15 @@ internal sealed class PointPreview : Control
                     e.Graphics.FillEllipse(brush, (float)screen.X - 4, (float)screen.Y - 4, 8, 8);
                     if (points.Count <= 500) e.Graphics.DrawString(p.Name, Font, brush, (float)screen.X + 6, (float)screen.Y - 20);
                 }
+            }
+            var radius = 7f * DeviceDpi / 96f;
+            using var highlight = new Pen(NativeTheme.IsDark(this) ? Color.Gold : Color.FromArgb(186, 65, 0), 2.5f * DeviceDpi / 96f);
+            foreach (var index in selectedPoints)
+            {
+                if (index < 0 || index >= points.Count || points[index].X is not double north || points[index].Y is not double east) continue;
+                var screen = activeViewport.Screen(east, north);
+                if (screen.X < -radius || screen.X > Width + radius || screen.Y < -radius || screen.Y > Height + radius) continue;
+                e.Graphics.DrawEllipse(highlight, (float)screen.X - radius, (float)screen.Y - radius, 2 * radius, 2 * radius);
             }
         }
         finally { e.Graphics.Restore(saved); }

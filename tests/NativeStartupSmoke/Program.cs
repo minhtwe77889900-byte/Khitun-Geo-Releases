@@ -30,6 +30,7 @@ internal static partial class Program
         form.Show(); Application.DoEvents();
         if (args.Contains("--interaction")) { CheckInteractionRegressions(form); return; }
         CheckMskSelection(form);
+        CheckSk63ZoneSearch(form);
         CheckCrsSearch(assembly, form);
         CheckWorkspaceLayout(form);
         CheckTheme(form, scale);
@@ -41,7 +42,7 @@ internal static partial class Program
         if (scale == 1) Capture(form, "native-live-window-1");
         // Check the real shown window first, then render its actual controls in an
         // offscreen host: hosted CI desktops are limited to 1024x768 pixels.
-        foreach (var button in Descendants(form).OfType<Button>().Where(b => b.Text is "Импорт" or "Экспорт" or "⌃ Скрыть")) CheckButton(button);
+        foreach (var button in Descendants(form).OfType<Button>().Where(b => b.Text is "Импорт" or "Экспорт")) CheckButton(button);
         var root = form.Controls.Cast<Control>().Single();
         form.Controls.Remove(root);
         using var host = new Panel { Size = new Size(1280, 760), Font = form.Font };
@@ -57,25 +58,35 @@ internal static partial class Program
         apply.Invoke(null, new object[] { host, false });
         var import = Descendants(host).OfType<Button>().Single(b => b.Text == "Импорт");
         var export = Descendants(host).OfType<Button>().Single(b => b.Text == "Экспорт");
-        var view = Descendants(host).OfType<Button>().Single(b => b.Text == "⌃ Скрыть");
-        foreach (var button in new[] { import, export, view }) CheckButton(button);
+        var view = (Button)Field(form, "visualizationHeaderButton");
+        foreach (var button in new[] { import, export }) CheckButton(button);
         Require(import.BackColor == export.BackColor && import.Size == export.Size, "Import/export use symmetric reference buttons");
         Require(Descendants(host).OfType<PictureBox>().Any(p => p.Visible && p.Image is not null && p.Height >= 24 * scale), "Application logo is visible");
         Require(form.Icon is not null, "Window has application icon");
         var toggle = Descendants(host).OfType<Button>().Single(b => b.AccessibleName == "Показать или скрыть левую панель");
+        var sidebarEye = (Button)Field(form, "visualizationSidebarButton");
+        void CheckEyes(bool visible)
+        {
+            var action = visible ? "Скрыть визуализацию" : "Показать визуализацию";
+            foreach (var eye in new[] { view, sidebarEye })
+                Require(eye.AccessibleName == action && Equals(eye.GetType().GetProperty("PreviewVisible")!.GetValue(eye), visible), "Both eye icons reflect the current visualization state");
+        }
+        CheckEyes(true);
         var collapsedRailWidth = Descendants(host).Single(c => c.Name == "NavigationRail").Width;
         toggle.PerformClick(); PumpFor(300); view.PerformClick(); PumpFor(300);
+        CheckEyes(false);
         Require(import.Visible && export.Visible, "Import/export stay accessible with sidebar and preview hidden");
-        foreach (var button in new[] { import, export, view }) CheckButton(button);
+        foreach (var button in new[] { import, export }) CheckButton(button);
         Capture(host, $"native-hidden-{scale}");
         toggle.PerformClick(); PumpFor(300);
         Require(Descendants(host).Single(c => c.Name == "NavigationRail").Width == collapsedRailWidth, "Navigation preserves its DPI scale after expanding and collapsing");
         ((Button)Field(form, "visualizationSidebarButton")).PerformClick(); PumpFor(300);
+        CheckEyes(true);
         Require(!((SplitContainer)Field(form, "split")).Panel2Collapsed, "Preview restored through the visible sidebar action");
         host.Size = new Size((int)(880 * scale), (int)(560 * scale));
         host.PerformLayout();
         Application.DoEvents();
-        foreach (var button in new[] { import, export, view }) CheckButton(button);
+        foreach (var button in new[] { import, export }) CheckButton(button);
         Capture(host, $"native-small-{scale}");
         // Inspect the actual height dialog created by the production UI.
         var createDialog = form.GetType().GetMethod("CreateHeightDialog", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -104,11 +115,11 @@ internal static partial class Program
         Console.WriteLine("Export diagnostic initial CRS: " + selection.GetType().GetProperty("SourceName")!.GetValue(selection) + " -> " + selection.GetType().GetProperty("TargetName")!.GetValue(selection));
         var source = (ComboBox)Field(selection, "source");
         var target = (ComboBox)Field(selection, "target");
-        Require((string)target.SelectedItem!.GetType().GetProperty("Id")!.GetValue(target.SelectedItem)! == "msk164",
-            "Showing the window reset target CRS to the first catalogue item");
+        Require((string)target.SelectedItem!.GetType().GetProperty("Id")!.GetValue(target.SelectedItem)! == "msk-group:164",
+            "The initial target is the regional MSK-164 catalogue entry");
         object Option(ComboBox picker, string id) => picker.Items.Cast<object>().Single(x => (string)x.GetType().GetProperty("Id")!.GetValue(x)! == id);
         source.SelectedItem = Option(source, "wgs");
-        target.SelectedItem = Option(target, "msk164");
+        target.SelectedItem = Option(target, "msk-group:164");
         var input = Array.CreateInstance(pointType, 2);
         for (var i = 0; i < 2; i++) input.SetValue(Activator.CreateInstance(pointType, new object?[] { "00" + (i + 1), 65.0 + i * .001, 84.0 + i * .001, -12.0 + i, "Глубина" }), i);
         workspace.GetType().GetMethod("ReplacePoints")!.Invoke(workspace, new object?[] { input, null, false });
@@ -210,7 +221,7 @@ internal static partial class Program
         var sourcePicker = (ComboBox)Field(selection, "source");
         var targetPicker = (ComboBox)Field(selection, "target");
         targetPicker.SelectedItem = targetPicker.Items.Cast<object>().Single(x => x.GetType().GetProperty("Id")!.GetValue(x)!.ToString() == "gsk3");
-        ((CheckBox)Field(selection, "targetPrefix")).Checked = false;
+        SetField(selection, "targetPrefix", false);
         type.GetMethod("AcceptResult")!.Invoke(selection, new object[] { new[] { 3, 4 } });
         Require((bool)Field(selection, "ambiguousSourceZones"), "Different unprefixed result zones require explicit source selection");
         before = (string)type.GetMethod("SettingsSnapshot")!.Invoke(selection, null)!;
@@ -230,6 +241,28 @@ internal static partial class Program
         Require(!((Button)Field(selection, "convert")).Enabled, "Cancel must retain the prior conversion state");
         undo();
         Console.WriteLine("PASS MSK grouping, exact imported zone, actual zone dialog and atomic cancel/undo");
+    }
+
+    private static void CheckSk63ZoneSearch(Form form)
+    {
+        var selection = Field(form, "conversion");
+        var picker = (ComboBox)Field(selection, "source");
+        var entry = picker.Items.Cast<object>().Single(e => (string)e.GetType().GetProperty("Id")!.GetValue(e)! == "sk63-group");
+        var zones = ((System.Collections.IEnumerable)entry.GetType().GetProperty("Zones")!.GetValue(entry)!).Cast<object>().ToArray();
+        string Id(object option) => (string)option.GetType().GetProperty("Id")!.GetValue(option)!;
+        var current = zones.Single(z => Id(z) == "sk63:SK63W3_2");
+        var type = form.GetType().Assembly.GetType("KhitunGeo.Native.MskZoneDialog", true)!;
+        using var dialog = (Form)Activator.CreateInstance(type, new object[] { entry, current, false })!;
+        dialog.Show(form); Application.DoEvents();
+        var results = Descendants(dialog).OfType<ListBox>().Single();
+        var search = Descendants(dialog).OfType<TextBox>().Single();
+        Require(results.Items.Count == zones.Length && Equals(results.SelectedItem, current), "SK-63 initially lists all real zones and retains the active selection");
+        search.Text = "SK63W3";
+        Require(results.Items.Count > 1 && results.Items.Count < zones.Length &&
+            results.Items.Cast<object>().All(z => Id(z).StartsWith("sk63:SK63W3_")), "Zone search narrows SK-63 to the matching region");
+        search.Text = "no-such-zone";
+        Require(results.Items.Count == 0 && !((Button)dialog.AcceptButton!).Enabled, "Empty zone results cannot be accepted");
+        dialog.Close();
     }
 
     private static void CheckCrsSearch(Assembly assembly, Form form)
@@ -263,6 +296,12 @@ internal static partial class Program
         var selection = Field(form, "conversion");
         var source = (ComboBox)Field(selection, "source"); var target = (ComboBox)Field(selection, "target");
         Require(Math.Abs(source.Width - target.Width) <= 1 && source.Top == target.Top && source.Height == target.Height, "Source and target selectors are symmetric");
+        Require(!Descendants((Control)selection).Any(c => c is CheckBox or NumericUpDown), "Zone and prefix settings are edited in the zone dialog");
+        var swap = Descendants((Control)selection).OfType<Button>().Single(c => c.Name == "SwapCrs");
+        var leftPicker = source.RectangleToScreen(source.ClientRectangle);
+        var rightPicker = target.RectangleToScreen(target.ClientRectangle);
+        var swapBounds = swap.RectangleToScreen(swap.ClientRectangle);
+        Require(leftPicker.Right <= swapBounds.Left && swapBounds.Right <= rightPicker.Left && leftPicker.Top == rightPicker.Top, "Swap CRS sits between the two selectors");
         Require(Descendants(form).Single(c => c.Name == "NavigationRail").Width == 76, "Navigation starts as the compact reference icon rail");
         var split = (SplitContainer)Field(form, "split");
         Require(split.SplitterWidth == 8, "Workspace divider is a clean narrow line");
@@ -278,19 +317,20 @@ internal static partial class Program
 
     private static void CheckTheme(Form form, float scale)
     {
-        var switcher = Descendants(form).Single(c => c.Name == "ThemeSwitcher");
-        switcher.GetType().GetMethod("SetDark")!.Invoke(switcher, new object[] { true });
+        var switcher = Descendants(form).OfType<Button>().Single(c => c.Name == "ThemeSwitcher");
+        switcher.PerformClick();
         var deadline = DateTime.UtcNow.AddMilliseconds(450);
         while (DateTime.UtcNow < deadline) { Application.DoEvents(); Thread.Sleep(10); }
         Require(form.BackColor == Color.FromArgb(20, 29, 37), "Dark theme transition reaches the graphite palette");
         if (scale == 1) Capture(form, "native-live-dark-1");
-        switcher.GetType().GetMethod("SetDark")!.Invoke(switcher, new object[] { false });
+        switcher.PerformClick();
         deadline = DateTime.UtcNow.AddMilliseconds(450);
         while (DateTime.UtcNow < deadline) { Application.DoEvents(); Thread.Sleep(10); }
         Require(form.BackColor == Color.FromArgb(244, 245, 241), "Light theme transition restores the approved palette");
         Console.WriteLine("PASS reversible theme transitions and both native palettes");
     }
 
+    private static void SetField(object instance, string name, object value) => instance.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(instance, value);
     private static object Field(object instance, string name) => instance.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(instance)!;
     private static IEnumerable<Control> Descendants(Control root) => root.Controls.Cast<Control>().SelectMany(c => new[] { c }.Concat(Descendants(c)));
     private static void Require(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }

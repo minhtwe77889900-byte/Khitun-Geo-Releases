@@ -2,27 +2,34 @@ using System.Text.RegularExpressions;
 
 namespace KhitunGeo.Native;
 
-internal sealed record MskCrsEntry(string Id, string Name, IReadOnlyList<NativeCrsOption> Zones, bool IsMskGroup);
+internal sealed record MskCrsEntry(string Id, string Name, IReadOnlyList<NativeCrsOption> Zones, bool IsMskGroup)
+{
+    public bool IsZoneGroup => IsMskGroup || Id == "sk63-group";
+}
 
 internal static class MskSelectionCatalogue
 {
     public static IReadOnlyList<MskCrsEntry> Build(IReadOnlyList<NativeCrsOption> systems)
     {
-        var result = new List<MskCrsEntry>();
-        var added = new HashSet<string>();
-        foreach (var option in systems)
+        string GroupId(NativeCrsOption option)
         {
-            if (!option.Id.StartsWith("msk:", StringComparison.Ordinal))
-            {
-                result.Add(new(option.Id, option.Name, new[] { option }, false));
-                continue;
-            }
-            var region = option.Id.Split('|')[0];
-            if (!added.Add(region)) continue;
-            var zones = systems.Where(s => s.Id.Split('|')[0] == region).ToArray();
-            var name = Regex.Replace(option.Name, @"\s+зона\s+\S+(?:\s+\([^)]*\))?", "", RegexOptions.IgnoreCase);
-            result.Add(new("msk-group:" + region[4..], name, Array.AsReadOnly(zones), true));
+            if (option.Id.StartsWith("msk:", StringComparison.Ordinal))
+                return "msk-group:" + option.Id[4..].Split('|')[0];
+            if (option.Id.StartsWith("sk63:", StringComparison.Ordinal))
+                return "sk63-group";
+            return option.Id;
         }
-        return result.AsReadOnly();
+
+        var options = systems.Where(s => s.Id != "msk164").Select(s =>
+            s with { Name = Regex.Replace(s.Name, @"\s*·\s*[^·]*EPSG:.*$", "", RegexOptions.IgnoreCase) });
+        return options.GroupBy(GroupId).Select(group =>
+        {
+            var zones = group.ToArray();
+            var name = zones[0].Name;
+            var isMsk = group.Key.StartsWith("msk-group:", StringComparison.Ordinal);
+            if (isMsk) name = Regex.Replace(name, @"\s+зона\s+\S+(?:\s+\([^)]*\))?", "", RegexOptions.IgnoreCase);
+            if (group.Key == "sk63-group") name = "СК-63";
+            return new MskCrsEntry(group.Key, name, Array.AsReadOnly(zones), isMsk);
+        }).ToArray();
     }
 }

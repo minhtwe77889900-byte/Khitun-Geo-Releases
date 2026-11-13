@@ -7,6 +7,13 @@ var entries=MskSelectionCatalogue.Build(systems);
 var groups=entries.Where(e=>e.IsMskGroup).ToArray();
 Check(groups.Length>60 && entries.Count<systems.Count,"MSK entries are grouped in main picker");
 Check(groups.SelectMany(g=>g.Zones).Select(z=>z.Id).OrderBy(x=>x).SequenceEqual(systems.Where(s=>s.Id.StartsWith("msk:")).Select(s=>s.Id).OrderBy(x=>x)),"Every real catalogue zone appears exactly once, no invented zones");
+var sk63 = entries.Single(e => e.Id == "sk63-group");
+Check(sk63.IsZoneGroup && !sk63.IsMskGroup && sk63.Name == "СК-63", "SK-63 has one main picker entry");
+Check(!entries.Any(e => e.Id.StartsWith("sk63:")), "Individual SK-63 zones do not clutter the main picker");
+Check(sk63.Zones.Select(z => z.Id).OrderBy(id => id)
+    .SequenceEqual(systems.Where(s => s.Id.StartsWith("sk63:")).Select(s => s.Id).OrderBy(id => id)), "SK-63 zones each appear exactly once");
+Check(!entries.SelectMany(e => e.Zones).Any(z => z.Id == "msk164"), "The obsolete local MSK-164 preset is absent from the picker");
+Check(groups.Single(e => e.Id == "msk-group:164").Zones.Any(z => z.Id == "msk:164||1"), "Regional MSK-164 remains selectable");
 Check(groups.All(g=>!g.Name.Contains("зона ")),"Main picker does not enumerate zones");
 foreach(var entry in entries) foreach(var zone in entry.Zones)
  Check(zone.Definition.GetRawText()==systems.Single(s=>s.Id==zone.Id).Definition.GetRawText(),"Projection definitions preserved exactly");

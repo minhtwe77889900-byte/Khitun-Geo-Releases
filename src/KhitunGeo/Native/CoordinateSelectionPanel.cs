@@ -7,190 +7,173 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
 {
     private readonly ComboBox source = Picker();
     private readonly ComboBox target = Picker();
-    private readonly CheckBox autoZone = new ThemedCheckBox() { Text = "Автозона", Checked = true, AutoSize = true };
-    private readonly CheckBox sourcePrefix = new ThemedCheckBox() { Text = "Префикс исходного Y", Checked = true, AutoSize = true };
-    private readonly CheckBox targetPrefix = new ThemedCheckBox() { Text = "Префикс целевого Y", Checked = true, AutoSize = true };
-    private readonly NumericUpDown manualZone = new() { Minimum = 1, Maximum = 60, Value = 28, Width = 58 };
-
+    private bool autoZone = true, sourcePrefix = true, targetPrefix = true;
+    private int manualZone = 28;
     private readonly Button convert = new() { Text = "Преобразовать", Dock = DockStyle.Fill, Enabled = false, Tag = "primary", FlatStyle = FlatStyle.Flat };
-    private readonly Label message = new() { Text = "Расчёт недоступен", AutoSize = false, AutoEllipsis = true, Dock = DockStyle.Fill, Margin = Padding.Empty, Tag = "muted" };
+    private readonly Label message = new() { Text = "Расчёт недоступен", Dock = DockStyle.Fill, Margin = Padding.Empty, AutoEllipsis = true, Tag = "muted" };
     private IReadOnlyList<MskCrsEntry> entries = Array.Empty<MskCrsEntry>();
     private NativeCrsOption? sourceCurrent, targetCurrent;
-    private Action? sourceSelectionUndo, targetSelectionUndo;
+    private Selection? sourceBefore, targetBefore;
     private bool selecting;
-    private readonly Button sourceZone = new() { Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, AutoEllipsis = true, Margin = Padding.Empty };
-    private readonly Button targetZone = new() { Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, AutoEllipsis = true, Margin = Padding.Empty };
+    private readonly Button sourceZone = ZoneButton(), targetZone = ZoneButton();
     private bool catalogueReady, runtimeReady, busy, ambiguousSourceZones;
     public event EventHandler? ConvertRequested;
-    public bool UsesAutoTargetZone => autoZone.Checked && Kind(target) is "gk6" or "gk3" or "utm";
+    public event Action<Action>? SettingsChanged;
+    public bool UsesAutoTargetZone => autoZone && IsZoned(target);
     public bool SourceIsGeographic => (Kind(source) ?? throw new InvalidOperationException("Выберите исходную систему координат.")) == "geo";
-    public string SourceName => Current(source)?.Name ?? "";
-    public string TargetName => Current(target)?.Name ?? "";
+    public string SourceName => sourceCurrent?.Name ?? "";
+    public string TargetName => targetCurrent?.Name ?? "";
+
+    public CoordinateSelectionPanel(string cataloguePath, Action swapPointAxes)
+    {
+        Dock = DockStyle.Top; Height = 112; ColumnCount = 4; RowCount = 4; Padding = new Padding(12, 4, 12, 4);
+        Name = "CoordinateCard"; Tag = "surface";
+        ColumnStyles.Add(new(SizeType.Percent, 50)); ColumnStyles.Add(new(SizeType.Absolute, 48));
+        ColumnStyles.Add(new(SizeType.Percent, 50)); ColumnStyles.Add(new(SizeType.Absolute, 154));
+        foreach (var height in new[] { 20, 36, 28 }) RowStyles.Add(new(SizeType.Absolute, height));
+        RowStyles.Add(new(SizeType.Percent, 100));
+        Controls.Add(Caption("Исходная СК"), 0, 0); Controls.Add(Caption("Целевая СК"), 2, 0);
+        source.AccessibleName = "Исходная СК — открыть поиск"; target.AccessibleName = "Целевая СК — открыть поиск";
+        Controls.Add(source, 0, 1); Controls.Add(target, 2, 1);
+        var swap = new Button { Name = "SwapCrs", Text = "↔", AccessibleName = "Поменять системы координат местами", Dock = DockStyle.Fill, Margin = new Padding(4, 1, 4, 1) };
+        swap.Click += (_, _) => SwapSystems(); Controls.Add(swap, 1, 1);
+        convert.Margin = new Padding(8, 1, 0, 1);
+        convert.Click += (_, _) => ConvertRequested?.Invoke(this, EventArgs.Empty);
+        Controls.Add(convert, 3, 1);
+        var axes = new Button { Name = "SwapAxes", Text = "Поменять X и Y", AccessibleName = "Поменять X и Y у всех точек", Dock = DockStyle.Fill, Tag = "zone", Margin = new Padding(8, 0, 0, 0) };
+        axes.Click += (_, _) => swapPointAxes(); Controls.Add(axes, 3, 2);
+        Controls.Add(sourceZone, 0, 2); Controls.Add(targetZone, 2, 2);
+        sourceZone.Click += (_, _) => ChooseZone(source); targetZone.Click += (_, _) => ChooseZone(target);
+        Controls.Add(message, 0, 3); SetColumnSpan(message, 4);
+        foreach (var picker in new[] { source, target })
+        {
+            picker.SelectedIndexChanged += (_, _) => SelectionChanged(picker);
+            picker.SelectionChangeCommitted += (_, _) => ChooseZone(picker);
+        }
+        try
+        {
+            entries = MskSelectionCatalogue.Build(NativeCrsCatalogue.Read(cataloguePath));
+            source.DataSource = entries.ToList(); target.DataSource = entries.ToList();
+            Select(source, entries.Single(e => e.Id == "wgs").Zones[0]);
+            Select(target, entries.Single(e => e.Id == "msk-group:164").Zones[0]);
+            catalogueReady = true;
+            UpdateControls();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or FormatException or KeyNotFoundException or InvalidOperationException)
+        {
+            source.Enabled = target.Enabled = swap.Enabled = sourceZone.Enabled = targetZone.Enabled = false;
+            message.Text = "Каталог систем координат недоступен: " + ex.Message;
+        }
+    }
+
+    private static Label Caption(string text) => new() { Text = text, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Margin = Padding.Empty };
+    private static Button ZoneButton() => new() { Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, AutoEllipsis = true, Margin = Padding.Empty, Tag = "zone" };
+    private static ComboBox Picker() => new SearchableCrsPicker()
+    {
+        BindingContext = new BindingContext(),
+        Dock = DockStyle.Fill, Margin = new Padding(0, 2, 0, 2), DropDownStyle = ComboBoxStyle.DropDownList, DropDownWidth = 620,
+        DisplayMember = nameof(MskCrsEntry.Name), ValueMember = nameof(MskCrsEntry.Id),
+        AutoCompleteSource = AutoCompleteSource.ListItems, AutoCompleteMode = AutoCompleteMode.SuggestAppend
+    };
+
+    private NativeCrsOption? Current(ComboBox picker) => picker == source ? sourceCurrent : targetCurrent;
+    private string? Kind(ComboBox picker) => Current(picker)?.Definition.GetProperty("kind").GetString();
+    private bool IsZoned(ComboBox picker) => Kind(picker) is "gk6" or "gk3" or "utm";
+    private int MaximumZone => Kind(source) is "gk6" or "utm" || Kind(target) is "gk6" or "utm" ? 60 : 120;
 
     public bool SelectSource(string id)
     {
         var option = entries.SelectMany(e => e.Zones).FirstOrDefault(item => string.Equals(item.Id, id, StringComparison.OrdinalIgnoreCase));
         if (option is null) return false;
         Select(source, option);
-        ambiguousSourceZones = false; UpdateConvertButton();
+        ambiguousSourceZones = false;
+        UpdateControls();
         return true;
     }
 
-    private NativeCrsOption? Current(ComboBox picker)
+    private void Select(ComboBox picker, NativeCrsOption option)
     {
-        if (picker.SelectedItem is not MskCrsEntry entry) return null;
-        var current = picker == source ? sourceCurrent : targetCurrent;
-        return current is not null && entry.Zones.Any(z => z.Id == current.Id) ? current : entry.Zones[0];
-    }
-
-    private void Select(ComboBox picker, NativeCrsOption? option)
-    {
-        if (option is null) return;
-        if (picker == source) sourceSelectionUndo = null; else targetSelectionUndo = null;
-        var wasSelecting = selecting; selecting = true;
+        selecting = true;
         try
         {
-            if (picker == source) sourceCurrent = option; else targetCurrent = option;
-            picker.SelectedItem = entries.First(e => e.Zones.Any(z => z.Id == option.Id));
-            UpdateZoneControls();
+            if (picker == source) { sourceCurrent = option; sourceBefore = null; }
+            else { targetCurrent = option; targetBefore = null; }
+            picker.SelectedItem = entries.First(e => e.Zones.Contains(option));
         }
-        finally { selecting = wasSelecting; }
+        finally { selecting = false; }
+    }
+
+    private void SelectionChanged(ComboBox picker)
+    {
+        if (selecting || !catalogueReady || picker.SelectedItem is not MskCrsEntry entry) return;
+        var before = CaptureSelection();
+        if (picker == source)
+        {
+            sourceBefore = before; sourceCurrent = entry.Zones[0]; ambiguousSourceZones = false;
+        }
+        else { targetBefore = before; targetCurrent = entry.Zones[0]; }
+        UpdateControls();
     }
 
     private void ChooseZone(ComboBox picker)
     {
-        if (picker == source && Kind(source) is "gk6" or "gk3" or "utm")
+        if (picker.SelectedItem is not MskCrsEntry entry) return;
+        var isSource = picker == source;
+        var before = (isSource ? sourceBefore : targetBefore) ?? CaptureSelection();
+        sourceBefore = targetBefore = null;
+
+        if (IsZoned(picker))
         {
-            var restore = sourceSelectionUndo ?? CaptureSelectionUndo(sourceCurrent, targetCurrent);
-            sourceSelectionUndo = null;
-            using var zoneDialog = new ZonedCrsDialog(SourceName, Kind(source)!, (int)manualZone.Value, sourcePrefix.Checked, NativeTheme.IsDark(this), (int)manualZone.Maximum);
-            if (UiMotion.ShowDialog(zoneDialog, FindForm()) == DialogResult.OK)
+            var kind = Kind(picker)!;
+            using var dialog = new ZonedCrsDialog(Current(picker)!.Name, kind, manualZone, autoZone,
+                isSource ? sourcePrefix : targetPrefix, isSource, NativeTheme.IsDark(this), MaximumZone,
+                Kind(source) is "gk3" or "gk6" && !sourcePrefix);
+            if (UiMotion.ShowDialog(dialog, FindForm()) != DialogResult.OK) { Restore(before); return; }
+            autoZone = dialog.Automatic;
+            manualZone = dialog.SelectedZone;
+            if (kind != "utm")
             {
-                manualZone.Value = zoneDialog.SelectedZone;
-                sourcePrefix.Checked = zoneDialog.SourcePrefix;
-                autoZone.Checked = false;
-                ambiguousSourceZones = false;
-                UpdateZoneControls(); UpdateConvertButton();
+                if (isSource) sourcePrefix = dialog.HasPrefix; else targetPrefix = dialog.HasPrefix;
             }
-            else restore();
-            return;
         }
-        if (picker.SelectedItem is not MskCrsEntry { IsMskGroup: true } entry) return;
-        var undo = (picker == source ? sourceSelectionUndo : targetSelectionUndo)
-            ?? CaptureSelectionUndo(sourceCurrent, targetCurrent);
-        if (picker == source) sourceSelectionUndo = null; else targetSelectionUndo = null;
-        using var dialog = new MskZoneDialog(entry, Current(picker)!, NativeTheme.IsDark(this));
-        if (UiMotion.ShowDialog(dialog, FindForm()) == DialogResult.OK && dialog.SelectedZone is NativeCrsOption selected)
+        else if (entry.IsZoneGroup && entry.Zones.Count > 1)
         {
-            if (picker == source) sourceCurrent = selected; else targetCurrent = selected;
-            if (picker == source) ambiguousSourceZones = false;
-            UpdateZoneControls(); UpdateConvertButton();
+            using var dialog = new MskZoneDialog(entry, Current(picker)!, NativeTheme.IsDark(this));
+            if (UiMotion.ShowDialog(dialog, FindForm()) != DialogResult.OK || dialog.SelectedZone is not NativeCrsOption selected)
+            { Restore(before); return; }
+            Select(picker, selected);
         }
-        else undo();
+
+        if (isSource) ambiguousSourceZones = false;
+        UpdateControls();
+        RecordChange(before);
     }
 
-    public CoordinateSelectionPanel(string cataloguePath, Action swapPointAxes)
+    private void SwapSystems()
     {
-        Dock = DockStyle.Top; Height = 196; ColumnCount = 4; RowCount = 5; Padding = new Padding(18, 12, 18, 10);
-        Name = "CoordinateCard"; Tag = "surface";
-        ColumnStyles.Add(new(SizeType.Percent, 50)); ColumnStyles.Add(new(SizeType.Absolute, 64));
-        ColumnStyles.Add(new(SizeType.Percent, 50)); ColumnStyles.Add(new(SizeType.Absolute, 188));
-        foreach (var height in new[] { 26, 40, 28, 44, 22 }) RowStyles.Add(new(SizeType.Absolute, height));
-        Controls.Add(new Label { Text = "Исходная система координат", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Margin = Padding.Empty }, 0, 0);
-        Controls.Add(new Label { Text = "Целевая система координат", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Margin = Padding.Empty }, 2, 0);
-        source.AccessibleName = "Исходная СК — открыть поиск"; target.AccessibleName = "Целевая СК — открыть поиск";
-        source.Font = target.Font = new Font("Segoe UI", 12);
-        Controls.Add(source, 0, 1); Controls.Add(target, 2, 1);
-        var swap = new Button { Text = "↔", AccessibleName = "Поменять X и Y у всех точек", Dock = DockStyle.Fill, Margin = new Padding(10, 0, 10, 0), Font = new Font("Segoe UI", 15) };
-        swap.Click += (_, _) => swapPointAxes(); Controls.Add(swap, 1, 1);
-        Controls.Add(new Label { Text = "X ↔ Y", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Segoe UI", 9), Margin = Padding.Empty }, 1, 2);
-        convert.Margin = new Padding(18, 0, 0, 0);
-        convert.Click += (_, _) => ConvertRequested?.Invoke(this, EventArgs.Empty);
-        Controls.Add(convert, 3, 1);
-        var options = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, RowCount = 1, Margin = Padding.Empty, Padding = new Padding(0, 6, 0, 0) };
-        foreach (var width in new[] { 34f, 33f, 33f }) options.ColumnStyles.Add(new(SizeType.Percent, width));
-        options.RowStyles.Add(new(SizeType.Percent, 100));
-        var zoneOptions = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, Margin = Padding.Empty };
-        autoZone.Margin = new Padding(0, 4, 12, 0);
-        manualZone.Width = 58; manualZone.Margin = new Padding(4, 2, 0, 0);
-        zoneOptions.Controls.Add(autoZone);
-        zoneOptions.Controls.Add(new Label { Text = "Зона", AutoSize = true, Margin = new Padding(0, 5, 0, 0) });
-        zoneOptions.Controls.Add(manualZone);
-        foreach (var check in new[] { sourcePrefix, targetPrefix }) { check.Dock = DockStyle.Fill; check.CheckAlign = ContentAlignment.MiddleRight; check.TextAlign = ContentAlignment.MiddleLeft; check.Margin = new Padding(16, 0, 0, 0); }
-        options.Controls.Add(zoneOptions, 0, 0); options.Controls.Add(sourcePrefix, 1, 0); options.Controls.Add(targetPrefix, 2, 0);
-        Controls.Add(sourceZone, 0, 2); Controls.Add(targetZone, 2, 2);
-        sourceZone.Tag = targetZone.Tag = "zone";
-        sourceZone.Click += (_, _) => ChooseZone(source); targetZone.Click += (_, _) => ChooseZone(target);
-        Controls.Add(options, 0, 3); SetColumnSpan(options, 4);
-        Controls.Add(message, 0, 4); SetColumnSpan(message, 4);
-        source.SelectedIndexChanged += (_, _) =>
-        {
-            if (!selecting && catalogueReady)
-                sourceSelectionUndo = source.SelectedItem is MskCrsEntry selected &&
-                    (selected.IsMskGroup || selected.Zones[0].Definition.GetProperty("kind").GetString() is "gk6" or "gk3" or "utm")
-                    ? CaptureSelectionUndo(sourceCurrent, Current(target)) : null;
-            if (source.SelectedItem is MskCrsEntry { IsMskGroup: false } entry)
-            { sourceCurrent = entry.Zones[0]; ambiguousSourceZones = false; }
-            UpdateZoneControls(); UpdateConvertButton();
-        };
-        target.SelectedIndexChanged += (_, _) =>
-        {
-            if (!selecting && catalogueReady)
-                targetSelectionUndo = target.SelectedItem is MskCrsEntry { IsMskGroup: true }
-                    ? CaptureSelectionUndo(Current(source), targetCurrent) : null;
-            if (target.SelectedItem is MskCrsEntry { IsMskGroup: false } entry) targetCurrent = entry.Zones[0];
-            UpdateZoneControls();
-        };
-        source.SelectionChangeCommitted += (_, _) => ChooseZone(source);
-        target.SelectionChangeCommitted += (_, _) => ChooseZone(target);
-        autoZone.CheckedChanged += (_, _) => UpdateZoneControls();
-        manualZone.ValueChanged += (_, _) => UpdateZoneControls();
-        sourcePrefix.CheckedChanged += (_, _) => UpdateZoneControls();
-        try
-        {
-            var systems = NativeCrsCatalogue.Read(cataloguePath);
-            entries = MskSelectionCatalogue.Build(systems);
-            source.DataSource = entries.ToList(); target.DataSource = entries.ToList();
-            Select(source, systems.First(c => c.Id == "wgs"));
-            Select(target, systems.First(c => c.Id == "msk164"));
-            UpdateZoneControls();
-            catalogueReady = true;
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or FormatException or KeyNotFoundException or InvalidOperationException)
-        {
-            source.Enabled = target.Enabled = options.Enabled = false;
-            message.Text = "Каталог систем координат недоступен: " + ex.Message;
-        }
+        if (sourceCurrent is null || targetCurrent is null) return;
+        var before = CaptureSelection();
+        Select(source, before.Target); Select(target, before.Source);
+        (sourcePrefix, targetPrefix) = (targetPrefix, sourcePrefix);
+        ambiguousSourceZones = false;
+        UpdateControls(); RecordChange(before);
     }
 
-    private static ComboBox Picker() => new SearchableCrsPicker()
+    private void UpdateControls()
     {
-        BindingContext = new BindingContext(),
-        Dock = DockStyle.Fill, Margin = new Padding(0, 2, 0, 2), DropDownStyle = ComboBoxStyle.DropDownList, DropDownWidth = 620,
-        DisplayMember = nameof(NativeCrsOption.Name), ValueMember = nameof(NativeCrsOption.Id),
-        AutoCompleteSource = AutoCompleteSource.ListItems, AutoCompleteMode = AutoCompleteMode.SuggestAppend
-    };
-
-    private string? Kind(ComboBox picker) => Current(picker)?.Definition.GetProperty("kind").GetString();
-
-    private void UpdateZoneControls()
-    {
-        var sourceKind = Kind(source);
-        var sourceZoned = sourceKind is "gk6" or "gk3" or "utm";
-        sourceZone.Visible = source.SelectedItem is MskCrsEntry { IsMskGroup: true } || sourceZoned;
-        targetZone.Visible = target.SelectedItem is MskCrsEntry { IsMskGroup: true };
-        sourceZone.Text = Current(source)?.Name + " ▾"; targetZone.Text = Current(target)?.Name + " ▾";
-        if (sourceZoned)
-            sourceZone.Text = autoZone.Checked && sourceKind != "utm" && sourcePrefix.Checked
-                ? "Зона из номера в Y · выбрать явно ▾"
-                : ZonedCrsDialog.ZoneDescription(sourceKind!, (int)manualZone.Value) + " ▾";
-        var kinds = new[] { Kind(source), Kind(target) };
-        var anyZoned = kinds.Any(k => k is "gk6" or "gk3" or "utm");
-        manualZone.Maximum = kinds.Any(k => k is "gk6" or "utm") ? 60 : 120;
-        autoZone.Enabled = anyZoned;
-        manualZone.Enabled = anyZoned && (!autoZone.Checked || Kind(source) == "utm");
-        sourcePrefix.Enabled = Kind(source) is "gk6" or "gk3";
-        targetPrefix.Enabled = Kind(target) is "gk6" or "gk3";
+        manualZone = Math.Clamp(manualZone, 1, MaximumZone);
+        if (Kind(source) is "gk6" or "gk3" && !sourcePrefix) autoZone = false;
+        foreach (var (picker, button) in new[] { (source, sourceZone), (target, targetZone) })
+        {
+            button.Visible = IsZoned(picker) || picker.SelectedItem is MskCrsEntry { IsZoneGroup: true, Zones.Count: > 1 };
+            if (!IsZoned(picker)) button.Text = Current(picker)?.Name + " ▾";
+            else
+            {
+                var automatic = autoZone && (picker == target || Kind(source) != "utm");
+                button.Text = (automatic ? picker == source ? "Зона из префикса Y" : "Зона по долготе" : $"Зона {manualZone}") + " ▾";
+            }
+        }
+        UpdateConvertButton();
     }
 
     private void UpdateConvertButton() => convert.Enabled = busy || (catalogueReady && runtimeReady && !ambiguousSourceZones);
@@ -198,63 +181,60 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
     public void SetRuntimeReady(bool ready, string? error = null)
     {
         runtimeReady = ready;
-        if (catalogueReady) message.Text = ready ? "X — север / широта; Y — восток / долгота" : "Расчёт недоступен: " + error;
+        if (catalogueReady) message.Text = ready ? "" : "Расчёт недоступен: " + error;
         UpdateConvertButton();
     }
 
     public void SetBusy(bool value)
     {
-        busy = value;
-        convert.Text = value ? "Прервать" : "Преобразовать";
-        UpdateConvertButton();
+        busy = value; convert.Text = value ? "Прервать" : "Преобразовать"; UpdateConvertButton();
     }
 
-    public Action CaptureUndo() => CaptureSelectionUndo(Current(source), Current(target));
-
-    private Action CaptureSelectionUndo(NativeCrsOption? s, NativeCrsOption? t)
+    private sealed record Selection(NativeCrsOption Source, NativeCrsOption Target, bool Auto, int Zone, bool SourcePrefix, bool TargetPrefix, bool Ambiguous, string Message);
+    private Selection CaptureSelection() => new(sourceCurrent!, targetCurrent!, autoZone, manualZone, sourcePrefix, targetPrefix, ambiguousSourceZones, message.Text);
+    private void Restore(Selection state)
     {
-        var auto = autoZone.Checked; var zone = manualZone.Value;
-        var sp = sourcePrefix.Checked; var tp = targetPrefix.Checked;
-        var ambiguous = ambiguousSourceZones; var text = message.Text;
-        return () =>
-        {
-            Select(source, s); Select(target, t);
-            autoZone.Checked = auto; manualZone.Value = zone;
-            sourcePrefix.Checked = sp; targetPrefix.Checked = tp;
-            ambiguousSourceZones = ambiguous; message.Text = text;
-            UpdateZoneControls(); UpdateConvertButton();
-        };
+        Select(source, state.Source); Select(target, state.Target);
+        autoZone = state.Auto; manualZone = state.Zone;
+        sourcePrefix = state.SourcePrefix; targetPrefix = state.TargetPrefix;
+        ambiguousSourceZones = state.Ambiguous; message.Text = state.Message;
+        UpdateControls();
+    }
+    private void RecordChange(Selection before)
+    {
+        if (CaptureSelection() != before) SettingsChanged?.Invoke(() => Restore(before));
+    }
+    public Action CaptureUndo()
+    {
+        var before = CaptureSelection();
+        return () => Restore(before);
     }
 
-    // Converted coordinates are now in the target CRS; avoid a second conversion
-    // interpreting the result as the former source system.
     public void AcceptResult(IReadOnlyList<int> zones)
     {
-        Select(source, Current(target));
-        sourcePrefix.Checked = targetPrefix.Checked;
-        var explicitZone = Kind(source) == "utm" || ((Kind(source) is "gk6" or "gk3") && !sourcePrefix.Checked);
+        Select(source, targetCurrent!);
+        sourcePrefix = targetPrefix;
+        var explicitZone = Kind(source) == "utm" || ((Kind(source) is "gk6" or "gk3") && !sourcePrefix);
         if (explicitZone && zones.Count == 1)
         {
-            manualZone.Value = zones[0];
-            if (Kind(source) != "utm") autoZone.Checked = false;
+            manualZone = zones[0];
+            if (Kind(source) != "utm") autoZone = false;
         }
         ambiguousSourceZones = explicitZone && zones.Count > 1;
         message.Text = ambiguousSourceZones
             ? "Разные зоны без префикса: для нового расчёта выберите исходную СК."
-            : "Таблица в СК: " + Current(source)?.Name;
-        UpdateZoneControls(); UpdateConvertButton();
+            : "Таблица в СК: " + SourceName;
+        UpdateControls();
     }
 
-    // Snapshot used to reject changed CRS/zone settings after the asynchronous calculation.
     public string SettingsSnapshot() => BuildRequest(Array.Empty<SurveyPoint>());
 
     public string BuildRequest(IReadOnlyList<SurveyPoint> points)
     {
-        if (Current(source) is not NativeCrsOption s || Current(target) is not NativeCrsOption t)
+        if (sourceCurrent is null || targetCurrent is null)
             throw new InvalidOperationException("Выберите исходную и целевую СК.");
-        return CoordinateBridge.BuildRequest(points, s.Definition, t.Definition,
-            new(autoZone.Checked, (double)manualZone.Value,
-                (Kind(source) is "gk6" or "gk3") && sourcePrefix.Checked,
-                (Kind(target) is "gk6" or "gk3") && targetPrefix.Checked));
+        return CoordinateBridge.BuildRequest(points, sourceCurrent.Definition, targetCurrent.Definition,
+            new(autoZone, manualZone, (Kind(source) is "gk6" or "gk3") && sourcePrefix,
+                (Kind(target) is "gk6" or "gk3") && targetPrefix));
     }
 }
