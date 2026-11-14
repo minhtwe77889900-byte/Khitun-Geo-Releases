@@ -13,6 +13,26 @@ internal static partial class Program
             try { action(); Console.WriteLine("PASS " + name); }
             catch (Exception e) { failures.Add(name + ": " + e.Message); Console.WriteLine("FAIL " + failures[^1]); }
         }
+        Check("Training opens, imports its sample and converts all three points", () =>
+        {
+            using var lesson = (Form)Activator.CreateInstance(form.GetType().Assembly.GetType("KhitunGeo.Native.TrainingDialog", true)!,
+                new object[] { Field(form, "coordinateRuntime"), Field(form, "settings"), false })!;
+            lesson.Show(form); Application.DoEvents();
+            var next = (Button)Field(lesson, "next");
+            using var timer = new System.Windows.Forms.Timer { Interval = 100 };
+            timer.Tick += (_, _) =>
+            {
+                var wizard = Application.OpenForms.Cast<Form>().FirstOrDefault(f => f.GetType().Name == "PointImportWizardForm");
+                if (wizard is null) return;
+                timer.Stop();
+                var import = (Button)wizard.AcceptButton!;
+                if (import.Enabled) import.PerformClick(); else wizard.Close();
+            };
+            timer.Start(); next.PerformClick();
+            Require(next.Text == "Преобразовать", "Sample import completes");
+            next.PerformClick();
+            Require(next.Text.StartsWith("Экспортировать") && ((DataGridView)Field(lesson, "grid")).Rows.Count == 3, "Three training points converted");
+        });
         Check("Navigation expands in one layout change without animation timers", () =>
         {
             var rail = Descendants(form).Single(c => c.Name == "NavigationRail");

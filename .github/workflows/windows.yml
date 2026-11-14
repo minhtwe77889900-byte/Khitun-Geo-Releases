@@ -87,8 +87,8 @@ jobs:
         run: |
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer/KhitunGeo.iss
           if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed' }
-          $hash = Get-FileHash dist/KhitunGeo_Setup_1_7_19_x64.exe -Algorithm SHA256
-          "$($hash.Hash.ToLowerInvariant())  KhitunGeo_Setup_1_7_19_x64.exe" | Set-Content dist/SHA256SUMS.txt -Encoding utf8
+          $hash = Get-FileHash dist/KhitunGeo_Setup_1_7_20_x64.exe -Algorithm SHA256
+          "$($hash.Hash.ToLowerInvariant())  KhitunGeo_Setup_1_7_20_x64.exe" | Set-Content dist/SHA256SUMS.txt -Encoding utf8
       - uses: actions/upload-artifact@v4
         with:
           name: KhitunGeo-Setup-x64
@@ -101,3 +101,21 @@ jobs:
           path: src/KhitunGeo/bin/Release/net8.0-windows10.0.19041.0/win-x64/publish/*
           if-no-files-found: error
           retention-days: 14
+
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/release/1.7.20'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: KhitunGeo-Setup-x64
+      - name: Publish stable installer
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          sha256sum -c SHA256SUMS.txt
+          gh release create v1.7.20 KhitunGeo_Setup_1_7_20_x64.exe SHA256SUMS.txt --target "$GITHUB_SHA" --latest --title "Khitun Geo 1.7.20" --notes "Исправлен запуск обучения. Убраны анимации интерфейса."

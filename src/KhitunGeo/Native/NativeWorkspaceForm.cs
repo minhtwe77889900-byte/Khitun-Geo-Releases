@@ -296,7 +296,7 @@ internal sealed partial class NativeWorkspaceForm : Form
 
     private void ToggleVisualization()
     {
-        ThemeTransition.Change(this, ToggleVisualizationCore);
+        ToggleVisualizationCore();
     }
 
     private void ToggleVisualizationCore()
@@ -427,7 +427,7 @@ internal sealed partial class NativeWorkspaceForm : Form
             try
             {
                 using var wizard = new PointImportWizardForm(path, workspace.Points.Count);
-                if (UiMotion.ShowDialog(wizard, this) != DialogResult.OK) break;
+                if (wizard.ShowDialog(this) != DialogResult.OK) break;
                 var next = wizard.AppendToCurrent
                     ? workspace.Points.Concat(wizard.ImportedPoints).ToArray()
                     : wizard.ImportedPoints.ToArray();
@@ -459,7 +459,7 @@ internal sealed partial class NativeWorkspaceForm : Form
     private void StartTutorial()
     {
         using var tutorial = new TrainingDialog(coordinateRuntime, settings, dark);
-        UiMotion.ShowDialog(tutorial, this);
+        tutorial.ShowDialog(this);
     }
 
     private void ExportPoints()
@@ -468,7 +468,7 @@ internal sealed partial class NativeWorkspaceForm : Form
         try
         {
             using var dialog = new PointExportDialog(workspace.Points, conversion.SourceIsGeographic, conversion.SourceName, dark, settings);
-            if (UiMotion.ShowDialog(dialog, this) == DialogResult.OK)
+            if (dialog.ShowDialog(this) == DialogResult.OK)
                 status.Text = $"Экспортировано точек: {dialog.ExportedCount}.";
         }
         catch (InvalidOperationException ex) { MessageBox.Show(this, ex.Message, "Экспорт точек"); }
@@ -504,7 +504,7 @@ internal sealed partial class NativeWorkspaceForm : Form
     {
         if (!grid.EndEdit()) return;
         using var dialog = CreateHeightDialog();
-        UiMotion.ShowDialog(dialog, this);
+        dialog.ShowDialog(this);
     }
 
     private Form CreateHeightDialog()
@@ -585,7 +585,6 @@ internal sealed partial class NativeWorkspaceForm : Form
             pdfCancellation?.Cancel();
             updateLifetime.Cancel();
             workspace.Changed -= WorkspaceChanged;
-            ThemeTransition.Stop(this);
             drawingMenu.Dispose(); aboutMenu.Dispose();
             navigationTips.Dispose();
         }

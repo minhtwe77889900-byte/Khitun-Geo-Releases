@@ -43,15 +43,15 @@ internal sealed partial class NativeWorkspaceForm
         Add(bottom, "Настройки", "\uE713", OpenSettings);
         Add(bottom, "Проверить обновления", "\uE72C", async () => await CheckForUpdatesAsync(manual: true));
         aboutMenu.Items.Add("Обучение", null, (_, _) => StartTutorial());
-        aboutMenu.Items.Add("О программе", null, (_, _) => { using var about = new AboutForm(dark); UiMotion.ShowDialog(about, this); });
-        aboutMenu.Items.Add("Диагностика", null, (_, _) => { using var diagnostics = new DiagnosticsForm(); UiMotion.ShowDialog(diagnostics, this); });
+        aboutMenu.Items.Add("О программе", null, (_, _) => { using var about = new AboutForm(dark); about.ShowDialog(this); });
+        aboutMenu.Items.Add("Диагностика", null, (_, _) => { using var diagnostics = new DiagnosticsForm(); diagnostics.ShowDialog(this); });
         aboutNavigationButton = Add(bottom, "Помощь", "\uE946", () => ShowNavigationMenu(aboutMenu, aboutNavigationButton!));
         themeControl = new ThemeSwitcher { Name = "ThemeSwitcher", Width = 48, Height = 48, Margin = new Padding(4, 3, 4, 3) };
         navigationTips.SetToolTip(themeControl, themeControl.AccessibleName);
         themeControl.ThemeChanged += (_, _) =>
         {
             dark = themeControl.Dark;
-            ThemeTransition.Apply(this, dark);
+            NativeTheme.Apply(this, dark);
             navigationTips.SetToolTip(themeControl, themeControl.AccessibleName);
         };
         bottom.Controls.Add(themeControl);
@@ -84,7 +84,6 @@ internal sealed partial class NativeWorkspaceForm
         var body = rail.Parent!;
         var scale = rail.Width / (navigationExpanded ? 224f : 76f);
         navigationExpanded = !navigationExpanded;
-        ThemeTransition.Stop(this);
         // The rail and content are sibling HWNDs. Hold their common parent
         // until docking and the flow panels have settled at the new width.
         var handle = body.Visible && body.IsHandleCreated ? body.Handle : IntPtr.Zero;
@@ -136,13 +135,8 @@ internal sealed class NavigationIconButton : Button
         SetStyle(ControlStyles.SupportsTransparentBackColor | ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
         BackColor = SystemColors.Control; UseVisualStyleBackColor = false;
     }
-    private void AnimateHover(double target)
-    {
-        var start = hoverAmount;
-        UiMotion.Animate(this, 130, t => { hoverAmount = start + (target - start) * t; Invalidate(); });
-    }
-    protected override void OnMouseEnter(EventArgs e) { base.OnMouseEnter(e); AnimateHover(1); }
-    protected override void OnMouseLeave(EventArgs e) { base.OnMouseLeave(e); AnimateHover(0); }
+    protected override void OnMouseEnter(EventArgs e) { base.OnMouseEnter(e); hoverAmount = 1; Invalidate(); }
+    protected override void OnMouseLeave(EventArgs e) { base.OnMouseLeave(e); hoverAmount = 0; Invalidate(); }
     protected override void OnPaintBackground(PaintEventArgs e) => BrandArtwork.PaintBackdrop(this, e.Graphics);
     protected override void OnPaint(PaintEventArgs e)
     {

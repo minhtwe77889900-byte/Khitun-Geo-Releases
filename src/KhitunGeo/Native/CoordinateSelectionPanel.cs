@@ -128,7 +128,7 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
             using var dialog = new ZonedCrsDialog(Current(picker)!.Name, kind, manualZone, autoZone,
                 isSource ? sourcePrefix : targetPrefix, isSource, NativeTheme.IsDark(this), MaximumZone,
                 Kind(source) is "gk3" or "gk6" && !sourcePrefix);
-            if (UiMotion.ShowDialog(dialog, FindForm()) != DialogResult.OK) { Restore(before); return; }
+            if (dialog.ShowDialog(FindForm()) != DialogResult.OK) { Restore(before); return; }
             autoZone = dialog.Automatic;
             manualZone = dialog.SelectedZone;
             if (kind != "utm")
@@ -139,7 +139,7 @@ internal sealed class CoordinateSelectionPanel : TableLayoutPanel
         else if (entry.IsZoneGroup && entry.Zones.Count > 1)
         {
             using var dialog = new MskZoneDialog(entry, Current(picker)!, NativeTheme.IsDark(this));
-            if (UiMotion.ShowDialog(dialog, FindForm()) != DialogResult.OK || dialog.SelectedZone is not NativeCrsOption selected)
+            if (dialog.ShowDialog(FindForm()) != DialogResult.OK || dialog.SelectedZone is not NativeCrsOption selected)
             { Restore(before); return; }
             Select(picker, selected);
         }

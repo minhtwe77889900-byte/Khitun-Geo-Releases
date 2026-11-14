@@ -82,7 +82,7 @@ internal sealed class TrainingDialog : Form
     {
         Dock = DockStyle.Fill, DropDownStyle = ComboBoxStyle.DropDownList, DropDownWidth = 560,
         DisplayMember = nameof(NativeCrsOption.Name), BindingContext = new BindingContext(),
-        AutoCompleteMode = AutoCompleteMode.SuggestAppend, AutoCompleteSource = AutoCompleteSource.ListItems
+        AutoCompleteSource = AutoCompleteSource.ListItems, AutoCompleteMode = AutoCompleteMode.SuggestAppend
     };
 
     private static string Kind(NativeCrsOption option) => option.Definition.GetProperty("kind").GetString()!;
@@ -134,7 +134,7 @@ internal sealed class TrainingDialog : Form
                 case Stage.Export:
                     using (var dialog = new PointExportDialog(lesson.Points, Kind(to) == "geo", to.Name, dark, settings))
                     {
-                        if (UiMotion.ShowDialog(dialog, this) != DialogResult.OK || dialog.SavedOptions is not { } saved) return;
+                        if (dialog.ShowDialog(this) != DialogResult.OK || dialog.SavedOptions is not { } saved) return;
                         instruction.Text = $"Обучение завершено. Сохранено точек: {dialog.ExportedCount}. Система координат: {to.Name}.";
                         guide.Text = TrainingExportGuide.Describe(saved);
                     }
@@ -190,7 +190,7 @@ internal sealed class TrainingDialog : Form
             File.WriteAllLines(path, new[] { "Номер;X;Y;Высота;Описание" }.Concat(rows));
             using var wizard = new PointImportWizardForm(path, 0);
             NativeTheme.Apply(wizard, dark);
-            if (UiMotion.ShowDialog(wizard, this) != DialogResult.OK) return false;
+            if (wizard.ShowDialog(this) != DialogResult.OK) return false;
             lesson.ReplacePoints(wizard.ImportedPoints);
             return true;
         }

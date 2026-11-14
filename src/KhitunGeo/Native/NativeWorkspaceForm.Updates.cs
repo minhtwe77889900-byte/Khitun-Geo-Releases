@@ -45,7 +45,7 @@ internal sealed partial class NativeWorkspaceForm
     {
         var wasAutoUpdate = settings.AutoUpdateEnabled;
         using var dialog = new SettingsForm(settings);
-        if (UiMotion.ShowDialog(dialog, this) != DialogResult.OK) return;
+        if (dialog.ShowDialog(this) != DialogResult.OK) return;
         settings.ExportFolder = dialog.ExportFolder;
         settings.RememberLastExportFolder = dialog.RememberLastExportFolder;
         settings.AutoUpdateEnabled = dialog.AutoUpdateEnabled;

@@ -96,7 +96,7 @@ internal sealed class SearchableCrsPicker : ComboBox
                 if (IsDisposed || Disposing || DataSource is not IReadOnlyList<MskCrsEntry> entries) return;
                 using var dialog = new CrsSearchDialog(entries, SelectedItem as MskCrsEntry, NativeTheme.IsDark(this));
                 if (initialQuery is not null) dialog.SetInitialQuery(initialQuery);
-                if (UiMotion.ShowDialog(dialog, FindForm()) != DialogResult.OK || dialog.SelectedEntry is null) return;
+                if (dialog.ShowDialog(FindForm()) != DialogResult.OK || dialog.SelectedEntry is null) return;
                 SelectedItem = dialog.SelectedEntry;
                 OnSelectionChangeCommitted(EventArgs.Empty);
             }
